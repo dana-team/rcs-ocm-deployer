@@ -1,0 +1,25 @@
+domain: dana.io
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: rcs-ocm-deployer
+repo: github.com/dana-team/rcs-ocm-deployer
+resources:
+- controller: true
+  domain: dana.io
+  group: dana.io
+  kind: Service
+  version: v1alpha1
+- controller: true
+  domain: dana.io
+  group: dana.io
+  kind: ServicePlacement
+  version: v1alpha1
+- controller: true
+  domain: dana.io
+  group: dana.io
+  kind: ServiceStatus
+  version: v1alpha1
+version: "3"
