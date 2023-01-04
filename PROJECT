@@ -22,4 +22,9 @@ resources:
   group: dana.io
   kind: ServiceStatus
   version: v1alpha1
+- controller: true
+  domain: dana.io
+  group: dana.io
+  kind: ServiceNamespace
+  version: v1
 version: "3"

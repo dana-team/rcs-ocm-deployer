@@ -18,6 +18,10 @@ package main
 
 import (
 	"flag"
+	knativev1 "knative.dev/serving/pkg/apis/serving/v1"
+	clusterv1 "open-cluster-management.io/api/cluster/v1"
+	clusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
+	workv1 "open-cluster-management.io/api/work/v1"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -42,7 +46,10 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
+	utilruntime.Must(knativev1.AddToScheme(scheme))
+	utilruntime.Must(clusterv1.AddToScheme(scheme))
+	utilruntime.Must(clusterv1beta1.AddToScheme(scheme))
+	utilruntime.Must(workv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -101,11 +108,11 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "ServicePlacement")
 		os.Exit(1)
 	}
-	if err = (&controllers.ServiceStatusReconciler{
+	if err = (&controllers.ServiceNamespaceReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ServiceStatus")
+		setupLog.Error(err, "unable to create controller", "controller", "ServiceNamespace")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

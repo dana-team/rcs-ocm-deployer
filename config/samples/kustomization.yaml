@@ -3,4 +3,6 @@ resources:
 - dana.io_v1alpha1_service.yaml
 - dana.io_v1alpha1_serviceplacement.yaml
 - dana.io_v1alpha1_servicestatus.yaml
+- core_v1_namespace.yaml
+- dana.io_v1_servicenamespace.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples
