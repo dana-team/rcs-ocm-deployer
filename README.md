@@ -1,80 +1,19 @@
 # rcs-ocm-deployer
-// TODO(user): Add simple overview of use/purpose
+RCS OCM Deployer is an operator designed to deploy knative services created on the hub to the managed cluster with the lowest load average on specific namespace.
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+RCS OCM Deployer depends on two annotations in the knative service's yaml:
+dana.io/ocm-placement: "placement" - The name of the placement to decide from which manage cluster to delpoy on
+dana.io/ocm-managed-cluster-namespace: "managed-cluster-namespace" - The namespace on the managed cluster to deploy the service to
+
+contains 3 controllers:
+service placement controller: the controller extracts the placement from the serivce's annotations and adds an annotation containing the cluster to deploy to accoding the placementDesicion.
+service namespace controller: the controller extracts the namespace name from the service's annotaion and creates a manifestWork in the desired managedCluster namespace containing the namespace with the desired name to be deployed and adds an annotation to the service when the namespace has been created.
+service controller: the controller extracts the namespace name and the desired cluster from the service's annotations and creates a manifestWork in the desired managedCluster namespace deploying the Service to the managed cluster
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
-
-### Running on the cluster
-1. Install Instances of Custom Resources:
-
-```sh
-kubectl apply -f config/samples/
-```
-
-2. Build and push your image to the location specified by `IMG`:
-	
-```sh
-make docker-build docker-push IMG=<some-registry>/rcs-ocm-deployer:tag
-```
-	
-3. Deploy the controller to the cluster with the image specified by `IMG`:
-
-```sh
-make deploy IMG=<some-registry>/rcs-ocm-deployer:tag
-```
-
-### Uninstall CRDs
-To delete the CRDs from the cluster:
-
-```sh
-make uninstall
-```
-
-### Undeploy controller
-UnDeploy the controller to the cluster:
-
-```sh
-make undeploy
-```
-
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-### How it works
-This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
-
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/) 
-which provides a reconcile function responsible for synchronizing resources untile the desired state is reached on the cluster 
-
-### Test It Out
-1. Install the CRDs into the cluster:
-
-```sh
-make install
-```
-
-2. Run your controller (this will run in the foreground, so switch to a new terminal if you want to leave it running):
-
-```sh
-make run
-```
-
-**NOTE:** You can also run this in one step by running: `make install run`
-
-### Modifying the API definitions
-If you are editing the API definitions, generate the manifests such as CRs or CRDs using:
-
-```sh
-make manifests
-```
-
-**NOTE:** Run `make --help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
 ## License
 
