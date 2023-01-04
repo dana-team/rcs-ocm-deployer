@@ -1,19 +1,3 @@
-/*
-Copyright 2022.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controllers
 
 import (
@@ -35,7 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// Workflow annotation that dictates which OCM Placement this Workflow should use to determine the managed cluster.
+// Serivce annotation that dictates which OCM Placement this service should use to determine the managed cluster.
 const AnnotationKeyOCMPlacement = "dana.io/ocm-placement"
 
 // ServicePlacementReconciler reconciles a ServicePlacement object
@@ -89,6 +73,10 @@ func (r *ServicePlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// pickDecision gets a service logger and context
+// The function decides the name of the managed cluster to deploy to
+// And adds an annotation to the service with its name
+// Returns controller result and error
 func (r *ServicePlacementReconciler) pickDecision(service knativev1.Service, log logr.Logger, ctx context.Context) (ctrl.Result, error) {
 	placementRef := service.Annotations[AnnotationKeyOCMPlacement]
 	placement := clusterv1beta1.Placement{}
@@ -118,6 +106,8 @@ func (r *ServicePlacementReconciler) pickDecision(service knativev1.Service, log
 	return ctrl.Result{}, nil
 }
 
+// getPlacementDecisionList gets service ,logger and placement name
+// The function returns a placementDecisionList containing the placementDecision of the placement
 func (r *ServicePlacementReconciler) getPlacementDecisionList(service knativev1.Service, log logr.Logger, ctx context.Context, placementRef string) (*clusterv1beta1.PlacementDecisionList, error) {
 
 	listopts := &client.ListOptions{}
@@ -138,6 +128,8 @@ func (r *ServicePlacementReconciler) getPlacementDecisionList(service knativev1.
 	return placementDecisions, nil
 }
 
+// getDecisionClusterName gets placementDecisionList and a logger
+// The function extracts from the placementDecision the managedCluster name to deploy to and returns it.
 func getDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecisionList, log logr.Logger) string {
 	// TODO only handle one PlacementDecision target for now
 	pd := placementDecisions.Items[0]
@@ -155,6 +147,9 @@ func getDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecision
 	return managedClusterName
 }
 
+// updateServiceAnnotations gets service, managed cluster name and context
+// The function adds an annotation to the service containing the name of the managed cluster
+// Returns error if occured
 func (r *ServicePlacementReconciler) updateServiceAnnotations(service knativev1.Service, managedClusterName string, ctx context.Context) error {
 	service.Annotations[AnnotationKeyOCMPlacement] = ""
 	service.Annotations[AnnotationKeyOCMManagedCluster] = managedClusterName

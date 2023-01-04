@@ -1,19 +1,3 @@
-/*
-Copyright 2022.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controllers
 
 import (
@@ -38,10 +22,11 @@ type ServiceNamespaceReconciler struct {
 }
 
 const (
+	// NamespaceManifestWorkPrefix prefix of the manifest work creating a namespace on the managed cluster
 	NamespaceManifestWorkPrefix = "mw-create-"
 )
 
-// ServiceNamespacePlacementPredicateFunctions defines which Workflow this controller should wrap inside ManifestWork's payload
+// ServiceNamespacePredicateFunctions defines which service this controller should wrap inside ManifestWork's payload
 var ServiceNamespacePredicateFunctions = predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
 		newService := e.ObjectNew.(*knativev1.Service)
@@ -85,6 +70,9 @@ func (r *ServiceNamespaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// ensureNamespaceExistence gets context and service
+// The function ensures the manifest work containing the namespace exists, if it doesn't it creates it
+// Returns an error if occured
 func (r *ServiceNamespaceReconciler) ensureNamespaceExistence(ctx context.Context, service knativev1.Service) error {
 	namespaceName := service.GetAnnotations()[AnnotationKeyOCMManagedClusterNamespace]
 	mwName := NamespaceManifestWorkPrefix + namespaceName
@@ -106,6 +94,8 @@ func (r *ServiceNamespaceReconciler) ensureNamespaceExistence(ctx context.Contex
 	return nil
 }
 
+// checkManifestWorkExistence gets context, manifest work name and manifest work namespace
+// The function returns true whether the manifest work already exist and false otherwise
 func (r *ServiceNamespaceReconciler) checkManifestWorkExistence(ctx context.Context, mwName string, mwNamespace string) (bool, error) {
 	mw := v1.ManifestWork{}
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: mwName, Namespace: mwNamespace}, &mw); err != nil {
@@ -118,6 +108,9 @@ func (r *ServiceNamespaceReconciler) checkManifestWorkExistence(ctx context.Cont
 	return true, nil
 }
 
+// addNamespaceCreatedAnnotation get context and service
+// The function add annotation to the service that namespace created
+// Return error if occured
 func (r *ServiceNamespaceReconciler) addNamespaceCreatedAnnotation(ctx context.Context, service *knativev1.Service) error {
 	svcAnno := service.GetAnnotations()
 	svcAnno[AnnotationNamespaceCreated] = "true"

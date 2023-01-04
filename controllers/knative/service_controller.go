@@ -35,19 +35,19 @@ import (
 )
 
 const (
-	// Workflow annotation that dictates which managed cluster this Workflow should be propgated to.
+	// Service annotation that dictates which managed cluster this Workflow should be propgated to.
 	AnnotationKeyOCMManagedCluster = "dana.io/ocm-managed-cluster"
-	// Workflow annotation that dictates which managed cluster namespace this Workflow should be propgated to.
+	// Service annotation that dictates which managed cluster namespace this Workflow should be propgated to.
 	AnnotationKeyOCMManagedClusterNamespace = "dana.io/ocm-managed-cluster-namespace"
 	// ManifestWork annotation that shows the namespace of the hub Workflow.
 	AnnotationKeyHubServiceNamespace = "dana.io/ocm-hub-service-namespace"
 	// ManifestWork annotation that shows the name of the hub Workflow.
 	AnnotationKeyHubServiceName = "dana.io/ocm-hub-service-name"
-	// Workflow annotation that shows the first 5 characters of the dormant hub cluster service
+	// Service annotation that shows the first 5 characters of the dormant hub cluster service
 	AnnotationKeyHubServiceUID = "dana.io/ocm-hub-service-uid"
 	// FinalizerCleanupManifestWork is added to the Workflow so the associated ManifestWork gets cleaned up after a Workflow deletion.
 	FinalizerCleanupManifestWork = "dana.io/cleanup-ocm-manifestwork"
-	// Knative Service that indicated that the Service's namespace was created in the managed cluster
+	// Knative Service annotation that indicated that the Service's namespace was created in the managed cluster
 	AnnotationNamespaceCreated = "dana.io/namespace-created"
 )
 
@@ -129,6 +129,9 @@ func (r *ServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// finalizeService gets context, manifest work name, managed cluster name and logger
+// The function checks whether the manifest work deploying the service exists
+// If it does it deletes it
 func (r *ServiceReconciler) finalizeService(ctx context.Context, mwName string, managedClusterName string, log logr.Logger) error {
 	// delete the ManifestWork associated with this service
 	var work workv1.ManifestWork
@@ -148,6 +151,7 @@ func (r *ServiceReconciler) finalizeService(ctx context.Context, mwName string, 
 	return nil
 }
 
+// ensureFinalizer ensures the service has the finalizer
 func (r *ServiceReconciler) ensureFinalizer(ctx context.Context, service knativev1.Service) error {
 	if !controllerutil.ContainsFinalizer(&service, FinalizerCleanupManifestWork) {
 		controllerutil.AddFinalizer(&service, FinalizerCleanupManifestWork)
@@ -158,6 +162,7 @@ func (r *ServiceReconciler) ensureFinalizer(ctx context.Context, service knative
 	return nil
 }
 
+// verifyManagedClusterExistence get managed cluster name and checks whether it exists or not
 func (r *ServiceReconciler) verifyManagedClusterExistence(ctx context.Context, l logr.Logger, managedClusterName string) error {
 	managedCluster := clusterv1.ManagedCluster{}
 	if err := r.Get(ctx, types.NamespacedName{Name: managedClusterName}, &managedCluster); err != nil {
@@ -167,6 +172,8 @@ func (r *ServiceReconciler) verifyManagedClusterExistence(ctx context.Context, l
 	return nil
 }
 
+// EnsureManifestWork checks whether the manifest work deploying the service exists in the managed cluster namespace
+// If it does, it updates the service in the manifest work spec, if it doesn't, it creates it
 func (r *ServiceReconciler) EnsureManifestWork(mwName string, managedClusterName string, service knativev1.Service, ctx context.Context, l logr.Logger) error {
 	l.Info("generating ManifestWork for Service")
 	svc := PrepareServiceForWorkPayload(service)

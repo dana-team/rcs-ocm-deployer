@@ -9,6 +9,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// ContainsValidOCMAnnotation checks whether the service has an annotation
+// Containing the managed cluster name
 func ContainsValidOCMAnnotation(service knativev1.Service) bool {
 	annos := service.GetAnnotations()
 	if len(annos) == 0 {
@@ -19,6 +21,8 @@ func ContainsValidOCMAnnotation(service knativev1.Service) bool {
 	return ok && len(managedClusterName) > 0
 }
 
+// ContainsValidOCMNamespaceAnnotation checks whether the service has an annotation
+// Containing the namespace that the service will be deployed to
 func ContainsValidOCMNamespaceAnnotation(service knativev1.Service) bool {
 	annos := service.GetAnnotations()
 	if len(annos) == 0 {
@@ -29,6 +33,8 @@ func ContainsValidOCMNamespaceAnnotation(service knativev1.Service) bool {
 	return ok && len(namespace) > 0
 }
 
+// ContainsValidOCMPlacementAnnotation checks whether the service has an annotation
+// Containing the placement to choose the managed cluster from
 func ContainsValidOCMPlacementAnnotation(service knativev1.Service) bool {
 	annos := service.GetAnnotations()
 	if len(annos) == 0 {
@@ -39,6 +45,8 @@ func ContainsValidOCMPlacementAnnotation(service knativev1.Service) bool {
 	return ok && len(placementName) > 0
 }
 
+// ContainsNamespaceCreated checks whether the service has an annotation
+// That indicates if the namespace that the service will be deployed to exists
 func ContainsNamespaceCreated(service knativev1.Service) bool {
 	annos := service.GetAnnotations()
 	if len(annos) == 0 {
@@ -61,14 +69,13 @@ func generateServiceNamespace(service knativev1.Service) string {
 	return "knative"
 }
 
-// generateManifestWorkName returns the ManifestWork name for a given workflow.
-// It uses the Workflow name with the suffix of the first 5 characters of the UID
+// GenerateManifestWorkName returns the ManifestWork name for a given workflow.
+// It uses the Service name with the suffix of the first 5 characters of the UID
 func GenerateManifestWorkName(service knativev1.Service) string {
 	return service.Name + "-" + string(service.UID)[0:5]
 }
 
 // PrepareServiceForWorkPayload modifies the Service:
-// - reste the type and object meta
 // - set the namespace value
 // - empty the status
 func PrepareServiceForWorkPayload(service knativev1.Service) knativev1.Service {
@@ -91,7 +98,7 @@ func PrepareServiceForWorkPayload(service knativev1.Service) knativev1.Service {
 }
 
 // GenerateManifestWorkGeneric creates the ManifestWork that wraps object as payload
-// With the status sync feedback of Workflow's phase
+// With the status sync feedback of Service's phase
 func GenerateManifestWorkGeneric(name, namespace string, obj client.Object, machineConfigOptions ...workv1.ManifestConfigOption) *workv1.ManifestWork {
 	return &workv1.ManifestWork{
 		TypeMeta: metav1.TypeMeta{},
@@ -110,6 +117,7 @@ func GenerateManifestWorkGeneric(name, namespace string, obj client.Object, mach
 	}
 }
 
+// GenerateManifestConfigOption generates manifestConfigObject from given parameters
 func GenerateManifestConfigOption(obj client.Object, resource, group string, feedbackRules ...workv1.FeedbackRule) workv1.ManifestConfigOption {
 	return workv1.ManifestConfigOption{
 		ResourceIdentifier: workv1.ResourceIdentifier{
@@ -122,12 +130,14 @@ func GenerateManifestConfigOption(obj client.Object, resource, group string, fee
 	}
 }
 
+// GenerateFeedbackRule generates feedbackRule from given parameters
 func GenerateFeedbackRule(workStatusName, path string) workv1.FeedbackRule {
 	return workv1.FeedbackRule{
 		Type: workv1.JSONPathsType, JsonPaths: []workv1.JsonPath{{Name: workStatusName, Path: path}},
 	}
 }
 
+// GenerateNamespace generates namespace from given names
 func GenerateNamespace(name string) corev1.Namespace {
 	return corev1.Namespace{
 		TypeMeta:   metav1.TypeMeta{Kind: "Namespace", APIVersion: corev1.SchemeGroupVersion.Version},
