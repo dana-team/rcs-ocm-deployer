@@ -2,14 +2,16 @@
 RCS OCM Deployer is an operator designed to deploy knative services created on the hub to the managed cluster with the lowest load average on specific namespace.
 
 ## Description
-RCS OCM Deployer depends on two annotations in the knative service's yaml:
-dana.io/ocm-placement: "placement" - The name of the placement to decide from which manage cluster to delpoy on
-dana.io/ocm-managed-cluster-namespace: "managed-cluster-namespace" - The namespace on the managed cluster to deploy the service to
+RCS OCM Deployer depends on two annotations in the knative service's yaml:  
+**dana.io/ocm-placement:** "placement" - The name of the placement to decide from which manage cluster to delpoy on  
+**dana.io/ocm-managed-cluster-namespace:** "managed-cluster-namespace" - The namespace on the managed cluster to deploy the service to
 
-contains 3 controllers:
-service placement controller: the controller extracts the placement from the serivce's annotations and adds an annotation containing the cluster to deploy to accoding the placementDesicion.
-service namespace controller: the controller extracts the namespace name from the service's annotaion and creates a manifestWork in the desired managedCluster namespace containing the namespace with the desired name to be deployed and adds an annotation to the service when the namespace has been created.
-service controller: the controller extracts the namespace name and the desired cluster from the service's annotations and creates a manifestWork in the desired managedCluster namespace deploying the Service to the managed cluster
+### contains 3 controllers:
+**service placement controller:** the controller extracts the placement from the serivce's annotations and adds an annotation containing the cluster to deploy to accoding the placementDesicion.
+
+**service namespace controller:** the controller extracts the namespace name from the service's annotaion and creates a manifestWork in the desired managedCluster namespace containing the namespace with the desired name to be deployed and adds an annotation to the service when the namespace has been created.
+
+**service controller:** the controller extracts the namespace name and the desired cluster from the service's annotations and creates a manifestWork in the desired managedCluster namespace deploying the Service to the managed cluster
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
