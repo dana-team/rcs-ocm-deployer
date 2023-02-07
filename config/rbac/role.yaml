@@ -8,14 +8,6 @@ rules:
 - apiGroups:
   - cluster.open-cluster-management.io
   resources:
-  - managedclusters
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - cluster.open-cluster-management.io
-  resources:
   - placementdecisions
   verbs:
   - get
@@ -28,26 +20,4 @@ rules:
   verbs:
   - get
   - list
-  - watch
-- apiGroups:
-  - serving.knative.dev
-  resources:
-  - services
-  verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - work.open-cluster-management.io
-  resources:
-  - manifestworks
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
   - watch
