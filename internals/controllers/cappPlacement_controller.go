@@ -2,15 +2,12 @@ package controllers
 
 import (
 	"context"
-	"time"
 
-	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
+	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	utils "github.com/dana-team/rcs-ocm-deployer/internals/utils"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/strings/slices"
 
@@ -42,8 +39,22 @@ func (r *ServicePlacementReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 		return ctrl.Result{}, err
 	}
-
-	return r.setDestinationSite(capp, l, ctx)
+	placementRef := capp.Spec.Site
+	if placementRef == "" || slices.Contains(r.Placements, placementRef) {
+		cluster, err := r.pickDecision(capp, l, ctx)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		if cluster == "requeue" {
+			return ctrl.Result{RequeueAfter: 10}, nil
+		}
+		placementRef = cluster
+	}
+	if err := utils.UpdateCappDestination(capp, placementRef, ctx, r.Client); err != nil {
+		l.Error(err, "unable to update capp")
+		return ctrl.Result{}, err
+	}
+	return ctrl.Result{}, nil
 }
 
 var ServicePredicateFunctions = predicate.Funcs{
@@ -71,112 +82,32 @@ func (r *ServicePlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ServicePlacementReconciler) setDestinationSite(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (ctrl.Result, error) {
-	if capp.Status.ApplicationLinks.Site != "" {
-		r.addCappHasPlacementAnnotation(capp, capp.Status.ApplicationLinks.Site, ctx)
-	}
-	placementRef := capp.Spec.Site
-	if placementRef == "" || slices.Contains(r.Placements, placementRef) {
-		return r.pickDecision(capp, log, ctx)
-	}
-	if err := r.updateCappDestination(capp, placementRef, ctx); err != nil {
-		log.Error(err, "unable to update capp")
-		return ctrl.Result{}, err
-	}
-	return ctrl.Result{}, nil
-}
-
 // pickDecision gets a service logger and context
 // The function decides the name of the managed cluster to deploy to
 // And adds an annotation to the service with its name
 // Returns controller result and error
 
-func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (ctrl.Result, error) {
+func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (string, error) {
 	placementRef := capp.Spec.Site
 	if capp.Spec.Site == "" {
-		// The default placement(regular clusters)
 		placementRef = r.Placements[0]
 	}
 	placement := clusterv1beta1.Placement{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: placementRef, Namespace: capp.Namespace}, &placement); err != nil {
-		return ctrl.Result{}, err
+	if err := r.Client.Get(ctx, types.NamespacedName{Name: placementRef, Namespace: utils.PlacementsNamespace}, &placement); err != nil {
+		return "", err
 	}
-	placementDecisions, err := r.getPlacementDecisionList(capp, log, ctx, placementRef)
+	placementDecisions, err := utils.GetPlacementDecisionList(capp, log, ctx, placementRef, r.Client)
 	if len(placementDecisions.Items) == 0 {
 		log.Info("unable to find any PlacementDecision, try again after 10 seconds")
-		return ctrl.Result{RequeueAfter: time.Second * 10}, nil
+		return "requeue", nil
 	}
 	if err != nil {
-		return ctrl.Result{}, err
+		return "", err
 	}
-	managedClusterName := getDecisionClusterName(placementDecisions, log)
+	managedClusterName := utils.GetDecisionClusterName(placementDecisions, log)
 	if managedClusterName == "" {
-		return ctrl.Result{RequeueAfter: time.Second * 10}, nil
-	}
-	log.Info("updating Service with annotation ManagedCluster: " + managedClusterName)
-	if err := r.updateCappDestination(capp, managedClusterName, ctx); err != nil {
-		log.Error(err, "unable to update Knative Service")
-		return ctrl.Result{}, err
+		return "requeue", nil
 	}
 	log.Info("done reconciling Workflow for Placement evaluation")
-	return ctrl.Result{}, nil
-}
-
-// getPlacementDecisionList gets service ,logger and placement name
-// The function returns a placementDecisionList containing the placementDecision of the placement
-func (r *ServicePlacementReconciler) getPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context, placementRef string) (*clusterv1beta1.PlacementDecisionList, error) {
-
-	listopts := &client.ListOptions{}
-	// query all placementdecisions of the placement
-	requirement, err := labels.NewRequirement(clusterv1beta1.PlacementLabel, selection.Equals, []string{placementRef})
-	if err != nil {
-		log.Error(err, "unable to create new PlacementDecision label requirement")
-		return nil, err
-	}
-	labelSelector := labels.NewSelector().Add(*requirement)
-	listopts.LabelSelector = labelSelector
-	listopts.Namespace = capp.Namespace
-	placementDecisions := &clusterv1beta1.PlacementDecisionList{}
-	if err = r.Client.List(ctx, placementDecisions, listopts); err != nil {
-		log.Error(err, "unable to list PlacementDecisions")
-		return nil, err
-	}
-	return placementDecisions, nil
-}
-
-// getDecisionClusterName gets placementDecisionList and a logger
-// The function extracts from the placementDecision the managedCluster name to deploy to and returns it.
-func getDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecisionList, log logr.Logger) string {
-	// TODO only handle one PlacementDecision target for now
-	pd := placementDecisions.Items[0]
-	if len(pd.Status.Decisions) == 0 {
-		log.Info("unable to find any Decisions from PlacementDecision, try again after 10 seconds")
-		return ""
-	}
-
-	// TODO only using the first decision
-	managedClusterName := pd.Status.Decisions[0].ClusterName
-	if len(managedClusterName) == 0 {
-		log.Info("unable to find a valid ManagedCluster from PlacementDecision, try again after 10 seconds")
-		return ""
-	}
-	return managedClusterName
-}
-
-// updateServiceAnnotations gets service, managed cluster name and context
-// The function adds an annotation to the service containing the name of the managed cluster
-// Returns error if occured
-func (r *ServicePlacementReconciler) updateCappDestination(capp rcsv1alpha1.Capp, managedClusterName string, ctx context.Context) error {
-	capp.Status.ApplicationLinks.Site = managedClusterName
-	return r.Client.Status().Update(ctx, &capp)
-}
-
-func (r *ServicePlacementReconciler) addCappHasPlacementAnnotation(capp rcsv1alpha1.Capp, managedClusterName string, ctx context.Context) error {
-	cappAnno := capp.GetAnnotations()
-	if cappAnno == nil {
-		cappAnno = make(map[string]string)
-	}
-	cappAnno[utils.AnnotationKeyHasPlacement] = managedClusterName
-	capp.SetAnnotations(cappAnno)
-	return r.Client.Update(ctx, &capp)
+	return managedClusterName, nil
 }
