@@ -11,10 +11,12 @@ import (
 
 var SupportedScaleMetrics = []string{"rps", "cuncurrency", "cpu", "memory"}
 
+// This function checks if the specified scaling metric is supported by the system and returns a boolean value accordingly.
 func isScaleMetricSupported(capp rcsv1alpha1.Capp) bool {
 	return slices.Contains(SupportedScaleMetrics, capp.Spec.ScaleMetric)
 }
 
+// This function checks if the specified site cluster name is valid or not. It returns a boolean value based on the validity of the specified site cluster name.
 func isSiteClusterName(capp rcsv1alpha1.Capp, r client.Client, ctx context.Context) bool {
 	if capp.Spec.Site == "" {
 		return true
@@ -24,6 +26,7 @@ func isSiteClusterName(capp rcsv1alpha1.Capp, r client.Client, ctx context.Conte
 
 }
 
+// This function retrieves the list of managed clusters from the Kubernetes API server and returns the list of cluster names as a slice of strings. If there is an error while retrieving the list of managed clusters, the function returns an error.
 func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) {
 	clusterNames := []string{}
 	clusters := clusterv1.ManagedClusterList{}

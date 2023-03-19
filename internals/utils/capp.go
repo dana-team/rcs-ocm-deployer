@@ -1,3 +1,5 @@
+// Package utils provides utility functions for working with Kubernetes resources and custom resources defined in the
+// container-app-operator API.
 package utils
 
 import (
@@ -9,21 +11,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	knativev1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	v1 "open-cluster-management.io/api/work/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// AnnotationKeyHasPlacement is the key used to store the managed cluster name in an annotation on a Capp resource.
 const AnnotationKeyHasPlacement = "dana.io/has-placement"
 
-// GenerateManifestWorkName returns the ManifestWork name for a given workflow.
-// It uses the Service name with the suffix of the first 5 characters of the UID
-func GenerateManifestWorkName(service knativev1.Service) string {
-	return service.Name + "-" + string(service.UID)[0:5]
-}
-
+// ContainesPlacementAnnotation checks if a Capp resource has an annotation indicating it has been placed on a managed cluster.
 func ContainesPlacementAnnotation(capp rcsv1alpha1.Capp) bool {
 	annos := capp.GetAnnotations()
 	if len(annos) == 0 {
@@ -34,18 +30,7 @@ func ContainesPlacementAnnotation(capp rcsv1alpha1.Capp) bool {
 	return ok && len(namespace) > 0
 }
 
-func ContainsValidOCMNamespaceAnnotation(service rcsv1alpha1.Capp) bool {
-	annos := service.GetAnnotations()
-	if len(annos) == 0 {
-		return false
-	}
-
-	namespace, ok := annos["AnnotationNamespaceCreated"]
-	return ok && len(namespace) > 0
-}
-
-// PrepareServiceForWorkPayload modifies the Service:
-// - set the namespace value
+// PrepareServiceForWorkPayload prepares a Capp resource for inclusion in a manifest work by setting its TypeMeta and ObjectMeta.
 func PrepareServiceForWorkPayload(capp rcsv1alpha1.Capp) rcsv1alpha1.Capp {
 	capp.TypeMeta = metav1.TypeMeta{
 		APIVersion: rcsv1alpha1.GroupVersion.String(),
@@ -61,7 +46,7 @@ func PrepareServiceForWorkPayload(capp rcsv1alpha1.Capp) rcsv1alpha1.Capp {
 	return capp
 }
 
-// GenerateNamespace generates namespace from given names
+// GenerateNamespace generates a corev1.Namespace object with the specified name.
 func GenerateNamespace(name string) corev1.Namespace {
 	return corev1.Namespace{
 		TypeMeta:   metav1.TypeMeta{Kind: "Namespace", APIVersion: corev1.SchemeGroupVersion.Version},
@@ -71,6 +56,7 @@ func GenerateNamespace(name string) corev1.Namespace {
 	}
 }
 
+// GatherCappResources gathers all the Kubernetes resources required to deploy a Capp resource and returns them as an array of manifests.
 func GatherCappResources(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger, r client.Client) ([]v1.Manifest, error) {
 	manifests := []v1.Manifest{}
 	svc := PrepareServiceForWorkPayload(capp)
@@ -82,32 +68,17 @@ func GatherCappResources(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logg
 		return manifests, err
 	}
 	manifests = append(manifests, cmAndSecrets...)
+	role, rb, err := PrepareAdminsRolesForCapp(ctx, r, capp)
+	if err != nil {
+		return manifests, err
+	}
+	manifests = append(manifests, v1.Manifest{RawExtension: runtime.RawExtension{Object: &role}}, v1.Manifest{RawExtension: runtime.RawExtension{Object: &rb}})
 	return manifests, nil
 }
 
-func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger, r client.Client) ([]v1.Manifest, error) {
-	resources := []v1.Manifest{}
-	for _, resource := range configMaps {
-		cm := &corev1.ConfigMap{}
-		if err := r.Get(ctx, types.NamespacedName{Name: resource, Namespace: capp.Namespace}, cm); err != nil {
-			l.Error(err, "unable to fetch configmap")
-			return resources, err
-		} else {
-			resources = append(resources, v1.Manifest{RawExtension: runtime.RawExtension{Object: cm}})
-		}
-	}
-	for _, resource := range secrets {
-		secret := &corev1.Secret{}
-		if err := r.Get(ctx, types.NamespacedName{Name: resource, Namespace: capp.Namespace}, secret); err != nil {
-			l.Error(err, "unable to fetch secret")
-			return resources, err
-		} else {
-			resources = append(resources, v1.Manifest{RawExtension: runtime.RawExtension{Object: secret}})
-		}
-	}
-	return resources, nil
-}
-
+// This function updates the Site field in the Status.ApplicationLinks object of a Capp custom resource.
+// The Site field specifies the managed cluster name where the application is running.
+// This function also calls the AddCappHasPlacementAnnotation function to add an annotation to the Capp resource that indicates the placement of the application.
 func UpdateCappDestination(capp rcsv1alpha1.Capp, managedClusterName string, ctx context.Context, r client.Client) error {
 	capp.Status.ApplicationLinks.Site = managedClusterName
 	if err := r.Status().Update(ctx, &capp); err != nil {
@@ -119,32 +90,7 @@ func UpdateCappDestination(capp rcsv1alpha1.Capp, managedClusterName string, ctx
 	return nil
 }
 
-func GetResourceVolumesFromContainerSpec(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger, r client.Client) ([]string, []string) {
-	var configMaps []string
-	var secrets []string
-	for _, containerSpec := range capp.Spec.ConfigurationSpec.Template.Spec.Containers {
-		for _, resourceEnv := range containerSpec.EnvFrom {
-			if resourceEnv.ConfigMapRef != nil {
-				configMaps = append(configMaps, resourceEnv.ConfigMapRef.Name)
-			}
-			if resourceEnv.SecretRef != nil {
-				secrets = append(secrets, resourceEnv.SecretRef.Name)
-			}
-		}
-	}
-	for _, volume := range capp.Spec.ConfigurationSpec.Template.Spec.Volumes {
-
-		if volume.ConfigMap != nil {
-			configMaps = append(configMaps, volume.ConfigMap.Name)
-		}
-		if volume.Secret != nil {
-			secrets = append(secrets, volume.Secret.SecretName)
-		}
-	}
-
-	return configMaps, secrets
-}
-
+// This function adds an annotation to the Capp custom resource that indicates the managed cluster where the application is placed.
 func AddCappHasPlacementAnnotation(capp rcsv1alpha1.Capp, managedClusterName string, ctx context.Context, r client.Client) error {
 	cappAnno := capp.GetAnnotations()
 	if cappAnno == nil {
@@ -155,6 +101,7 @@ func AddCappHasPlacementAnnotation(capp rcsv1alpha1.Capp, managedClusterName str
 	return r.Update(ctx, &capp)
 }
 
+// This function removes an annotation from the Capp custom resource that indicates the namespace where the application is created.
 func RemoveCreatedAnnotation(ctx context.Context, service rcsv1alpha1.Capp, r client.Client) error {
 	cappAnno := service.GetAnnotations()
 	delete(cappAnno, "AnnotationNamespaceCreated")

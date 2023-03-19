@@ -84,7 +84,7 @@ func (r *ServicePlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 // pickDecision gets a service logger and context
 // The function decides the name of the managed cluster to deploy to
-// And adds an annotation to the service with its name
+// And adds an annotation to the capp with its name
 // Returns controller result and error
 
 func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (string, error) {

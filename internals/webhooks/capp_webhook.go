@@ -13,15 +13,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-type cappValidator struct {
+type CappValidator struct {
 	Client  client.Client
 	Decoder *admission.Decoder
 	Log     logr.Logger
 }
 
-// +kubebuilder:webhook:path=/validate-v1-namespace,mutating=false,sideEffects=NoneOnDryRun,failurePolicy=fail,groups="core",resources=namespaces,verbs=delete,versions=v1,name=namespace.dana.io,admissionReviewVersions=v1;v1beta1
+// +kubebuilder:webhook:path=/validate-capp,mutating=false,sideEffects=NoneOnDryRun,failurePolicy=fail,groups="rcs.dana.io",resources=capp,verbs=create;update,versions=v1,name=capp.rcs.dana.io,admissionReviewVersions=v1;v1beta1
 
-func (c *cappValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
+const ServingPath = "/validate-capp"
+
+func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	log := c.Log.WithValues("webhook", "capp Webhook", "Name", req.Name)
 	log.Info("webhook request received")
 	capp := rcsv1alpha1.Capp{}
@@ -33,7 +35,7 @@ func (c *cappValidator) Handle(ctx context.Context, req admission.Request) admis
 
 }
 
-func (c *cappValidator) handle(ctx context.Context, req admission.Request, capp rcsv1alpha1.Capp) admission.Response {
+func (c *CappValidator) handle(ctx context.Context, req admission.Request, capp rcsv1alpha1.Capp) admission.Response {
 	if !isScaleMetricSupported(capp) {
 		return admission.Denied(unSupportedScaleMetric + " " + capp.Spec.ScaleMetric + " the avilable options are " + strings.Join(SupportedScaleMetrics, ","))
 	}

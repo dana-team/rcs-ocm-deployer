@@ -2,9 +2,12 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	utils "github.com/dana-team/rcs-ocm-deployer/internals/utils"
+	status_utils "github.com/dana-team/rcs-ocm-deployer/internals/utils/status"
+
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -75,16 +78,18 @@ var CappPredicateFuncs = predicate.Funcs{
 // If it does, it updates the service in the manifest work spec, if it doesn't, it creates it
 func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger) (ctrl.Result, error) {
 	mwName := utils.NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
-	managedClusterName := capp.Status.ApplicationLinks.Site
+	managedClusterName := capp.Annotations[utils.AnnotationKeyHasPlacement]
 	var mw workv1.ManifestWork
 	manifests, err := utils.GatherCappResources(capp, ctx, l, r.Client)
 	if err != nil {
-		//TODO handle secret not found
+		status_utils.SetVolumesCondition(capp, ctx, r.Client, l, false, err.Error())
 		return ctrl.Result{}, err
 	}
+
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: managedClusterName}, &mw); err != nil {
 		if errors.IsNotFound(err) {
-			mw := utils.GenerateManifestWorkGeneric(mwName, managedClusterName, manifests)
+			mw := utils.GenerateManifestWorkGeneric(mwName, managedClusterName, manifests, utils.PrepareFeedbackRulsForMW(capp))
+			utils.SetManifestWorkCappAnnotations(*mw, capp)
 			if err := r.Create(ctx, mw); err != nil {
 				return ctrl.Result{}, err
 			}
@@ -93,21 +98,41 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 		return ctrl.Result{}, err
 	}
 	mw.Spec.Workload.Manifests = manifests
+
 	if err = r.Update(ctx, &mw); err != nil {
 		l.Error(err, "unable to update ManifestWork")
 		if errors.IsConflict(err) {
-			return ctrl.Result{Requeue: true}, nil
+			return ctrl.Result{RequeueAfter: time.Second * 2}, nil
 		}
 		return ctrl.Result{}, err
 	}
 	l.Info("done reconciling Workflow")
+	defer status_utils.SyncStatusFromMW(ctx, r.Client, l, capp)
 	return ctrl.Result{}, err
 }
+
+// func (r *ServiceNamespaceReconciler) findCappFromMW(mw client.Object) []reconcile.Request {
+// 	cappName := mw.GetAnnotations()[utils.CappNameKey]
+// 	cappNamespace := mw.GetAnnotations()[utils.CappNamespaceKey]
+// 	requests := make([]reconcile.Request, 1)
+// 	requests = append(requests, reconcile.Request{
+// 		NamespacedName: types.NamespacedName{
+// 			Name:      cappName,
+// 			Namespace: cappNamespace,
+// 		},
+// 	})
+// 	return requests
+// }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ServiceNamespaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&rcsv1alpha1.Capp{}).
 		WithEventFilter(CappPredicateFuncs).
+		// Watches(
+		// 	&source.Kind{Type: &workv1.ManifestWork{}},
+		// 	handler.EnqueueRequestsFromMapFunc(r.findCappFromMW),
+		// 	builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		// ).
 		Complete(r)
 }

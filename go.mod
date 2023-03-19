@@ -19,7 +19,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/dana-team/container-app-operator v0.0.0-20230301105742-27e22d41731d
+	github.com/dana-team/container-app-operator v0.0.0-20230314142609-c61555526c6c
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect

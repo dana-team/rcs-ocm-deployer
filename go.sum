@@ -61,6 +61,10 @@ github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGX
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/dana-team/container-app-operator v0.0.0-20230301105742-27e22d41731d h1:IMDfwFCxyasE1vKLf3y+Y3qvCxr18eJnKGATfnRwfXM=
 github.com/dana-team/container-app-operator v0.0.0-20230301105742-27e22d41731d/go.mod h1:gpEUXYNLPDfUV9Ci4pJu9053ACHch+fPsahJRgh875w=
+github.com/dana-team/container-app-operator v0.0.0-20230313120803-a0a6a6d27064 h1:RhVp8BSWQLw5d+Mo0+w6viT+aR5CIsQPSdEvXqKyx3I=
+github.com/dana-team/container-app-operator v0.0.0-20230313120803-a0a6a6d27064/go.mod h1:gpEUXYNLPDfUV9Ci4pJu9053ACHch+fPsahJRgh875w=
+github.com/dana-team/container-app-operator v0.0.0-20230314142609-c61555526c6c h1:kQ08FLmZhqWCl6PhpdnYaeXMblaGGR3g9QZYrjieCDE=
+github.com/dana-team/container-app-operator v0.0.0-20230314142609-c61555526c6c/go.mod h1:gpEUXYNLPDfUV9Ci4pJu9053ACHch+fPsahJRgh875w=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

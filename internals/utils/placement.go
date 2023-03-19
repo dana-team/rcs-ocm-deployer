@@ -12,15 +12,14 @@ import (
 )
 
 const (
-	PlacementsNamespace = "open-cluster-management-global-set"
+	PlacementsNamespace = "default"
 )
 
-// getPlacementDecisionList gets service ,logger and placement name
-// The function returns a placementDecisionList containing the placementDecision of the placement
+// this function fetches a PlacementDecisionList by label. The function takes as parameters an instance of Capp, an instance of logr.Logger, a context.Context, a string placementRef used to filter the PlacementDecisionList.
+// The function returns a pointer to a PlacementDecisionList and an error in case of failure.
 func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context, placementRef string, r client.Client) (*clusterv1beta1.PlacementDecisionList, error) {
 
 	listopts := &client.ListOptions{}
-	// query all placementdecisions of the placement
 	requirement, err := labels.NewRequirement(clusterv1beta1.PlacementLabel, selection.Equals, []string{placementRef})
 	if err != nil {
 		log.Error(err, "unable to create new PlacementDecision label requirement")
@@ -37,17 +36,14 @@ func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx contex
 	return placementDecisions, nil
 }
 
-// getDecisionClusterName gets placementDecisionList and a logger
-// The function extracts from the placementDecision the managedCluster name to deploy to and returns it.
+// function retrieves the name of a managed cluster from a PlacementDecisionList.
 func GetDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecisionList, log logr.Logger) string {
-	// TODO only handle one PlacementDecision target for now
 	pd := placementDecisions.Items[0]
 	if len(pd.Status.Decisions) == 0 {
 		log.Info("unable to find any Decisions from PlacementDecision, try again after 10 seconds")
 		return ""
 	}
 
-	// TODO only using the first decision
 	managedClusterName := pd.Status.Decisions[0].ClusterName
 	if managedClusterName == "local-cluster" {
 		managedClusterName = pd.Status.Decisions[1].ClusterName
