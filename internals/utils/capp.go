@@ -73,6 +73,7 @@ func GenerateNamespace(name string) corev1.Namespace {
 
 func GatherCappResources(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger, r client.Client) ([]v1.Manifest, error) {
 	manifests := []v1.Manifest{}
+	// FIXME rename svc to caap ?
 	svc := PrepareServiceForWorkPayload(capp)
 	ns := GenerateNamespace(capp.Namespace)
 	manifests = append(manifests, v1.Manifest{RawExtension: runtime.RawExtension{Object: &svc}}, v1.Manifest{RawExtension: runtime.RawExtension{Object: &ns}})
@@ -96,6 +97,8 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 			resources = append(resources, v1.Manifest{RawExtension: runtime.RawExtension{Object: cm}})
 		}
 	}
+	// TODO - rgolangh maybe consider List all secrets by some filter and then iterate on the results (specially
+	// if the secrets list is expected to be long)
 	for _, resource := range secrets {
 		secret := &corev1.Secret{}
 		if err := r.Get(ctx, types.NamespacedName{Name: resource, Namespace: capp.Namespace}, secret); err != nil {
@@ -108,6 +111,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 	return resources, nil
 }
 
+// FIXME - couldn't see why this function is not part of the reconciler, and unexported
 func UpdateCappDestination(capp rcsv1alpha1.Capp, managedClusterName string, ctx context.Context, r client.Client) error {
 	capp.Status.ApplicationLinks.Site = managedClusterName
 	if err := r.Status().Update(ctx, &capp); err != nil {
@@ -119,6 +123,7 @@ func UpdateCappDestination(capp rcsv1alpha1.Capp, managedClusterName string, ctx
 	return nil
 }
 
+// FIXME - rgolanggh - unused args - ctx, l, r - also this belongs to the controller package and unexported
 func GetResourceVolumesFromContainerSpec(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger, r client.Client) ([]string, []string) {
 	var configMaps []string
 	var secrets []string
@@ -150,11 +155,13 @@ func AddCappHasPlacementAnnotation(capp rcsv1alpha1.Capp, managedClusterName str
 	if cappAnno == nil {
 		cappAnno = make(map[string]string)
 	}
+	// TODO - rgolangh - what if the annotation is already set? is it okay to overwrite it always?
 	cappAnno[AnnotationKeyHasPlacement] = managedClusterName
 	capp.SetAnnotations(cappAnno)
 	return r.Update(ctx, &capp)
 }
 
+// Unused?
 func RemoveCreatedAnnotation(ctx context.Context, service rcsv1alpha1.Capp, r client.Client) error {
 	cappAnno := service.GetAnnotations()
 	delete(cappAnno, "AnnotationNamespaceCreated")

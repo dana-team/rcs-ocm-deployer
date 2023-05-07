@@ -48,8 +48,6 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-const Placementskey = "PLACEMENTS"
-
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -96,6 +94,22 @@ func main() {
 	// 	setupLog.Error(err, "unable to read placement envinroment variable")
 	// 	os.Exit(1)
 	// }
+
+	// TODO rgolangh - consider creating a CRD per this whole operator, that handles a configuration
+	// and deployment options for it. One of those configuration items could be default placements that will
+	// contain "nesharim" and so on. Something like
+	//
+	//  kind: RCSDeployer
+	//  ...
+	//  spec:
+	//    placements:
+	//      - foo
+	//      - bar
+	//
+	//  This would prevent the use of this mutable list field in the reconciler and would make it
+	//  bit easy to change (for test purposes for example)
+	//
+	// another advantage is that a crd per the operator makes it easy to control deployments and updates of it
 
 	placements := []string{"nesharim", "aman"}
 	if err = (&controllers.ServicePlacementReconciler{

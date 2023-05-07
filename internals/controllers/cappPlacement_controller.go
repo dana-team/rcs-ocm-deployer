@@ -46,6 +46,8 @@ func (r *ServicePlacementReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			return ctrl.Result{}, err
 		}
 		if cluster == "requeue" {
+			// FIXME - rgolangh - the 10 here is actually 10 nanosecond. If the intention is seconds for example
+			// then use '10 * time.Seconds' (have a look at time.Duration constants)
 			return ctrl.Result{RequeueAfter: 10}, nil
 		}
 		placementRef = cluster
@@ -84,7 +86,7 @@ func (r *ServicePlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 // pickDecision gets a service logger and context
 // The function decides the name of the managed cluster to deploy to
-// And adds an annotation to the service with its name
+// and adds an annotation to the service with its name
 // Returns controller result and error
 
 func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (string, error) {
@@ -96,15 +98,23 @@ func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log log
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: placementRef, Namespace: utils.PlacementsNamespace}, &placement); err != nil {
 		return "", err
 	}
+
+	// TODO rgolangh - an error with a proper type is easier to handle than a valid string. ErrNoManagedCluster for
+	// example, and then the upper layer can handle it like any other error. what if someone decided to call their cluster
+	// for whatever reason, 'requeue'?
+
 	placementDecisions, err := utils.GetPlacementDecisionList(capp, log, ctx, placementRef, r.Client)
+	// FIXME - rgolangh - check the error here, because the decisions might be nil so this might panic
+	if err != nil {
+		return "", err
+	}
 	if len(placementDecisions.Items) == 0 {
 		log.Info("unable to find any PlacementDecision, try again after 10 seconds")
 		return "requeue", nil
 	}
-	if err != nil {
-		return "", err
-	}
+
 	managedClusterName := utils.GetDecisionClusterName(placementDecisions, log)
+
 	if managedClusterName == "" {
 		return "requeue", nil
 	}
