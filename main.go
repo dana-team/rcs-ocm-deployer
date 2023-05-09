@@ -97,7 +97,7 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
-	placements := []string{"nesharim", "aman"}
+	placements := []string{"place1", "place2"}
 	if err = (&controllers.ServicePlacementReconciler{
 		Client:     mgr.GetClient(),
 		Scheme:     mgr.GetScheme(),
