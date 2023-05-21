@@ -21,3 +21,11 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - rcs.dana.io
+  resources:
+  - capps
+  verbs:
+  - get
+  - list
+  - watch

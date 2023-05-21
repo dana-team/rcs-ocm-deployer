@@ -42,5 +42,8 @@ func (c *CappValidator) handle(ctx context.Context, req admission.Request, capp 
 	if !isSiteClusterName(capp, c.Client, ctx) {
 		return admission.Denied(unSupportedSite)
 	}
+	if !validateDomainRegex(capp.Spec.RouteSpec.Hostname) {
+		return admission.Denied(unsupportedHostname)
+	}
 	return admission.Allowed("")
 }
