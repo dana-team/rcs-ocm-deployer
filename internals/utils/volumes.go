@@ -59,6 +59,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 
 // This function takes in a Capp object, a context.Context, a logr.Logger, and a Kubernetes client object. It returns two lists of strings, one for ConfigMaps and one for Secrets.
 // This function iterates over the ContainerSpec objects specified in the Capp object and extracts the names of any ConfigMaps or Secrets specified in their EnvFrom fields.
+// Additionally, it extracts the names of secrets located in the imagePullSecrets field.
 // It also iterates over the Volumes specified in the Capp object and extracts the names of any ConfigMaps or Secrets specified in them.
 func GetResourceVolumesFromContainerSpec(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger, r client.Client) ([]string, []string) {
 	var configMaps []string
@@ -81,6 +82,9 @@ func GetResourceVolumesFromContainerSpec(capp rcsv1alpha1.Capp, ctx context.Cont
 		if volume.Secret != nil {
 			secrets = append(secrets, volume.Secret.SecretName)
 		}
+	}
+	for _, secret := range capp.Spec.ConfigurationSpec.Template.Spec.ImagePullSecrets {
+		secrets = append(secrets, secret.Name)
 	}
 
 	return configMaps, secrets
