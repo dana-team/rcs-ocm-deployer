@@ -107,7 +107,7 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 		return ctrl.Result{}, err
 	}
 	l.Info("done reconciling Workflow")
-	defer status_utils.SyncStatusFromMW(ctx, r.Client, l, capp)
+	//defer status_utils.SyncStatusFromMW(ctx, r.Client, l, capp)
 	return ctrl.Result{}, err
 }
 
