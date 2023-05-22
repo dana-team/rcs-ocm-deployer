@@ -17,7 +17,10 @@ import (
 // and returns the new Role, RoleBinding, and an error (if any).
 func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1alpha1.Capp) (rbacv1.Role, rbacv1.RoleBinding, error) {
 	role := rbacv1.Role{
-		TypeMeta: metav1.TypeMeta{},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Role",
+			APIVersion: "rbac.authorization.k8s.io/v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      string(capp.Name + "-logs-reader"),
 			Namespace: capp.Namespace,
@@ -43,7 +46,10 @@ func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1a
 	}
 
 	rolebinding := rbacv1.RoleBinding{
-		TypeMeta: metav1.TypeMeta{},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "RoleBinding",
+			APIVersion: "rbac.authorization.k8s.io/v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      string(capp.Name + "-logs-reader"),
 			Namespace: capp.Namespace,

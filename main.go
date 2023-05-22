@@ -27,7 +27,7 @@ import (
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/controllers"
 
-	//wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
+	wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -40,6 +40,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	//"sigs.k8s.io/controller-runtime/pkg/webhook"
 
@@ -118,9 +119,10 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Capp")
 		os.Exit(1)
 	}
-	//+kubebuilder:scaffold:builder
 
-	// mgr.GetWebhookServer().Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{}})
+	mgr.GetWebhookServer().Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{}})
+
+	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

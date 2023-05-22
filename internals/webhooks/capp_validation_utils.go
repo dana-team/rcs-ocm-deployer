@@ -3,6 +3,8 @@ package webhooks
 import (
 	"context"
 
+	"regexp"
+
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"k8s.io/utils/strings/slices"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
@@ -37,4 +39,9 @@ func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) 
 		clusterNames = append(clusterNames, cluster.Name)
 	}
 	return clusterNames, nil
+}
+
+func validateDomainRegex(domainname string) bool {
+	match, _ := regexp.MatchString("^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\\.[a-zA-Z]{2,})+$", domainname)
+	return match
 }

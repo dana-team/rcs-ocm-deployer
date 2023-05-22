@@ -27,6 +27,7 @@ type ServicePlacementReconciler struct {
 	Placements []string
 }
 
+//+kubebuilder:rbac:groups=rcs.dana.io,resources=capps,verbs=get;list;watch
 //+kubebuilder:rbac:groups=cluster.open-cluster-management.io,resources=placementdecisions,verbs=get;list;watch
 //+kubebuilder:rbac:groups=cluster.open-cluster-management.io,resources=placements,verbs=get;list;watch
 

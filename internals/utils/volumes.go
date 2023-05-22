@@ -48,7 +48,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 		} else {
 			secretManifest := &corev1.Secret{
 				TypeMeta: metav1.TypeMeta{
-					Kind: "Secret",
+					Kind:       "Secret",
 					APIVersion: "v1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
