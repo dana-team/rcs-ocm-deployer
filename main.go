@@ -124,8 +124,6 @@ func main() {
 
 	//+kubebuilder:scaffold:builder
 
-	// mgr.GetWebhookServer().Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{}})
-
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
 		os.Exit(1)
