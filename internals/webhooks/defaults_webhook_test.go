@@ -18,10 +18,10 @@ type TestCase struct {
 func TestDefaultsWebhook(t *testing.T) {
 	tests := []TestCase{
 		{
-			cappName: "i-forgot-metric",
+			cappName: "withoutScaleMetric",
 			mutated:  true,
 		}, {
-			cappName:    "i-put-metric",
+			cappName:    "withScaleMetric",
 			scaleMetric: "cpu",
 			mutated:     false,
 		},
