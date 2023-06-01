@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/go-logr/logr v1.2.3
+	github.com/onsi/gomega v1.24.1
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.1
 	k8s.io/client-go v0.26.1
@@ -16,7 +17,6 @@ require (
 require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/magefile/mage v1.9.0 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/testify v1.8.2 // indirect
 )
 
