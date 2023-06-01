@@ -28,6 +28,7 @@ import (
 	"github.com/dana-team/rcs-ocm-deployer/internals/controllers"
 
 	wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -120,7 +121,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	mgr.GetWebhookServer().Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{}})
+	hookServer := mgr.GetWebhookServer()
+	decoder, _ := admission.NewDecoder(scheme)
+	hookServer.Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{
+			Client:  mgr.GetClient(),
+			Decoder: decoder,
+	}})
+	hookServer.Register(wh.DefaultsServingPath, &webhook.Admission{Handler: &wh.DefaultMutator{
+			Client:  mgr.GetClient(),
+			Decoder: decoder,
+	}})
 
 	//+kubebuilder:scaffold:builder
 

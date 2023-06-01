@@ -24,7 +24,7 @@ func isSiteClusterName(capp rcsv1alpha1.Capp, r client.Client, ctx context.Conte
 		return true
 	}
 	clusters, _ := getManagedClusters(r, ctx)
-	return slices.Contains(clusters, capp.Spec.ScaleMetric)
+	return slices.Contains(clusters, capp.Spec.Site)
 
 }
 
