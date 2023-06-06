@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var SupportedScaleMetrics = []string{"rps", "cuncurrency", "cpu", "memory"}
+var SupportedScaleMetrics = []string{"rps", "concurrency", "cpu", "memory"}
 
 // This function checks if the specified scaling metric is supported by the system and returns a boolean value accordingly.
 func isScaleMetricSupported(capp rcsv1alpha1.Capp) bool {
@@ -19,12 +19,12 @@ func isScaleMetricSupported(capp rcsv1alpha1.Capp) bool {
 }
 
 // This function checks if the specified site cluster name is valid or not. It returns a boolean value based on the validity of the specified site cluster name.
-func isSiteClusterName(capp rcsv1alpha1.Capp, r client.Client, ctx context.Context) bool {
+func isSiteVaild(capp rcsv1alpha1.Capp, placements []string, r client.Client, ctx context.Context) bool {
 	if capp.Spec.Site == "" {
 		return true
 	}
 	clusters, _ := getManagedClusters(r, ctx)
-	return slices.Contains(clusters, capp.Spec.Site)
+	return slices.Contains(clusters, capp.Spec.Site) || slices.Contains(placements, capp.Spec.Site)
 
 }
 

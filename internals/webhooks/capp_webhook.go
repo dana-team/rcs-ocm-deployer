@@ -14,8 +14,9 @@ import (
 )
 
 type CappValidator struct {
-	Client  client.Client
-	Decoder *admission.Decoder
+	Client     client.Client
+	Decoder    *admission.Decoder
+	Placements []string
 }
 
 // +kubebuilder:webhook:path=/validate-capp,mutating=false,sideEffects=NoneOnDryRun,failurePolicy=fail,groups="rcs.dana.io",resources=capps,verbs=create;update,versions=v1alpha1,name=capp.validate.rcs.dana.io,admissionReviewVersions=v1;v1beta1
@@ -38,7 +39,7 @@ func (c *CappValidator) handle(ctx context.Context, req admission.Request, capp 
 	if !isScaleMetricSupported(capp) {
 		return admission.Denied(fmt.Sprintf("This scale metric %s is unsupported. the avilable options are %s", capp.Spec.ScaleMetric, strings.Join(SupportedScaleMetrics, ",")))
 	}
-	if !isSiteClusterName(capp, c.Client, ctx) {
+	if !isSiteVaild(capp, c.Placements, c.Client, ctx) {
 		return admission.Denied(fmt.Sprintf("This site %s is unsupported. Site field accepts either cluster name or placement name", capp.Spec.Site))
 	}
 	if !validateDomainRegex(capp.Spec.RouteSpec.Hostname) {

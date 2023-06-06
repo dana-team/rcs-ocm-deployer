@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"strings"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -28,7 +29,6 @@ import (
 	"github.com/dana-team/rcs-ocm-deployer/internals/controllers"
 
 	wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -42,6 +42,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	//"sigs.k8s.io/controller-runtime/pkg/webhook"
 
@@ -97,13 +98,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	// placements := os.Getenv(Placementskey)
-	// if placements == "" {
-	// 	setupLog.Error(err, "unable to read placement envinroment variable")
-	// 	os.Exit(1)
-	// }
+	placementsEnv := os.Getenv(Placementskey)
+	var placements []string
+	if placementsEnv == "" {
+		setupLog.Error(err, "unable to read placement envinroment variable")
+		os.Exit(1)
+	} else {
+		placements = strings.Split(placementsEnv, ",")
+	}
 
-	placements := []string{"nesharim", "aman"}
 	if err = (&controllers.ServicePlacementReconciler{
 		Client:     mgr.GetClient(),
 		Scheme:     mgr.GetScheme(),
@@ -124,12 +127,13 @@ func main() {
 	hookServer := mgr.GetWebhookServer()
 	decoder, _ := admission.NewDecoder(scheme)
 	hookServer.Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{
-			Client:  mgr.GetClient(),
-			Decoder: decoder,
+		Client:     mgr.GetClient(),
+		Decoder:    decoder,
+		Placements: placements,
 	}})
 	hookServer.Register(wh.DefaultsServingPath, &webhook.Admission{Handler: &wh.DefaultMutator{
-			Client:  mgr.GetClient(),
-			Decoder: decoder,
+		Client:  mgr.GetClient(),
+		Decoder: decoder,
 	}})
 
 	//+kubebuilder:scaffold:builder
