@@ -28,7 +28,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 		} else {
 			cmManifest := &corev1.ConfigMap{
 				TypeMeta: metav1.TypeMeta{
-					Kind: "ConfigMap",
+					Kind:       "ConfigMap",
 					APIVersion: "v1",
 				},
 				ObjectMeta: metav1.ObjectMeta{

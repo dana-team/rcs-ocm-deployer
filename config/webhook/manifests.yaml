@@ -1,5 +1,33 @@
 ---
 apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-defaults-capp
+  failurePolicy: Fail
+  name: capp.mutate.rcs.dana.io
+  rules:
+  - apiGroups:
+    - rcs.dana.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - capps
+  sideEffects: NoneOnDryRun
+---
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   creationTimestamp: null
@@ -14,15 +42,15 @@ webhooks:
       namespace: system
       path: /validate-capp
   failurePolicy: Fail
-  name: capp.rcs.dana.io
+  name: capp.validate.rcs.dana.io
   rules:
   - apiGroups:
     - rcs.dana.io
     apiVersions:
-    - v1
+    - v1alpha1
     operations:
     - CREATE
     - UPDATE
     resources:
-    - capp
+    - capps
   sideEffects: NoneOnDryRun
