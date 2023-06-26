@@ -125,11 +125,13 @@ func main() {
 	}
 
 	hookServer := mgr.GetWebhookServer()
-	decoder, _ := admission.NewDecoder(scheme)
+	decoder := admission.NewDecoder(scheme)
 	hookServer.Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{
+
 		Client:     mgr.GetClient(),
 		Decoder:    decoder,
 		Placements: placements,
+
 	}})
 	hookServer.Register(wh.DefaultsServingPath, &webhook.Admission{Handler: &wh.DefaultMutator{
 		Client:  mgr.GetClient(),
