@@ -1,0 +1,8 @@
+apiVersion: addon.open-cluster-management.io/v1alpha1
+kind: ClusterManagementAddOn
+metadata:
+  name: capp-status-sync-addon
+spec:
+  addOnMeta:
+    displayName: CappStatusSyncAddon
+    description: Capp Status Sync Addon is an OCM add-on that copies the Capp status from the spoke clusters to the hub cluster.
