@@ -88,7 +88,7 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: managedClusterName}, &mw); err != nil {
 		if errors.IsNotFound(err) {
-			mw := utils.GenerateManifestWorkGeneric(mwName, managedClusterName, manifests, utils.PrepareFeedbackRulsForMW(capp))
+			mw := utils.GenerateManifestWorkGeneric(mwName, managedClusterName, manifests, workv1.ManifestConfigOption{})
 			utils.SetManifestWorkCappAnnotations(*mw, capp)
 			if err := r.Create(ctx, mw); err != nil {
 				return ctrl.Result{}, err
@@ -107,32 +107,13 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 		return ctrl.Result{}, err
 	}
 	l.Info("done reconciling Workflow")
-	defer status_utils.SyncStatusFromMW(ctx, r.Client, l, capp)
 	return ctrl.Result{}, err
 }
-
-// func (r *ServiceNamespaceReconciler) findCappFromMW(mw client.Object) []reconcile.Request {
-// 	cappName := mw.GetAnnotations()[utils.CappNameKey]
-// 	cappNamespace := mw.GetAnnotations()[utils.CappNamespaceKey]
-// 	requests := make([]reconcile.Request, 1)
-// 	requests = append(requests, reconcile.Request{
-// 		NamespacedName: types.NamespacedName{
-// 			Name:      cappName,
-// 			Namespace: cappNamespace,
-// 		},
-// 	})
-// 	return requests
-// }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ServiceNamespaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&rcsv1alpha1.Capp{}).
 		WithEventFilter(CappPredicateFuncs).
-		// Watches(
-		// 	&source.Kind{Type: &workv1.ManifestWork{}},
-		// 	handler.EnqueueRequestsFromMapFunc(r.findCappFromMW),
-		// 	builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		// ).
 		Complete(r)
 }

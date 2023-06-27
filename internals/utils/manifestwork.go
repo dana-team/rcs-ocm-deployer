@@ -54,33 +54,6 @@ func GenerateManifestConfigOption(obj client.Object, resource, group string, fee
 	}
 }
 
-// This function generates a new FeedbackRule object with the specified workStatusName and path.
-func GenerateFeedbackRule(workStatusName, path string) workv1.FeedbackRule {
-	return workv1.FeedbackRule{
-		Type: workv1.JSONPathsType, JsonPaths: []workv1.JsonPath{{Name: workStatusName, Path: path}},
-	}
-}
-
-// This function generates a list of feedback rules that can be used to prepare a new manifest work object for the specified Capp.
-func PrepareFeedbackRulsForMW(capp rcsv1alpha1.Capp) workv1.ManifestConfigOption {
-
-	feedbackRules := []workv1.FeedbackRule{
-		GenerateFeedbackRule("clusterSegment", ".status.applicationLinks.clusterSegment"),
-		GenerateFeedbackRule("consoleLink", ".status.applicationLinks.consoleLink"),
-		GenerateFeedbackRule("site", ".status.applicationLinks.site"),
-		GenerateFeedbackRule("url", ".status.knativeObjectStatus.address.url"),
-		GenerateFeedbackRule("latestCreatedRevisionName", ".status.knativeObjectStatus.latestCreatedRevisionName"),
-		GenerateFeedbackRule("latestReadyRevisionName", ".status.knativeObjectStatus.latestReadyRevisionName"),
-		GenerateFeedbackRule("observedGeneration", ".status.knativeObjectStatus.observedGeneration"),
-		GenerateFeedbackRule("latestRevision", ".status.knativeObjectStatus.traffic[*].latestRevision"),
-		GenerateFeedbackRule("percent", ".status.knativeObjectStatus.traffic[*].percent"),
-		GenerateFeedbackRule("revisionName", ".status.knativeObjectStatus.traffic[*].revisionName"),
-		GenerateFeedbackRule("actualReplicas", ".status.Revisions[*].RevisionsStatus.actualReplicas"),
-	}
-
-	return GenerateManifestConfigOption(&capp, "capps", rcsv1alpha1.GroupVersion.Group, feedbackRules...)
-}
-
 // This function retrieves the manifest work object related to the specified Capp by name and namespace. It takes a context, a client, a logger, and the Capp object itself, and returns the related manifest work object or an error if it cannot be retrieved.
 func GetRelatedManifestwork(ctx context.Context, r client.Client, l logr.Logger, capp rcsv1alpha1.Capp) (workv1.ManifestWork, error) {
 	mw := workv1.ManifestWork{}
