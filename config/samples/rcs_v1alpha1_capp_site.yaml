@@ -4,7 +4,6 @@ metadata:
   name: capp-sahar22
 spec:
   scaleMetric: cpu
-  site: ocp-nikola
   configurationSpec:
     template:
       spec:
