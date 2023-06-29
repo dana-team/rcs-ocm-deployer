@@ -106,6 +106,10 @@ vet: ## Run go vet against code.
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
+.PHONY: test-e2e
+test-e2e: install-kuttl
+	kubectl kuttl test ./test/e2e
+
 ##@ Build
 
 .PHONY: build
@@ -147,6 +151,15 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
+.PHONY: deploy-addon
+deploy-addon:  kustomize ## Deploy addon to the k8s cluster specified in ~/.kube/config.
+	$(KUSTOMIZE) build addons/deploy/status-sync | kubectl apply -f -
+
+.PHONY: undeploy-addon
+undeploy-addon: kustomize ## Undeploy addon from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build addons/deploy/status-sync | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+
+
 ##@ Build Dependencies
 
 ## Location to install dependencies to
@@ -178,6 +191,19 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+KUTTL_BINARY_INSTALLATION ?= "https://github.com/kudobuilder/kuttl/releases/download/v0.15.0/kuttl_0.15.0_linux_x86_64.tar.gz"
+KUTTL_TAR_FILE_NAME ?= kuttl_0.15.0_linux_x86_64.tar.gz
+KUTTL_LOCATION ?= /usr/local/bin/kubectl-kuttl
+
+.PHONY: install-kuttl
+install-kuttl:
+	@if ! test -f "$(KUTTL_LOCATION)"; then \
+		curl -LO $(KUTTL_BINARY_INSTALLATION); \
+		tar -xvf $(KUTTL_TAR_FILE_NAME); \
+		sudo mv kubectl-kuttl /usr/local/bin/; \
+		rm -rf $(KUTTL_TAR_FILE_NAME); \
+	fi
 
 .PHONY: bundle
 bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.

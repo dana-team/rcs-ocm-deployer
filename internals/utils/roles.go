@@ -10,9 +10,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// This Go package contains utility functions for managing Kubernetes RBAC Roles and RoleBindings for a Container Application.
+
+// This function prepares a new RBAC Role and RoleBinding for a container application.
+// It grants permission to read logs of the container's pods. It takes a context.Context, a Kubernetes client.Client, and a rcsv1alpha1.Capp object representing the Container Application for which the Role and RoleBinding are being prepared,
+// and returns the new Role, RoleBinding, and an error (if any).
 func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1alpha1.Capp) (rbacv1.Role, rbacv1.RoleBinding, error) {
 	role := rbacv1.Role{
-		TypeMeta: metav1.TypeMeta{},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Role",
+			APIVersion: "rbac.authorization.k8s.io/v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      string(capp.Name + "-logs-reader"),
 			Namespace: capp.Namespace,
@@ -32,13 +40,16 @@ func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1a
 		},
 	}
 	users, err := GetUsersfromNamespace(ctx, r, capp)
-	subjects := generateSubjectsFromUsers(users)
+	subjects := GenerateSubjectsFromUsers(users)
 	if err != nil {
 		return rbacv1.Role{}, rbacv1.RoleBinding{}, err
 	}
 
 	rolebinding := rbacv1.RoleBinding{
-		TypeMeta: metav1.TypeMeta{},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "RoleBinding",
+			APIVersion: "rbac.authorization.k8s.io/v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      string(capp.Name + "-logs-reader"),
 			Namespace: capp.Namespace,
@@ -53,7 +64,8 @@ func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1a
 	return role, rolebinding, nil
 }
 
-func generateSubjectsFromUsers(users []string) []rbacv1.Subject {
+// This function generates a list of Kubernetes Subject objects from a list of user names. It takes a slice of string representing the user names and returns a slice of rbacv1.Subject objects.
+func GenerateSubjectsFromUsers(users []string) []rbacv1.Subject {
 	subjects := []rbacv1.Subject{}
 	for _, user := range users {
 		subjects = append(subjects, rbacv1.Subject{
@@ -65,10 +77,15 @@ func generateSubjectsFromUsers(users []string) []rbacv1.Subject {
 	return subjects
 }
 
+// This function returns a list of all user names with admin or logs-reader Roles It takes a context.Context, a Kubernetes client.Client, and a rcsv1alpha1.Capp object representing the Container Application for which the user names are being retrieved,
+// and returns a slice of string representing the user names, and an error (if any).
 func GetUsersfromNamespace(ctx context.Context, r client.Client, capp rcsv1alpha1.Capp) ([]string, error) {
-	rolebindings := rbacv1.ClusterRoleBindingList{}
+	rolebindings := rbacv1.RoleBindingList{}
 	users := []string{}
-	if err := r.List(ctx, &rolebindings); err != nil {
+	listOps := &client.ListOptions{
+		Namespace: capp.GetNamespace(),
+	}
+	if err := r.List(ctx, &rolebindings, listOps); err != nil {
 		return users, err
 	}
 	for _, rb := range rolebindings.Items {

@@ -1,0 +1,24 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+timeout: 20
+---
+apiVersion: rcs.dana.io/v1alpha1
+kind: Capp
+metadata:
+  name: capp-without-metric
+spec:
+  site: ocp-danish-cop
+  configurationSpec:
+    template:
+      metadata:
+        creationTimestamp: null
+      spec:
+        containers:
+          - env:
+              - name: APP_NAME
+                value: capp-without-metric
+            image: 'sahar2339/example-python-app:v1-flask'
+            name: capp-without-metric
+            resources: {}
+  routeSpec:
+    hostname: rbacqwegen.dev

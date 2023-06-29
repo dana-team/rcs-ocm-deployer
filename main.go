@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"strings"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -26,6 +27,8 @@ import (
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/controllers"
+
+	wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,6 +41,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	//"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/go-logr/zapr"
 	//+kubebuilder:scaffold:imports
@@ -49,6 +56,8 @@ var (
 )
 
 const Placementskey = "PLACEMENTS"
+const PlacementsNamespaceKey = "PLACEMENTS_NAMESPACE"
+const DefaultPlacementsNamespaces = "default"
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -91,17 +100,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	// placements := os.Getenv(Placementskey)
-	// if placements == "" {
-	// 	setupLog.Error(err, "unable to read placement envinroment variable")
-	// 	os.Exit(1)
-	// }
+	placementsEnv := os.Getenv(Placementskey)
+	placementsNamespace := os.Getenv(PlacementsNamespaceKey)
+	var placements []string
+	if placementsEnv == "" {
+		setupLog.Error(err, "unable to read placement envinroment variable")
+		os.Exit(1)
+	} else {
+		placements = strings.Split(placementsEnv, ",")
+	}
+	if placementsNamespace == "" {
+		placementsNamespace = DefaultPlacementsNamespaces
+	}
 
-	placements := []string{"place1", "place2"}
 	if err = (&controllers.ServicePlacementReconciler{
-		Client:     mgr.GetClient(),
-		Scheme:     mgr.GetScheme(),
-		Placements: placements,
+		Client:              mgr.GetClient(),
+		Scheme:              mgr.GetScheme(),
+		Placements:          placements,
+		PlacementsNamespace: placementsNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Capp")
 		os.Exit(1)
@@ -114,6 +130,20 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Capp")
 		os.Exit(1)
 	}
+
+	hookServer := mgr.GetWebhookServer()
+	decoder := admission.NewDecoder(scheme)
+	hookServer.Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{
+
+		Client:     mgr.GetClient(),
+		Decoder:    decoder,
+		Placements: placements,
+	}})
+	hookServer.Register(wh.DefaultsServingPath, &webhook.Admission{Handler: &wh.DefaultMutator{
+		Client:  mgr.GetClient(),
+		Decoder: decoder,
+	}})
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

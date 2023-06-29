@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	utils "github.com/dana-team/rcs-ocm-deployer/internals/utils"
@@ -23,10 +24,12 @@ import (
 // ServicePlacementReconciler reconciles a ServicePlacement object
 type ServicePlacementReconciler struct {
 	client.Client
-	Scheme     *runtime.Scheme
-	Placements []string
+	Scheme              *runtime.Scheme
+	Placements          []string
+	PlacementsNamespace string
 }
 
+//+kubebuilder:rbac:groups=rcs.dana.io,resources=capps,verbs=get;list;watch
 //+kubebuilder:rbac:groups=cluster.open-cluster-management.io,resources=placementdecisions,verbs=get;list;watch
 //+kubebuilder:rbac:groups=cluster.open-cluster-management.io,resources=placements,verbs=get;list;watch
 
@@ -46,7 +49,7 @@ func (r *ServicePlacementReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			return ctrl.Result{}, err
 		}
 		if cluster == "requeue" {
-			return ctrl.Result{RequeueAfter: 10}, nil
+			return ctrl.Result{RequeueAfter: 10 * time.Second * 2}, nil
 		}
 		placementRef = cluster
 	}
@@ -84,7 +87,7 @@ func (r *ServicePlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 // pickDecision gets a service logger and context
 // The function decides the name of the managed cluster to deploy to
-// And adds an annotation to the service with its name
+// And adds an annotation to the capp with its name
 // Returns controller result and error
 
 func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (string, error) {
@@ -93,10 +96,10 @@ func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log log
 		placementRef = r.Placements[0]
 	}
 	placement := clusterv1beta1.Placement{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: placementRef, Namespace: utils.PlacementsNamespace}, &placement); err != nil {
+	if err := r.Client.Get(ctx, types.NamespacedName{Name: placementRef, Namespace: r.PlacementsNamespace}, &placement); err != nil {
 		return "", err
 	}
-	placementDecisions, err := utils.GetPlacementDecisionList(capp, log, ctx, placementRef, r.Client)
+	placementDecisions, err := utils.GetPlacementDecisionList(capp, log, ctx, placementRef, r.PlacementsNamespace, r.Client)
 	if len(placementDecisions.Items) == 0 {
 		log.Info("unable to find any PlacementDecision, try again after 10 seconds")
 		return "requeue", nil

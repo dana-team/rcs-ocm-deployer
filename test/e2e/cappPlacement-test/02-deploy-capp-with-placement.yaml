@@ -1,0 +1,25 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+timeout: 40
+---
+apiVersion: rcs.dana.io/v1alpha1
+kind: Capp
+metadata:
+  name: capp-with-placement
+spec:
+  site: placement-2nd
+  configurationSpec:
+    template:
+      metadata:
+        creationTimestamp: null
+      spec:
+        containers:
+          - env:
+              - name: APP_NAME
+                value: capp-with-placement
+            image: 'sahar2339/example-python-app:v1-flask'
+            name: capp-with-placement
+            resources: {}
+  routeSpec:
+    hostname: rbacsdgesdn.dev
+  scaleMetric: cpu

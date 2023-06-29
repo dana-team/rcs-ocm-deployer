@@ -3,27 +3,32 @@ package webhooks
 import (
 	"context"
 
+	"regexp"
+
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"k8s.io/utils/strings/slices"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var SupportedScaleMetrics = []string{"rps", "cuncurrency", "cpu", "memory"}
+var SupportedScaleMetrics = []string{"rps", "concurrency", "cpu", "memory"}
 
+// This function checks if the specified scaling metric is supported by the system and returns a boolean value accordingly.
 func isScaleMetricSupported(capp rcsv1alpha1.Capp) bool {
 	return slices.Contains(SupportedScaleMetrics, capp.Spec.ScaleMetric)
 }
 
-func isSiteClusterName(capp rcsv1alpha1.Capp, r client.Client, ctx context.Context) bool {
+// This function checks if the specified site cluster name is valid or not. It returns a boolean value based on the validity of the specified site cluster name.
+func isSiteVaild(capp rcsv1alpha1.Capp, placements []string, r client.Client, ctx context.Context) bool {
 	if capp.Spec.Site == "" {
 		return true
 	}
 	clusters, _ := getManagedClusters(r, ctx)
-	return slices.Contains(clusters, capp.Spec.ScaleMetric)
+	return slices.Contains(clusters, capp.Spec.Site) || slices.Contains(placements, capp.Spec.Site)
 
 }
 
+// This function retrieves the list of managed clusters from the Kubernetes API server and returns the list of cluster names as a slice of strings. If there is an error while retrieving the list of managed clusters, the function returns an error.
 func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) {
 	clusterNames := []string{}
 	clusters := clusterv1.ManagedClusterList{}
@@ -34,4 +39,9 @@ func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) 
 		clusterNames = append(clusterNames, cluster.Name)
 	}
 	return clusterNames, nil
+}
+
+func validateDomainRegex(domainname string) bool {
+	match, _ := regexp.MatchString("^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\\.[a-zA-Z]{2,})+$", domainname)
+	return match
 }
