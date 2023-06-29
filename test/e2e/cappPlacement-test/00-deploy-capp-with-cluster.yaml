@@ -6,9 +6,8 @@ apiVersion: rcs.dana.io/v1alpha1
 kind: Capp
 metadata:
   name: capp-with-cluster
-  namespace: budaka
 spec:
-  site: ocp-nikola
+  site: ocp-danish-cop
   configurationSpec:
     template:
       metadata:

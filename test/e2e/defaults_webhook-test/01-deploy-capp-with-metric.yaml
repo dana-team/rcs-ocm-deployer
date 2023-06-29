@@ -7,7 +7,7 @@ kind: Capp
 metadata:
   name: capp-with-metric
 spec:
-  site: ocp-keshet
+  site: ocp-danish-cop
   configurationSpec:
     template:
       metadata:

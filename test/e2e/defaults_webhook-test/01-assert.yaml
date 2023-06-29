@@ -10,4 +10,5 @@ spec:
   scaleMetric: rps
 status:
   applicationLinks:
-    site: ocp-keshet
+    site: ocp-danish-cop
+

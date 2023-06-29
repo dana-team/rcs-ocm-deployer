@@ -10,4 +10,4 @@ spec:
   scaleMetric: cpu 
 status:
   applicationLinks:
-    site: ocp-keshet
+    site: ocp-danish-cop

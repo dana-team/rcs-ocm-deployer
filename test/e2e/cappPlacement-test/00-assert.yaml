@@ -6,7 +6,6 @@ apiVersion: rcs.dana.io/v1alpha1
 kind: Capp
 metadata:
   name: capp-with-cluster
-  namespace: budaka
 status:
   applicationLinks:
-    site: ocp-nikola
+    site: ocp-danish-cop

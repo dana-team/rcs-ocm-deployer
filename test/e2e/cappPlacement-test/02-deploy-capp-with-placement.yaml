@@ -6,9 +6,8 @@ apiVersion: rcs.dana.io/v1alpha1
 kind: Capp
 metadata:
   name: capp-with-placement
-  namespace: budaka
 spec:
-  site: nesharim
+  site: placement-2nd
   configurationSpec:
     template:
       metadata:
