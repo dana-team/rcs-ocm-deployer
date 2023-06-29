@@ -56,6 +56,8 @@ var (
 )
 
 const Placementskey = "PLACEMENTS"
+const PlacementsNamespaceKey = "PLACEMENTS_NAMESPACE"
+const DefaultPlacementsNamespaces = "default"
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -99,6 +101,7 @@ func main() {
 	}
 
 	placementsEnv := os.Getenv(Placementskey)
+	placementsNamespace := os.Getenv(PlacementsNamespaceKey)
 	var placements []string
 	if placementsEnv == "" {
 		setupLog.Error(err, "unable to read placement envinroment variable")
@@ -106,11 +109,15 @@ func main() {
 	} else {
 		placements = strings.Split(placementsEnv, ",")
 	}
+	if placementsNamespace == "" {
+		placementsNamespace = DefaultPlacementsNamespaces
+	}
 
 	if err = (&controllers.ServicePlacementReconciler{
-		Client:     mgr.GetClient(),
-		Scheme:     mgr.GetScheme(),
-		Placements: placements,
+		Client:              mgr.GetClient(),
+		Scheme:              mgr.GetScheme(),
+		Placements:          placements,
+		PlacementsNamespace: placementsNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Capp")
 		os.Exit(1)

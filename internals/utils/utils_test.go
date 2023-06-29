@@ -164,7 +164,7 @@ func TestGetPlacementDecisionList(t *testing.T) {
 	fakeClient := newFakeClient()
 
 	// Call GetPlacementDecisionList with the test Capp, context, fake client, and placementRef
-	placementDecisions, err := utils.GetPlacementDecisionList(capp, logr.Discard(), context.Background(), "placement-ref", fakeClient)
+	placementDecisions, err := utils.GetPlacementDecisionList(capp, logr.Discard(), context.Background(), "placement-ref", "test-namespace", fakeClient)
 
 	// Assert that there are no errors
 	assert.NoError(t, err)
