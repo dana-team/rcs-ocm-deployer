@@ -68,11 +68,11 @@ func GatherCappResources(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logg
 		return manifests, err
 	}
 	manifests = append(manifests, cmAndSecrets...)
-	// role, rb, err := PrepareAdminsRolesForCapp(ctx, r, capp)
-	// if err != nil {
-	// 	return manifests, err
-	// }
-	//manifests = append(manifests, v1.Manifest{RawExtension: runtime.RawExtension{Object: &role}}, v1.Manifest{RawExtension: runtime.RawExtension{Object: &rb}})
+	role, rb, err := PrepareAdminsRolesForCapp(ctx, r, capp)
+	if err != nil {
+		return manifests, err
+	}
+	manifests = append(manifests, v1.Manifest{RawExtension: runtime.RawExtension{Object: &role}}, v1.Manifest{RawExtension: runtime.RawExtension{Object: &rb}})
 	return manifests, nil
 }
 

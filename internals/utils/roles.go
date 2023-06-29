@@ -40,7 +40,7 @@ func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1a
 		},
 	}
 	users, err := GetUsersfromNamespace(ctx, r, capp)
-	subjects := generateSubjectsFromUsers(users)
+	subjects := GenerateSubjectsFromUsers(users)
 	if err != nil {
 		return rbacv1.Role{}, rbacv1.RoleBinding{}, err
 	}
@@ -65,7 +65,7 @@ func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1a
 }
 
 // This function generates a list of Kubernetes Subject objects from a list of user names. It takes a slice of string representing the user names and returns a slice of rbacv1.Subject objects.
-func generateSubjectsFromUsers(users []string) []rbacv1.Subject {
+func GenerateSubjectsFromUsers(users []string) []rbacv1.Subject {
 	subjects := []rbacv1.Subject{}
 	for _, user := range users {
 		subjects = append(subjects, rbacv1.Subject{
@@ -77,8 +77,8 @@ func generateSubjectsFromUsers(users []string) []rbacv1.Subject {
 	return subjects
 }
 
-//  This function returns a list of all user names with admin or logs-reader Roles It takes a context.Context, a Kubernetes client.Client, and a rcsv1alpha1.Capp object representing the Container Application for which the user names are being retrieved,
-//  and returns a slice of string representing the user names, and an error (if any).
+// This function returns a list of all user names with admin or logs-reader Roles It takes a context.Context, a Kubernetes client.Client, and a rcsv1alpha1.Capp object representing the Container Application for which the user names are being retrieved,
+// and returns a slice of string representing the user names, and an error (if any).
 func GetUsersfromNamespace(ctx context.Context, r client.Client, capp rcsv1alpha1.Capp) ([]string, error) {
 	rolebindings := rbacv1.RoleBindingList{}
 	users := []string{}

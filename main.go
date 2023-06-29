@@ -131,7 +131,6 @@ func main() {
 		Client:     mgr.GetClient(),
 		Decoder:    decoder,
 		Placements: placements,
-
 	}})
 	hookServer.Register(wh.DefaultsServingPath, &webhook.Admission{Handler: &wh.DefaultMutator{
 		Client:  mgr.GetClient(),
