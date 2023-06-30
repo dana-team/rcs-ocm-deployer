@@ -152,13 +152,13 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy-addon
-deploy-addon:  kustomize ## Deploy addon to the k8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build addons/deploy/status-sync | kubectl apply -f -
+deploy-addon: kustomize ## Deploy addon to the k8s cluster specified in ~/.kube/config.
+	cd addons/deploy/status-sync/default && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build addons/deploy/status-sync/default | kubectl apply -f -
 
 .PHONY: undeploy-addon
 undeploy-addon: kustomize ## Undeploy addon from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build addons/deploy/status-sync | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
-
+	$(KUSTOMIZE) build addons/deploy/status-sync/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 ##@ Build Dependencies
 

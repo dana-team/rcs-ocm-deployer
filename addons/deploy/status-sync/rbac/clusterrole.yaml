@@ -11,7 +11,7 @@ rules:
     verbs:
       - get
       - list
-      - watchw
+      - watch
       - create
       - update
       - delete

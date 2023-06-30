@@ -2,7 +2,6 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: capp-status-sync-addon
-  namespace: open-cluster-management
   labels:
     app: capp-status-sync-addon
 spec:
@@ -18,12 +17,9 @@ spec:
       serviceAccountName: capp-status-sync-addon-sa
       containers:
       - name: capp-status-sync-addon
-        image: quay.io/danateamorg/champions:77
+        image: controller:latest
         imagePullPolicy: IfNotPresent
         command:
           - /status-sync-addon
         args:
           - "manager"
-        env:
-          - name: ADDON_IMAGE
-            value: quay.io/danateamorg/championsfsafsa
