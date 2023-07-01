@@ -46,7 +46,7 @@ const (
 	templatePath      = "manifests/templates"
 	agentNameLength   = 5
 	installNameSpace  = "open-cluster-management-agent-addon"
-	addonImageDefault = "quay.io/danateamorg/capp-status-addon:latest"
+	addonImageDefault = "danateam/rcs-deployer:main"
 )
 
 //go:embed manifests

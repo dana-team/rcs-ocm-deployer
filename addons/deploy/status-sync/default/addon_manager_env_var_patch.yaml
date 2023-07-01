@@ -1,0 +1,12 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: capp-status-sync-addon
+spec:
+  template:
+    spec:
+      containers:
+        - name: capp-status-sync-addon
+          env:
+            - name: ADDON_IMAGE
+              value: $(ADDON_IMAGE)
