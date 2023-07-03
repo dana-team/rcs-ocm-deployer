@@ -107,7 +107,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-e2e
-test-e2e: install-kuttl
+test-e2e: install-kuttl install-assert
 	kubectl kuttl test ./test/e2e
 
 ##@ Build
@@ -203,6 +203,16 @@ install-kuttl:
 		tar -xvf $(KUTTL_TAR_FILE_NAME); \
 		sudo mv kubectl-kuttl /usr/local/bin/; \
 		rm -rf $(KUTTL_TAR_FILE_NAME); \
+	fi
+
+ASSERT_LOCATION ?= /usr/local/bin/kubectl-assert
+ASSERT_BINATY_INSTALLATION ?= "https://raw.githubusercontent.com/morningspace/kubeassert/master/kubectl-assert.sh"
+.PHONY: install-assert
+install-assert:
+	@if ! test -f "$(ASSERT_LOCATION)"; then \
+		curl -L $(ASSERT_BINATY_INSTALLATION) -o kubectl-assert; \
+		chmod +x kubectl-assert; \
+		sudo mv ./kubectl-assert /usr/local/bin; \
 	fi
 
 .PHONY: bundle
