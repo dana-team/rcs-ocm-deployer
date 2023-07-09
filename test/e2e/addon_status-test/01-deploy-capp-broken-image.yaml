@@ -1,13 +1,12 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestStep
-timeout: 40
+timeout: 20
 ---
 apiVersion: rcs.dana.io/v1alpha1
 kind: Capp
 metadata:
-  name: capp-with-placement
+  name: capp-statuscheck
 spec:
-  site: placement-1st
   configurationSpec:
     template:
       metadata:
@@ -16,10 +15,11 @@ spec:
         containers:
           - env:
               - name: APP_NAME
-                value: capp-with-placement
-            image: 'sahar2339/example-python-app:v1-flask'
-            name: capp-with-placement
+                value: capp-statuscheck
+            image: 'no-img'
+            name: capp-statuscheck
             resources: {}
   routeSpec:
-    hostname: rbacsdgesdn.dev
+    hostname: rbacgesdn.dev
   scaleMetric: cpu
+
