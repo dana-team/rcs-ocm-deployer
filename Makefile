@@ -197,7 +197,7 @@ KUTTL_TAR_FILE_NAME ?= kuttl_0.15.0_linux_x86_64.tar.gz
 KUTTL_LOCATION ?= $(LOCALBIN)/kubectl-kuttl
 
 .PHONY: install-kuttl
-install-kuttl:
+install-kuttl: $(KUTTL_LOCATION)
 	@if ! test -f "$(KUTTL_LOCATION)"; then \
 		curl -LO $(KUTTL_BINARY_INSTALLATION); \
 		tar -xvf $(KUTTL_TAR_FILE_NAME); \
@@ -208,7 +208,7 @@ install-kuttl:
 ASSERT_LOCATION ?= $(LOCALBIN)/kubectl-assert
 ASSERT_BINATY_INSTALLATION ?= "https://raw.githubusercontent.com/morningspace/kubeassert/master/kubectl-assert.sh"
 .PHONY: install-assert
-install-assert:
+install-assert: $(ASSERT_LOCATION)
 	@if ! test -f "$(ASSERT_LOCATION)"; then \
 		curl -L $(ASSERT_BINATY_INSTALLATION) -o kubectl-assert; \
 		chmod +x kubectl-assert; \
