@@ -195,7 +195,6 @@ $(ENVTEST): $(LOCALBIN)
 KUTTL_BINARY_INSTALLATION ?= "https://github.com/kudobuilder/kuttl/releases/download/v0.15.0/kuttl_0.15.0_linux_x86_64.tar.gz"
 KUTTL_TAR_FILE_NAME ?= kuttl_0.15.0_linux_x86_64.tar.gz
 KUTTL_LOCATION ?= $(LOCALBIN)/kubectl-kuttl
-
 .PHONY: install-kuttl
 install-kuttl: $(KUTTL_LOCATION)
 	@if ! test -f "$(KUTTL_LOCATION)"; then \
@@ -204,6 +203,7 @@ install-kuttl: $(KUTTL_LOCATION)
 		sudo mv kubectl-kuttl $(LOCALBIN); \
 		rm -rf $(KUTTL_TAR_FILE_NAME); \
 	fi
+
 
 ASSERT_LOCATION ?= $(LOCALBIN)/kubectl-assert
 ASSERT_BINATY_INSTALLATION ?= "https://raw.githubusercontent.com/morningspace/kubeassert/master/kubectl-assert.sh"
