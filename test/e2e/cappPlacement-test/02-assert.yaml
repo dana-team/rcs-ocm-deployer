@@ -3,6 +3,3 @@ kind: TestAssert
 commands:
   - command: ./test/e2e/cappPlacement-test/level02Script.sh
 timeout: 120
-#- command: kubectl get placement nesharim -n default -o jsonpath='{.spec.clusterSets[0]}'
-#- command: clusters=kubectl get managedclusters -l cluster.open-cluster-management.io/clusterset=$clusterset -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}' | sed 's/ /| /g'
-#- command: kubectl assert exist-enhanced capp --field-selector metadata.name=capp-with-placement,status.applicationLinks.site=~'$clusters' -n omeriko

@@ -8,7 +8,4 @@ metadata:
   name: capp-with-metric
 spec:
   scaleMetric: rps
-status:
-  applicationLinks:
-    site: ocp-danish-cop
 
