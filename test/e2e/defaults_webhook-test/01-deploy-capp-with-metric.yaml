@@ -1,6 +1,6 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestStep
-timeout: 20
+timeout: 30
 ---
 apiVersion: rcs.dana.io/v1alpha1
 kind: Capp

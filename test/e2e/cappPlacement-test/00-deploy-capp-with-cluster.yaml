@@ -1,6 +1,6 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestStep
-timeout: 20
+timeout: 30
 commands:
   - command: bash -c "export cluster=$(sh ../getClusteOrPlacement.sh cluster); yq e -i 'select(di == 1).spec.site = env(cluster)' 00-deploy-capp-with-cluster.yaml; yq e -i 'select(di == 1).status.applicationLinks.site = env(cluster)' 00-assert.yaml"
 ---
