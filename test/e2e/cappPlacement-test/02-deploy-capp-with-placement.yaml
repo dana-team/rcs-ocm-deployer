@@ -1,6 +1,9 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestStep
-timeout: 40
+timeout: 30
+commands:
+  - command: bash -c "export placement=$(sh ../getClusteOrPlacement.sh placement); yq e -i 'select(di == 1).spec.site = env(placement)' 02-deploy-capp-with-placement.yaml"
+
 ---
 apiVersion: rcs.dana.io/v1alpha1
 kind: Capp

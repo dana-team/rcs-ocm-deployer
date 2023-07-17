@@ -1,13 +1,13 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
-timeout: 120  # Timeout waiting for the state
+timeout: 30 # Timeout waiting for the state
 ---
 apiVersion: rcs.dana.io/v1alpha1
 kind: Capp
 metadata:
   name: capp-without-metric
 spec:
-  scaleMetric: cpu 
+  scaleMetric: cpu
 status:
   applicationLinks:
-    site: ocp-danish-cop
+    site: ocp-rcs-managed-1
