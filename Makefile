@@ -107,8 +107,8 @@ test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-e2e
-test-e2e: install-kuttl
-	kubectl kuttl test ./test/e2e
+test-e2e: kuttl install-assert
+	$(KUTTL) test ./test/e2e
 
 ##@ Build
 
@@ -171,6 +171,8 @@ $(LOCALBIN):
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+KUTTL ?= $(LOCALBIN)/kubectl-kuttl
+ASSERT ?= $(LOCALBIN)/kubectl-assert
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
@@ -194,16 +196,27 @@ $(ENVTEST): $(LOCALBIN)
 
 KUTTL_BINARY_INSTALLATION ?= "https://github.com/kudobuilder/kuttl/releases/download/v0.15.0/kuttl_0.15.0_linux_x86_64.tar.gz"
 KUTTL_TAR_FILE_NAME ?= kuttl_0.15.0_linux_x86_64.tar.gz
-KUTTL_LOCATION ?= /usr/local/bin/kubectl-kuttl
 
-.PHONY: install-kuttl
-install-kuttl:
-	@if ! test -f "$(KUTTL_LOCATION)"; then \
+.PHONY: kuttl
+kuttl: $(KUTTL)
+$(KUTTL): $(LOCALBIN)
+	@if ! test -f "$(KUTTL)"; then \
 		curl -LO $(KUTTL_BINARY_INSTALLATION); \
 		tar -xvf $(KUTTL_TAR_FILE_NAME); \
-		sudo mv kubectl-kuttl /usr/local/bin/; \
+		sudo mv kubectl-kuttl $(LOCALBIN); \
 		rm -rf $(KUTTL_TAR_FILE_NAME); \
 	fi
+
+ASSERT_BINATY_INSTALLATION ?= "https://raw.githubusercontent.com/morningspace/kubeassert/master/kubectl-assert.sh"
+.PHONY: install-assert
+install-assert:$(ASSERT)
+$(ASSERT): $(LOCALBIN)
+	@if ! test -f "$(ASSERT)"; then \
+		curl -L $(ASSERT_BINATY_INSTALLATION) -o kubectl-assert; \
+		chmod +x kubectl-assert; \
+		sudo mv ./kubectl-assert $(LOCALBIN); \
+	fi
+	$(sudo eval export PATH=$(shell pwd)/bin:$(PATH))
 
 .PHONY: bundle
 bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
