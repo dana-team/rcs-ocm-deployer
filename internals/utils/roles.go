@@ -22,7 +22,7 @@ func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1a
 			APIVersion: "rbac.authorization.k8s.io/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      string(capp.Name + "-logs-reader"),
+			Name:      capp.Name + "-logs-reader",
 			Namespace: capp.Namespace,
 		},
 		Rules: []rbacv1.PolicyRule{
@@ -51,11 +51,11 @@ func PrepareAdminsRolesForCapp(ctx context.Context, r client.Client, capp rcsv1a
 			APIVersion: "rbac.authorization.k8s.io/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      string(capp.Name + "-logs-reader"),
+			Name:      capp.Name + "-logs-reader",
 			Namespace: capp.Namespace,
 		},
 		RoleRef: rbacv1.RoleRef{
-			Name:     string(capp.Name + "-logs-reader"),
+			Name:     capp.Name + "-logs-reader",
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "Role",
 		},
