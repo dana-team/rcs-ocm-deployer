@@ -6,7 +6,7 @@ import (
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
-	status_utils "github.com/dana-team/rcs-ocm-deployer/internals/utils/status"
+	statusutils "github.com/dana-team/rcs-ocm-deployer/internals/utils/status"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -82,7 +82,7 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 	var mw workv1.ManifestWork
 	manifests, err := utils.GatherCappResources(capp, ctx, l, r.Client)
 	if err != nil {
-		status_utils.SetVolumesCondition(capp, ctx, r.Client, l, false, err.Error())
+		statusutils.SetVolumesCondition(capp, ctx, r.Client, l, false, err.Error())
 		return ctrl.Result{}, err
 	}
 
