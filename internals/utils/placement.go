@@ -11,8 +11,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// this function fetches a PlacementDecisionList by label. The function takes as parameters an instance of Capp, an instance of logr.Logger, a context.Context, a string placementRef used to filter the PlacementDecisionList.
-// The function returns a pointer to a PlacementDecisionList and an error in case of failure.
+// GetPlacementDecisionList fetches a PlacementDecisionList by label. The
+// function takes as parameters an instance of Capp, an instance of logr.Logger,
+// a context.Context, a string placementRef used to filter the
+// PlacementDecisionList. The function returns a pointer to a
+// PlacementDecisionList and an error in case of failure.
 func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context, placementRef string, placementsNamespace string, r client.Client) (*clusterv1beta1.PlacementDecisionList, error) {
 
 	listopts := &client.ListOptions{}
@@ -32,7 +35,7 @@ func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx contex
 	return placementDecisions, nil
 }
 
-// function retrieves the name of a managed cluster from a PlacementDecisionList.
+// GetDecisionClusterName retrieves the name of a managed cluster from a PlacementDecisionList.
 func GetDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecisionList, log logr.Logger) string {
 	pd := placementDecisions.Items[0]
 	if len(pd.Status.Decisions) == 0 {

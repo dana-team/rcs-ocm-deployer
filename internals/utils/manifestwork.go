@@ -17,7 +17,9 @@ const (
 	CappNamespaceKey            = "dana.io/capp-namespace"
 )
 
-// This function generates a new Kubernetes manifest work object with the specified name, namespace, and manifests. It takes an optional list of machine configuration options as well.
+// GenerateManifestWorkGeneric generates a new Kubernetes manifest work object
+// with the specified name, namespace, and manifests. It takes an optional list
+// of machine configuration options as well.
 func GenerateManifestWorkGeneric(name, namespace string, manifests []workv1.Manifest, machineConfigOptions ...workv1.ManifestConfigOption) *workv1.ManifestWork {
 	return &workv1.ManifestWork{
 		TypeMeta: metav1.TypeMeta{},
@@ -34,14 +36,18 @@ func GenerateManifestWorkGeneric(name, namespace string, manifests []workv1.Mani
 	}
 }
 
-// This function sets the annotations of the specified manifest work object with the name and namespace of the specified Capp object.
+// SetManifestWorkCappAnnotations sets the annotations of the specified manifest
+// work object with the name and namespace of the specified Capp object.
 func SetManifestWorkCappAnnotations(mw workv1.ManifestWork, capp rcsv1alpha1.Capp) {
 	mw.ObjectMeta.Annotations = make(map[string]string)
 	mw.Annotations[CappNameKey] = capp.Name
 	mw.Annotations[CappNamespaceKey] = capp.Namespace
 }
 
-// This function generates a new ManifestConfigOption object, which represents a configuration option that can be associated with a manifest work. The function takes a Kubernetes object, a resource name, a group name, and a list of feedback rules.
+// GenerateManifestConfigOption generates a new ManifestConfigOption object,
+// which represents a configuration option that can be associated with a manifest
+// work. The function takes a Kubernetes object, a resource name, a group name,
+// and a list of feedback rules.
 func GenerateManifestConfigOption(obj client.Object, resource, group string, feedbackRules ...workv1.FeedbackRule) workv1.ManifestConfigOption {
 	return workv1.ManifestConfigOption{
 		ResourceIdentifier: workv1.ResourceIdentifier{
@@ -54,7 +60,10 @@ func GenerateManifestConfigOption(obj client.Object, resource, group string, fee
 	}
 }
 
-// This function retrieves the manifest work object related to the specified Capp by name and namespace. It takes a context, a client, a logger, and the Capp object itself, and returns the related manifest work object or an error if it cannot be retrieved.
+// GetRelatedManifestwork retrieves the manifest work object
+// related to the specified Capp by name and namespace. It takes a context, a
+// client, a logger, and the Capp object itself, and returns the related manifest
+// work object or an error if it cannot be retrieved.
 func GetRelatedManifestwork(ctx context.Context, r client.Client, l logr.Logger, capp rcsv1alpha1.Capp) (workv1.ManifestWork, error) {
 	mw := workv1.ManifestWork{}
 	mwName := NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name

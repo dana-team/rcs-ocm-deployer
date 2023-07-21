@@ -74,7 +74,7 @@ var CappPredicateFuncs = predicate.Funcs{
 	},
 }
 
-// EnsureManifestWork checks whether the manifest work deploying the service exists in the managed cluster namespace
+// SyncManifestWork checks whether the manifest work deploying the service exists in the managed cluster namespace
 // If it does, it updates the service in the manifest work spec, if it doesn't, it creates it
 func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger) (ctrl.Result, error) {
 	mwName := utils.NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name

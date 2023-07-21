@@ -63,7 +63,7 @@ type AgentOptions struct {
 	AddonNamespace    string
 }
 
-// NewWorkloadAgentOptions returns the flags with default value set
+// NewAgentOptions returns the flags with default value set
 func NewAgentOptions(addonName string, logger logr.Logger) *AgentOptions {
 	return &AgentOptions{AddonName: addonName, Log: logger}
 }
