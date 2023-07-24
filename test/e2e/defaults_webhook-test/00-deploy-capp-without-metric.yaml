@@ -1,13 +1,15 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestStep
-timeout: 20
+timeout: 30
+commands:
+  - command: bash -c "export cluster=$(sh ../getClusteOrPlacement.sh cluster); yq e -i 'select(di == 1).spec.site = env(cluster)'  00-deploy-capp-without-metric.yaml; yq e -i 'select(di == 1).status.applicationLinks.site = env(cluster)' 00-assert.yaml";
 ---
 apiVersion: rcs.dana.io/v1alpha1
 kind: Capp
 metadata:
   name: capp-without-metric
 spec:
-  site: ocp-danish-cop
+  site: ocp-danish-cop ocp-keshet
   configurationSpec:
     template:
       metadata:
