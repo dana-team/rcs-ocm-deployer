@@ -5,8 +5,8 @@ import (
 	"time"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	utils "github.com/dana-team/rcs-ocm-deployer/internals/utils"
-	status_utils "github.com/dana-team/rcs-ocm-deployer/internals/utils/status"
+	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
+	statusutils "github.com/dana-team/rcs-ocm-deployer/internals/utils/status"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -74,7 +74,7 @@ var CappPredicateFuncs = predicate.Funcs{
 	},
 }
 
-// EnsureManifestWork checks whether the manifest work deploying the service exists in the managed cluster namespace
+// SyncManifestWork checks whether the manifest work deploying the service exists in the managed cluster namespace
 // If it does, it updates the service in the manifest work spec, if it doesn't, it creates it
 func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger) (ctrl.Result, error) {
 	mwName := utils.NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
@@ -82,7 +82,7 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 	var mw workv1.ManifestWork
 	manifests, err := utils.GatherCappResources(capp, ctx, l, r.Client)
 	if err != nil {
-		status_utils.SetVolumesCondition(capp, ctx, r.Client, l, false, err.Error())
+		statusutils.SetVolumesCondition(capp, ctx, r.Client, l, false, err.Error())
 		return ctrl.Result{}, err
 	}
 

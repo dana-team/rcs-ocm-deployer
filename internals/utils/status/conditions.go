@@ -24,8 +24,10 @@ var statusBoolean = map[bool]string{
 	false: "False",
 }
 
-// This function is used internally to set the specified condition on the status of the given capp object.
-// It uses the provided client.Client to update the status of the object in the Kubernetes API server. If an error occurs during the update, the function returns an error.
+// This function is used internally to set the specified condition on the status
+// of the given capp object. It uses the provided client.Client to update the
+// status of the object in the Kubernetes API server. If an error occurs during
+// the update, the function returns an error.
 func setCappCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, condition metav1.Condition) error {
 	if meta.IsStatusConditionPresentAndEqual(capp.Status.Conditions, condition.Type, condition.Status) {
 		meta.SetStatusCondition(&capp.Status.Conditions, condition)
@@ -37,7 +39,9 @@ func setCappCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Clien
 	return nil
 }
 
-// This function generates a new metav1.Condition object with the specified condType and status, along with an optional reason. If no reason is specified, it defaults to "unknown".
+// This function generates a new metav1.Condition object with the specified
+// condType and status, along with an optional reason. If no reason is specified,
+// it defaults to "unknown".
 func generateCondtion(condType string, status bool, reason ...string) metav1.Condition {
 	if len(reason) == 0 {
 		reason[0] = "unknown"
@@ -50,7 +54,10 @@ func generateCondtion(condType string, status bool, reason ...string) metav1.Con
 	return condition
 }
 
-// This function sets the "VolumesAvailable" condition on the status of the given capp object to the specified status, along with an optional reason. It uses the setCappCondition function internally to update the status of the object.
+// SetVolumesCondition sets the "VolumesAvailable" condition on the status of the
+// given capp object to the specified status, along with an optional reason. It
+// uses the setCappCondition function internally to update the status of the
+// object.
 func SetVolumesCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
 	condition := generateCondtion(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {
@@ -59,7 +66,10 @@ func SetVolumesCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Cl
 	return nil
 }
 
-// This function sets the "HasPlacement" condition on the status of the given capp object to the specified status, along with an optional reason. It uses the setCappCondition function internally to update the status of the object.
+// SetHasPlacementCondition sets the "HasPlacement" condition on the status of
+// the given capp object to the specified status, along with an optional reason.
+// It uses the setCappCondition function internally to update the status of the
+// object.
 func SetHasPlacementCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
 	condition := generateCondtion(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {
@@ -68,7 +78,9 @@ func SetHasPlacementCondition(capp rcsv1alpha1.Capp, ctx context.Context, r clie
 	return nil
 }
 
-// This function sets the "Deployed" condition on the status of the given capp object to the specified status, along with an optional reason. It uses the setCappCondition function internally to update the status of the object.
+// SetDeployedCondition sets the "Deployed" condition on the status of the given
+// capp object to the specified status, along with an optional reason. It uses
+// the setCappCondition function internally to update the status of the object.
 func SetDeployedCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
 	condition := generateCondtion(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {

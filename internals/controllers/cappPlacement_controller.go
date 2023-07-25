@@ -5,7 +5,7 @@ import (
 	"time"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	utils "github.com/dana-team/rcs-ocm-deployer/internals/utils"
+	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"

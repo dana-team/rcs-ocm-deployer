@@ -31,9 +31,8 @@ func HandleResourceDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr
 	return nil, false
 }
 
-// finalizeService gets context, manifest work name, managed cluster name and logger
-// The function checks whether the manifest work deploying the service exists
-// If it does it deletes it
+// FinalizeService checks whether the manifest work deploying the service
+// exists and deletes it
 func FinalizeService(ctx context.Context, mwName string, managedClusterName string, log logr.Logger, r client.Client) error {
 	// delete the ManifestWork associated with this service
 	var work v1.ManifestWork
@@ -53,7 +52,7 @@ func FinalizeService(ctx context.Context, mwName string, managedClusterName stri
 	return nil
 }
 
-// ensureFinalizer ensures the service has the finalizer
+// EnsureFinalizer ensures the service has the finalizer
 func EnsureFinalizer(ctx context.Context, service rcsv1alpha1.Capp, r client.Client) error {
 	if !controllerutil.ContainsFinalizer(&service, FinalizerCleanupCapp) {
 		controllerutil.AddFinalizer(&service, FinalizerCleanupCapp)

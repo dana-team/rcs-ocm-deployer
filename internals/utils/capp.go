@@ -76,7 +76,7 @@ func GatherCappResources(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logg
 	return manifests, nil
 }
 
-// This function updates the Site field in the Status.ApplicationLinks object of a Capp custom resource.
+// UpdateCappDestination updates the Site field in the Status.ApplicationLinks object of a Capp custom resource.
 // The Site field specifies the managed cluster name where the application is running.
 // This function also calls the AddCappHasPlacementAnnotation function to add an annotation to the Capp resource that indicates the placement of the application.
 func UpdateCappDestination(capp rcsv1alpha1.Capp, managedClusterName string, ctx context.Context, r client.Client) error {
@@ -90,7 +90,7 @@ func UpdateCappDestination(capp rcsv1alpha1.Capp, managedClusterName string, ctx
 	return nil
 }
 
-// This function adds an annotation to the Capp custom resource that indicates the managed cluster where the application is placed.
+// AddCappHasPlacementAnnotation adds an annotation to the Capp custom resource that indicates the managed cluster where the application is placed.
 func AddCappHasPlacementAnnotation(capp rcsv1alpha1.Capp, managedClusterName string, ctx context.Context, r client.Client) error {
 	cappAnno := capp.GetAnnotations()
 	if cappAnno == nil {
@@ -101,7 +101,7 @@ func AddCappHasPlacementAnnotation(capp rcsv1alpha1.Capp, managedClusterName str
 	return r.Update(ctx, &capp)
 }
 
-// This function removes an annotation from the Capp custom resource that indicates the namespace where the application is created.
+// RemoveCreatedAnnotation removes an annotation from the Capp custom resource that indicates the namespace where the application is created.
 func RemoveCreatedAnnotation(ctx context.Context, service rcsv1alpha1.Capp, r client.Client) error {
 	cappAnno := service.GetAnnotations()
 	delete(cappAnno, "AnnotationNamespaceCreated")
