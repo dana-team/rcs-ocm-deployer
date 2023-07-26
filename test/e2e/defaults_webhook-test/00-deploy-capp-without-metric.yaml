@@ -1,4 +1,4 @@
-apiVersion: kuttl.dev/v1beta1
+:apiVersion: kuttl.dev/v1beta1
 kind: TestStep
 timeout: 30
 commands:
@@ -9,7 +9,7 @@ kind: Capp
 metadata:
   name: capp-without-metric
 spec:
-  site: ocp-rcs-managed-1
+  site: cluster
   configurationSpec:
     template:
       metadata:

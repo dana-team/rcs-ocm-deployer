@@ -8,4 +8,4 @@ metadata:
   name: capp-with-cluster
 status:
   applicationLinks:
-    site: ocp-rcs-managed-1
+    site: cluster

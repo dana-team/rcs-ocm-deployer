@@ -9,7 +9,7 @@ kind: Capp
 metadata:
   name: capp-with-cluster
 spec:
-  site: "ocp-rcs-managed-1"
+  site: cluster
   configurationSpec:
     template:
       metadata:

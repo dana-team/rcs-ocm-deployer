@@ -1,6 +1,7 @@
 #!/bin/bash
 
-clusterset=`kubectl get placement placement-2nd -n ocp-kuba-gader -o jsonpath='{.spec.clusterSets[0]}'`
+placement=$(kubectl get placements -A --no-headers | awk {'print $2'})
+clusterset=`kubectl get placement $placement  -n default -o jsonpath='{.spec.clusterSets[0]}'`
 echo $clusterset
 clusters=`kubectl get managedclusters -l cluster.open-cluster-management.io/clusterset=$clusterset -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}'`
 clusters_strings=$(echo $clusters | tr ' ' '|')

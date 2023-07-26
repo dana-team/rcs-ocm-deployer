@@ -10,4 +10,4 @@ spec:
   scaleMetric: cpu
 status:
   applicationLinks:
-    site: ocp-rcs-managed-1
+    site: cluster
