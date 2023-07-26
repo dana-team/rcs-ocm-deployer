@@ -8,4 +8,4 @@ metadata:
   name: capp-with-cluster
 status:
   applicationLinks:
-    site: ocp-danish-cop ocp-keshet
+    site: cluster
