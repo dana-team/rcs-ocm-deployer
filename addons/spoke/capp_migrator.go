@@ -5,7 +5,10 @@ import (
 )
 
 func syncCappStatus(sourceCappStatus *rcsv1alpha1.CappStatus, destinationCappStatus *rcsv1alpha1.CappStatus) {
-	destinationCappStatus.ApplicationLinks = sourceCappStatus.ApplicationLinks
+	destinationCappStatus.ApplicationLinks.ClusterSegment = sourceCappStatus.ApplicationLinks.ClusterSegment
+	if sourceCappStatus.ApplicationLinks.ConsoleLink != "" {
+		destinationCappStatus.ApplicationLinks.ConsoleLink = sourceCappStatus.ApplicationLinks.ConsoleLink
+	}
 	destinationCappStatus.RevisionInfo = sourceCappStatus.RevisionInfo
 	destinationCappStatus.KnativeObjectStatus = sourceCappStatus.KnativeObjectStatus
 }
