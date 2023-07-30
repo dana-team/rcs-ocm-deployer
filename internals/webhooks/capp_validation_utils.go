@@ -13,12 +13,15 @@ import (
 
 var SupportedScaleMetrics = []string{"rps", "concurrency", "cpu", "memory"}
 
-// This function checks if the specified scaling metric is supported by the system and returns a boolean value accordingly.
+// isScaleMetricSupported checks if the specified scaling metric is supported by the system.
+// It takes a rcsv1alpha1.Capp object and returns a boolean value indicating whether the metric is supported or not.
 func isScaleMetricSupported(capp rcsv1alpha1.Capp) bool {
 	return slices.Contains(SupportedScaleMetrics, capp.Spec.ScaleMetric)
 }
 
-// This function checks if the specified site cluster name is valid or not. It returns a boolean value based on the validity of the specified site cluster name.
+// isSiteValid checks if the specified site cluster name is valid or not.
+// It takes a rcsv1alpha1.Capp object, a list of placements, a Kubernetes client.Client, and a context.Context.
+// The function returns a boolean value based on the validity of the specified site cluster name.
 func isSiteVaild(capp rcsv1alpha1.Capp, placements []string, r client.Client, ctx context.Context) bool {
 	if capp.Spec.Site == "" {
 		return true
@@ -28,7 +31,9 @@ func isSiteVaild(capp rcsv1alpha1.Capp, placements []string, r client.Client, ct
 
 }
 
-// This function retrieves the list of managed clusters from the Kubernetes API server and returns the list of cluster names as a slice of strings. If there is an error while retrieving the list of managed clusters, the function returns an error.
+// getManagedClusters retrieves the list of managed clusters from the Kubernetes API server
+// and returns the list of cluster names as a slice of strings.
+// If there is an error while retrieving the list of managed clusters, the function returns an error.
 func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) {
 	clusterNames := []string{}
 	clusters := clusterv1.ManagedClusterList{}
@@ -41,6 +46,8 @@ func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) 
 	return clusterNames, nil
 }
 
+// validateDomainRegex checks if the specified domain name matches the valid regex pattern.
+// It takes a domain name as a string and returns a boolean value indicating whether the domain name is valid or not.
 func validateDomainRegex(domainname string) bool {
 	match, _ := regexp.MatchString("^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\\.[a-zA-Z]{2,})+$", domainname)
 	return match
