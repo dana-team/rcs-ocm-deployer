@@ -2,8 +2,13 @@ package webhooks
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
-	"regexp"
+	"k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	"knative.dev/pkg/apis"
+	"knative.dev/pkg/network"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"k8s.io/utils/strings/slices"
@@ -46,9 +51,22 @@ func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) 
 	return clusterNames, nil
 }
 
-// validateDomainRegex checks if the specified domain name matches the valid regex pattern.
-// It takes a domain name as a string and returns a boolean value indicating whether the domain name is valid or not.
-func validateDomainRegex(domainname string) bool {
-	match, _ := regexp.MatchString("^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\\.[a-zA-Z]{2,})+$", domainname)
-	return match
+// validateDomainName checks if the hostname is valid domain name and not part of the cluster's domain.
+// it returns aggregated error if the any of the validations falied.
+func validateDomainName(domainname string) (errs *apis.FieldError) {
+	if domainname == "" {
+		return nil
+	}
+	err := validation.IsFullyQualifiedDomainName(field.NewPath("name"), domainname)
+	if err != nil {
+		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf(
+			"invalid name %q: %s", domainname, err.ToAggregate()), "name"))
+	}
+
+	clusterLocalDomain := network.GetClusterDomainName()
+	if strings.HasSuffix(domainname, "."+clusterLocalDomain) {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf("invalid name %q: must not be a subdomain of cluster local domain %q", domainname, clusterLocalDomain), "name"))
+	}
+	return errs
 }
