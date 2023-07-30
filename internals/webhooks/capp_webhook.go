@@ -42,8 +42,8 @@ func (c *CappValidator) handle(ctx context.Context, req admission.Request, capp 
 	if !isSiteVaild(capp, c.Placements, c.Client, ctx) {
 		return admission.Denied(fmt.Sprintf("This site %s is unsupported. Site field accepts either cluster name or placement name", capp.Spec.Site))
 	}
-	if !validateDomainRegex(capp.Spec.RouteSpec.Hostname) {
-		return admission.Denied(fmt.Sprintf("This hostname %s is not valid. should be a domain with at least two segments separated by dots (e.g. example.com)", capp.Spec.RouteSpec.Hostname))
+	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname); errs != nil {
+		return admission.Denied(errs.Error())
 	}
 	return admission.Allowed("")
 }
