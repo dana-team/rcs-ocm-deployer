@@ -14,8 +14,8 @@ import (
 // GetPlacementDecisionList fetches a PlacementDecisionList by label. The
 // function takes as parameters an instance of Capp, an instance of logr.Logger,
 // a context.Context, a string placementRef used to filter the
-// PlacementDecisionList. The function returns a pointer to a
-// PlacementDecisionList and an error in case of failure.
+// PlacementDecisionList and the namespace where the PlacementDecisions are expected.
+// The function returns a pointer to a PlacementDecisionList and an error in case of failure.
 func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context, placementRef string, placementsNamespace string, r client.Client) (*clusterv1beta1.PlacementDecisionList, error) {
 
 	listopts := &client.ListOptions{}

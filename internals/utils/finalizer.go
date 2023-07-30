@@ -14,6 +14,9 @@ import (
 
 const FinalizerCleanupCapp = "dana.io/capp-cleanup"
 
+// HandleResourceDeletion handles the deletion of a Capp custom resource. It checks if the resource has a deletion timestamp
+// and contains the specified finalizer. If so, it finalizes the service by cleaning up associated resources.
+// It removes the finalizer once cleanup is complete and updates the resource.
 func HandleResourceDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr.Logger, r client.Client) (error, bool) {
 	if capp.ObjectMeta.DeletionTimestamp != nil {
 		if controllerutil.ContainsFinalizer(&capp, FinalizerCleanupCapp) {
@@ -31,8 +34,8 @@ func HandleResourceDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr
 	return nil, false
 }
 
-// FinalizeService checks whether the manifest work deploying the service
-// exists and deletes it
+// FinalizeService deletes the ManifestWork associated with the service on the specified managed cluster.
+// The function gets the context, manifest work name, managed cluster name, and logger.
 func FinalizeService(ctx context.Context, mwName string, managedClusterName string, log logr.Logger, r client.Client) error {
 	// delete the ManifestWork associated with this service
 	var work v1.ManifestWork
@@ -52,7 +55,7 @@ func FinalizeService(ctx context.Context, mwName string, managedClusterName stri
 	return nil
 }
 
-// EnsureFinalizer ensures the service has the finalizer
+// EnsureFinalizer ensures the service has the finalizer specified (FinalizerCleanupCapp).
 func EnsureFinalizer(ctx context.Context, service rcsv1alpha1.Capp, r client.Client) error {
 	if !controllerutil.ContainsFinalizer(&service, FinalizerCleanupCapp) {
 		controllerutil.AddFinalizer(&service, FinalizerCleanupCapp)
