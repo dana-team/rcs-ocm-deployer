@@ -3,7 +3,7 @@ module github.com/dana-team/rcs-ocm-deployer
 go 1.20
 
 require (
-	github.com/dana-team/container-app-operator v0.1.0
+	github.com/dana-team/container-app-operator v0.1.2
 	github.com/go-logr/logr v1.2.4
 	github.com/go-logr/zapr v1.2.4
 	github.com/onsi/gomega v1.27.7
@@ -18,6 +18,7 @@ require (
 	k8s.io/client-go v0.27.2
 	k8s.io/component-base v0.27.2
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106
+	knative.dev/pkg v0.0.0-20230606013829-94b81fcefb58
 	knative.dev/serving v0.37.2
 	open-cluster-management.io/addon-framework v0.7.0
 	open-cluster-management.io/api v0.11.0
@@ -91,7 +92,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
-	github.com/spf13/cast v1.4.1 // indirect
+	github.com/spf13/cast v1.5.0 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
@@ -138,7 +139,6 @@ require (
 	k8s.io/kube-aggregator v0.27.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
 	knative.dev/networking v0.0.0-20230419144338-e5d04e805e50 // indirect
-	knative.dev/pkg v0.0.0-20230606013829-94b81fcefb58 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.1.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kube-storage-version-migrator v0.0.4 // indirect
