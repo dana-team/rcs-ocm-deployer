@@ -55,6 +55,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 					Namespace: secret.Namespace,
 				},
 				Data: secret.Data,
+				Type: secret.Type,
 			}
 			resources = append(resources, v1.Manifest{RawExtension: runtime.RawExtension{Object: secretManifest}})
 		}

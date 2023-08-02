@@ -46,11 +46,11 @@ func (r *ServiceNamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 		return ctrl.Result{}, err
 	}
-	if err, deleted := utils.HandleResourceDeletion(ctx, capp, logger, r.Client); err != nil {
-		if deleted {
-			return ctrl.Result{}, nil
+	if capp.ObjectMeta.DeletionTimestamp != nil {
+		if err := utils.HandleResourceDeletion(ctx, capp, logger, r.Client); err != nil {
+			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 	if err := utils.EnsureFinalizer(ctx, capp, r.Client); err != nil {
 		return ctrl.Result{}, err
