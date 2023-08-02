@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
@@ -22,11 +23,11 @@ func HandleResourceDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr
 		if controllerutil.ContainsFinalizer(&capp, FinalizerCleanupCapp) {
 			mwName := NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
 			if err := FinalizeService(ctx, mwName, capp.Status.ApplicationLinks.Site, log, r); err != nil {
-				return err, false
+				return fmt.Errorf("Failed to FinalizeService %s", err.Error()), false
 			}
 			controllerutil.RemoveFinalizer(&capp, FinalizerCleanupCapp)
 			if err := r.Update(ctx, &capp); err != nil {
-				return err, false
+				return fmt.Errorf("Failed to remove finalizer from capp %s", err.Error()), false
 			}
 			return nil, true
 		}
@@ -41,16 +42,14 @@ func FinalizeService(ctx context.Context, mwName string, managedClusterName stri
 	var work v1.ManifestWork
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: managedClusterName}, &work); err != nil {
 		if errors.IsNotFound(err) {
-			log.Info("already deleted ManifestWork, commit the Workflow finalizer removal")
+			log.Info("Already deleted ManifestWork, commit the Workflow finalizer removal")
 			return nil
 		} else {
-			log.Error(err, "unable to fetch ManifestWork")
-			return err
+			return fmt.Errorf("Unable to fetch ManifestWork %s", err.Error())
 		}
 	}
 	if err := r.Delete(ctx, &work); err != nil {
-		log.Error(err, "unable to delete ManifestWork")
-		return err
+		return fmt.Errorf("Unable to delete ManifestWork %s", err.Error())
 	}
 	return nil
 }
@@ -60,7 +59,7 @@ func EnsureFinalizer(ctx context.Context, service rcsv1alpha1.Capp, r client.Cli
 	if !controllerutil.ContainsFinalizer(&service, FinalizerCleanupCapp) {
 		controllerutil.AddFinalizer(&service, FinalizerCleanupCapp)
 		if err := r.Update(ctx, &service); err != nil {
-			return err
+			return fmt.Errorf("Failed to add finalizer to capp %s", err.Error())
 		}
 	}
 	return nil

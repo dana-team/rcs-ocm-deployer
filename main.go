@@ -118,14 +118,16 @@ func main() {
 		Scheme:              mgr.GetScheme(),
 		Placements:          placements,
 		PlacementsNamespace: placementsNamespace,
+		EventRecorder:       mgr.GetEventRecorderFor("cappPlacementSync_controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Capp")
 		os.Exit(1)
 	}
 
 	if err = (&controllers.ServiceNamespaceReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		EventRecorder: mgr.GetEventRecorderFor("cappPlacement_controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Capp")
 		os.Exit(1)

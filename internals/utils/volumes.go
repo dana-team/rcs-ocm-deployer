@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 
@@ -23,8 +24,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 	for _, resource := range configMaps {
 		cm := corev1.ConfigMap{}
 		if err := r.Get(ctx, types.NamespacedName{Name: resource, Namespace: capp.Namespace}, &cm); err != nil {
-			l.Error(err, "unable to fetch configmap")
-			return resources, err
+			return resources, fmt.Errorf("Unable to fetch ConfigMap from capp spec %s", err.Error())
 		} else {
 			cmManifest := &corev1.ConfigMap{
 				TypeMeta: metav1.TypeMeta{
@@ -43,8 +43,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 	for _, resource := range secrets {
 		secret := &corev1.Secret{}
 		if err := r.Get(ctx, types.NamespacedName{Name: resource, Namespace: capp.Namespace}, secret); err != nil {
-			l.Error(err, "unable to fetch secret")
-			return resources, err
+			return resources, fmt.Errorf("Unable to fetch Secret from capp spec %s", err.Error())
 		} else {
 			secretManifest := &corev1.Secret{
 				TypeMeta: metav1.TypeMeta{
