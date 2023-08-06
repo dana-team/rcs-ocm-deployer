@@ -92,7 +92,7 @@ func GetUsersfromNamespace(ctx context.Context, r client.Client, capp rcsv1alpha
 		Namespace: capp.GetNamespace(),
 	}
 	if err := r.List(ctx, &rolebindings, listOps); err != nil {
-		return users, fmt.Errorf("Failed to list roleBindings in the namespace %s", err.Error())
+		return users, fmt.Errorf("failed to list roleBindings in the namespace: %s", err.Error())
 	}
 	for _, rb := range rolebindings.Items {
 		if rb.RoleRef.Name != "admin" && rb.RoleRef.Name != "logs-reader" {

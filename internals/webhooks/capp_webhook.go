@@ -37,10 +37,10 @@ func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admis
 
 func (c *CappValidator) handle(ctx context.Context, req admission.Request, capp rcsv1alpha1.Capp) admission.Response {
 	if !isScaleMetricSupported(capp) {
-		return admission.Denied(fmt.Sprintf("This scale metric %s is unsupported. the avilable options are %s", capp.Spec.ScaleMetric, strings.Join(SupportedScaleMetrics, ",")))
+		return admission.Denied(fmt.Sprintf("this scale metric %s is unsupported. the avilable options are %s", capp.Spec.ScaleMetric, strings.Join(SupportedScaleMetrics, ",")))
 	}
 	if !isSiteVaild(capp, c.Placements, c.Client, ctx) {
-		return admission.Denied(fmt.Sprintf("This site %s is unsupported. Site field accepts either cluster name or placement name", capp.Spec.Site))
+		return admission.Denied(fmt.Sprintf("this site %s is unsupported. Site field accepts either cluster name or placement name", capp.Spec.Site))
 	}
 	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname); errs != nil {
 		return admission.Denied(errs.Error())

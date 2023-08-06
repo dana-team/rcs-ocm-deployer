@@ -23,6 +23,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
+const (
+	eventPlacementDecisionNotSatisfied  = "PlacementDecisionNotSatisfied"
+	eventCappScheduled                  = "CappScheduled"
+	eventCappVolumeNotFound             = "VolumeNotFound"
+	eventCappManifestWorkCreated        = "ManifestWorkCreated"
+	eventCappManifestWorkCreationFailed = "ManifestWorkCreationFailed"
+	eventReasonDisabled                 = "Disabled"
+	eventReasonEnabled                  = "Enabled"
+	eventTypeNormal                     = "Normal"
+	eventTypeWarning                    = "Warning"
+	eventTypeError                      = "Error"
+)
+
 // ServicePlacementReconciler reconciles a ServicePlacement object
 type ServicePlacementReconciler struct {
 	client.Client
@@ -50,20 +63,20 @@ func (r *ServicePlacementReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	if placementRef == "" || slices.Contains(r.Placements, placementRef) {
 		cluster, err := r.pickDecision(capp, logger, ctx)
 		if err != nil {
-			logger.Error(err, fmt.Sprintf("Failed to pick managed cluster for placement %s.", placementRef))
+			logger.Error(err, fmt.Sprintf("failed to pick managed cluster for placement %s", placementRef))
 			return ctrl.Result{}, err
 		}
 		if cluster == "requeue" {
-			logger.Info(fmt.Sprintf("requeuing capp %s, waiting for PlacementDecision to be satisfied.", capp.Name))
-			r.EventRecorder.Event(&capp, "Warning", "PlacementDecisionNotSatisfied", fmt.Sprintf("Failed to schedule capp %s to managed cluster. PlacementDecision with optional clusters was not found for placement %s.", capp.Name, placementRef))
+			logger.Info(fmt.Sprintf("requeuing capp %s, waiting for PlacementDecision to be satisfied", capp.Name))
+			r.EventRecorder.Event(&capp, eventTypeWarning, "PlacementDecisionNotSatisfied", fmt.Sprintf("Failed to schedule capp %s on managed cluster. PlacementDecision with optional clusters was not found for placement %s", capp.Name, placementRef))
 			return ctrl.Result{RequeueAfter: 10 * time.Second * 2}, nil
 		}
 		placementRef = cluster
 	}
 	if err := utils.UpdateCappDestination(capp, placementRef, ctx, r.Client); err != nil {
-		return ctrl.Result{}, fmt.Errorf("Unable to update capp with selected cluster %s", err.Error())
+		return ctrl.Result{}, fmt.Errorf("unable to update capp with selected cluster: %s", err.Error())
 	}
-	r.EventRecorder.Event(&capp, "Normal", "CappScheduled", fmt.Sprintf("Scheduled Capp %s for managed cluster %s", capp.Name, placementRef))
+	r.EventRecorder.Event(&capp, eventTypeNormal, eventCappScheduled, fmt.Sprintf("Scheduled Capp %s on managed cluster %s", capp.Name, placementRef))
 	return ctrl.Result{}, nil
 }
 
@@ -104,14 +117,14 @@ func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log log
 	}
 	placement := clusterv1beta1.Placement{}
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: placementRef, Namespace: r.PlacementsNamespace}, &placement); err != nil {
-		return "", fmt.Errorf("Failed to get placement %s", err.Error())
+		return "", fmt.Errorf("failed to get placement: %s", err.Error())
 	}
 	placementDecisions, err := utils.GetPlacementDecisionList(capp, log, ctx, placementRef, r.PlacementsNamespace, r.Client)
 	if len(placementDecisions.Items) == 0 {
 		return "requeue", nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("Failed to list PlacementDecisions %s", err.Error())
+		return "", fmt.Errorf("failed to list placementDecisions: %s", err.Error())
 	}
 	managedClusterName := utils.GetDecisionClusterName(placementDecisions, log)
 	if managedClusterName == "" {

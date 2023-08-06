@@ -66,12 +66,12 @@ func GatherCappResources(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logg
 	configMaps, secrets := GetResourceVolumesFromContainerSpec(capp, ctx, l, r)
 	cmAndSecrets, err := prepareVolumesManifests(secrets, configMaps, capp, ctx, l, r)
 	if err != nil {
-		return manifests, fmt.Errorf("Failed to prepare volumes for capp %s", err.Error())
+		return manifests, fmt.Errorf("failed to prepare volumes for Capp: %s", err.Error())
 	}
 	manifests = append(manifests, cmAndSecrets...)
 	role, rb, err := PrepareAdminsRolesForCapp(ctx, r, capp)
 	if err != nil {
-		return manifests, fmt.Errorf("Failed to prepare Roles and roleBindings for capp %s", err.Error())
+		return manifests, fmt.Errorf("failed to prepare Roles and roleBindings for Capp: %s", err.Error())
 	}
 	manifests = append(manifests, v1.Manifest{RawExtension: runtime.RawExtension{Object: &role}}, v1.Manifest{RawExtension: runtime.RawExtension{Object: &rb}})
 	return manifests, nil
@@ -83,7 +83,7 @@ func GatherCappResources(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logg
 func UpdateCappDestination(capp rcsv1alpha1.Capp, managedClusterName string, ctx context.Context, r client.Client) error {
 	capp.Status.ApplicationLinks.Site = managedClusterName
 	if err := r.Status().Update(ctx, &capp); err != nil {
-		return fmt.Errorf("Failed to update capp status with selected site %s", err.Error())
+		return fmt.Errorf("failed to update Capp status with selected site: %s", err.Error())
 	}
 	if err := AddCappHasPlacementAnnotation(capp, managedClusterName, ctx, r); err != nil {
 		return err
@@ -108,7 +108,7 @@ func RemoveCreatedAnnotation(ctx context.Context, service rcsv1alpha1.Capp, r cl
 	delete(cappAnno, "AnnotationNamespaceCreated")
 	service.SetAnnotations(cappAnno)
 	if err := r.Update(ctx, &service); err != nil {
-		return fmt.Errorf("Failed to remove annotations from capp %s", err.Error())
+		return fmt.Errorf("failed to update Capp status with annotations: %s", err.Error())
 	}
 	return nil
 }

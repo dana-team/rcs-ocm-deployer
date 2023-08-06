@@ -46,11 +46,11 @@ func (r *ServiceNamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 		return ctrl.Result{}, err
 	}
-	if err, deleted := utils.HandleResourceDeletion(ctx, capp, logger, r.Client); err != nil {
-		if deleted {
-			return ctrl.Result{}, nil
+	if capp.ObjectMeta.DeletionTimestamp != nil {
+		if err := utils.HandleResourceDeletion(ctx, capp, logger, r.Client); err != nil {
+			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 	if err := utils.EnsureFinalizer(ctx, capp, r.Client); err != nil {
 		return ctrl.Result{}, err
@@ -83,9 +83,9 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 	var mw workv1.ManifestWork
 	manifests, err := utils.GatherCappResources(capp, ctx, logger, r.Client)
 	if err != nil {
-		r.EventRecorder.Event(&capp, "Error", "VolumeWasNotFound", err.Error())
+		r.EventRecorder.Event(&capp, eventTypeError, eventCappVolumeNotFound, err.Error())
 		statusutils.SetVolumesCondition(capp, ctx, r.Client, logger, false, err.Error())
-		return ctrl.Result{}, fmt.Errorf("Failed to get one of the volumes from capp spec %s", err.Error())
+		return ctrl.Result{}, fmt.Errorf("Failed to get one of the volumes from capp spec: %s", err.Error())
 	}
 
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: managedClusterName}, &mw); err != nil {
@@ -93,11 +93,11 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 			mw := utils.GenerateManifestWorkGeneric(mwName, managedClusterName, manifests, workv1.ManifestConfigOption{})
 			utils.SetManifestWorkCappAnnotations(*mw, capp)
 			if err := r.Create(ctx, mw); err != nil {
-				r.EventRecorder.Event(&capp, "Error", "FailedToCreateManifestWork", err.Error())
-				return ctrl.Result{}, fmt.Errorf("Failed to create ManifestWork %s", err.Error())
+				r.EventRecorder.Event(&capp, eventTypeError, eventCappManifestWorkCreationFailed, err.Error())
+				return ctrl.Result{}, fmt.Errorf("Failed to create ManifestWork: %s", err.Error())
 			}
 			logger.Info(fmt.Sprintf("Created ManifestWork %s for capp %s", mwName, capp.Name))
-			r.EventRecorder.Event(&capp, "Normal", "CreatedManifestWork", fmt.Sprintf("Created ManifestWork %s for capp %s", mwName, capp.Name))
+			r.EventRecorder.Event(&capp, eventTypeNormal, eventCappManifestWorkCreated, fmt.Sprintf("created ManifestWork %s for capp %s", mwName, capp.Name))
 			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
@@ -106,10 +106,10 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 
 	if err = r.Update(ctx, &mw); err != nil {
 		if errors.IsConflict(err) {
-			logger.Info(fmt.Sprint("Conflict while updating ManifestWork trying again in a few seconds"))
+			logger.Info(fmt.Sprint("conflict while updating manifestWork trying again in a few seconds"))
 			return ctrl.Result{RequeueAfter: time.Second * 2}, nil
 		}
-		return ctrl.Result{}, fmt.Errorf("Failed to sync ManifestWork %s", err.Error())
+		return ctrl.Result{}, fmt.Errorf("failed to sync manifestWork: %s", err.Error())
 	}
 	return ctrl.Result{}, err
 }

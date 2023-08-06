@@ -69,7 +69,7 @@ func GetRelatedManifestwork(ctx context.Context, r client.Client, l logr.Logger,
 	mw := workv1.ManifestWork{}
 	mwName := NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: capp.ObjectMeta.Annotations[AnnotationKeyHasPlacement]}, &mw); err != nil {
-		return mw, fmt.Errorf("Failed to get related ManifestWork %s", err.Error())
+		return mw, fmt.Errorf("failed to get related ManifestWork: %s", err.Error())
 	}
 	return mw, nil
 }
