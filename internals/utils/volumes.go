@@ -24,7 +24,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 	for _, resource := range configMaps {
 		cm := corev1.ConfigMap{}
 		if err := r.Get(ctx, types.NamespacedName{Name: resource, Namespace: capp.Namespace}, &cm); err != nil {
-			return resources, fmt.Errorf("unable to fetch ConfigMap from capp spec: %s", err.Error())
+			return resources, fmt.Errorf("unable to fetch ConfigMap from Capp spec: %s", err.Error())
 		} else {
 			cmManifest := &corev1.ConfigMap{
 				TypeMeta: metav1.TypeMeta{
@@ -43,7 +43,7 @@ func prepareVolumesManifests(secrets []string, configMaps []string, capp rcsv1al
 	for _, resource := range secrets {
 		secret := &corev1.Secret{}
 		if err := r.Get(ctx, types.NamespacedName{Name: resource, Namespace: capp.Namespace}, secret); err != nil {
-			return resources, fmt.Errorf("unable to fetch Secret from capp spec: %s", err.Error())
+			return resources, fmt.Errorf("unable to fetch Secret from Capp spec: %s", err.Error())
 		} else {
 			secretManifest := &corev1.Secret{
 				TypeMeta: metav1.TypeMeta{

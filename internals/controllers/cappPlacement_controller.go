@@ -67,14 +67,14 @@ func (r *ServicePlacementReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			return ctrl.Result{}, err
 		}
 		if cluster == "requeue" {
-			logger.Info(fmt.Sprintf("requeuing capp %s, waiting for PlacementDecision to be satisfied", capp.Name))
-			r.EventRecorder.Event(&capp, eventTypeWarning, "PlacementDecisionNotSatisfied", fmt.Sprintf("Failed to schedule capp %s on managed cluster. PlacementDecision with optional clusters was not found for placement %s", capp.Name, placementRef))
+			logger.Info(fmt.Sprintf("Requeuing Capp %s, waiting for PlacementDecision to be satisfied", capp.Name))
+			r.EventRecorder.Event(&capp, eventTypeWarning, "PlacementDecisionNotSatisfied", fmt.Sprintf("Failed to schedule Capp %s on managed cluster. PlacementDecision with optional clusters was not found for placement %s", capp.Name, placementRef))
 			return ctrl.Result{RequeueAfter: 10 * time.Second * 2}, nil
 		}
 		placementRef = cluster
 	}
 	if err := utils.UpdateCappDestination(capp, placementRef, ctx, r.Client); err != nil {
-		return ctrl.Result{}, fmt.Errorf("unable to update capp with selected cluster: %s", err.Error())
+		return ctrl.Result{}, fmt.Errorf("unable to update Capp with selected cluster: %s", err.Error())
 	}
 	r.EventRecorder.Event(&capp, eventTypeNormal, eventCappScheduled, fmt.Sprintf("Scheduled Capp %s on managed cluster %s", capp.Name, placementRef))
 	return ctrl.Result{}, nil

@@ -85,7 +85,7 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 	if err != nil {
 		r.EventRecorder.Event(&capp, eventTypeError, eventCappVolumeNotFound, err.Error())
 		statusutils.SetVolumesCondition(capp, ctx, r.Client, logger, false, err.Error())
-		return ctrl.Result{}, fmt.Errorf("Failed to get one of the volumes from capp spec: %s", err.Error())
+		return ctrl.Result{}, fmt.Errorf("failed to get one of the volumes from Capp spec: %s", err.Error())
 	}
 
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: managedClusterName}, &mw); err != nil {
@@ -94,10 +94,10 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 			utils.SetManifestWorkCappAnnotations(*mw, capp)
 			if err := r.Create(ctx, mw); err != nil {
 				r.EventRecorder.Event(&capp, eventTypeError, eventCappManifestWorkCreationFailed, err.Error())
-				return ctrl.Result{}, fmt.Errorf("Failed to create ManifestWork: %s", err.Error())
+				return ctrl.Result{}, fmt.Errorf("failed to create ManifestWork: %s", err.Error())
 			}
-			logger.Info(fmt.Sprintf("Created ManifestWork %s for capp %s", mwName, capp.Name))
-			r.EventRecorder.Event(&capp, eventTypeNormal, eventCappManifestWorkCreated, fmt.Sprintf("created ManifestWork %s for capp %s", mwName, capp.Name))
+			logger.Info(fmt.Sprintf("Created ManifestWork %s for Capp %s", mwName, capp.Name))
+			r.EventRecorder.Event(&capp, eventTypeNormal, eventCappManifestWorkCreated, fmt.Sprintf("Created ManifestWork %s for capp %s", mwName, capp.Name))
 			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
@@ -106,10 +106,10 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 
 	if err = r.Update(ctx, &mw); err != nil {
 		if errors.IsConflict(err) {
-			logger.Info(fmt.Sprint("conflict while updating manifestWork trying again in a few seconds"))
+			logger.Info(fmt.Sprint("Conflict while updating ManifestWork trying again in a few seconds"))
 			return ctrl.Result{RequeueAfter: time.Second * 2}, nil
 		}
-		return ctrl.Result{}, fmt.Errorf("failed to sync manifestWork: %s", err.Error())
+		return ctrl.Result{}, fmt.Errorf("failed to sync ManifestWork: %s", err.Error())
 	}
 	return ctrl.Result{}, err
 }

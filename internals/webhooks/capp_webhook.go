@@ -25,7 +25,7 @@ const ServingPath = "/validate-capp"
 
 func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	logger := log.FromContext(ctx).WithValues("webhook", "capp Webhook", "Name", req.Name)
-	logger.Info("webhook request received")
+	logger.Info("Webhook request received")
 	capp := rcsv1alpha1.Capp{}
 	if err := c.Decoder.DecodeRaw(req.Object, &capp); err != nil {
 		logger.Error(err, "could not decode capp object")

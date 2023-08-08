@@ -38,7 +38,7 @@ func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx contex
 func GetDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecisionList, log logr.Logger) string {
 	pd := placementDecisions.Items[0]
 	if len(pd.Status.Decisions) == 0 {
-		log.Info("unable to find PlacementDecision.")
+		log.Info("Unable to find PlacementDecision")
 		return ""
 	}
 
@@ -47,7 +47,7 @@ func GetDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecision
 		managedClusterName = pd.Status.Decisions[1].ClusterName
 	}
 	if len(managedClusterName) == 0 {
-		log.Info("unable to find a valid ManagedCluster from PlacementDecision.")
+		log.Info("Unable to find a valid ManagedCluster from PlacementDecision")
 		return ""
 	}
 	return managedClusterName
