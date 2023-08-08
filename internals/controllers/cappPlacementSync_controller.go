@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
@@ -11,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	workv1 "open-cluster-management.io/api/work/v1"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -25,7 +27,8 @@ import (
 // ServiceNamespaceReconciler reconciles a ServiceNamespace object
 type ServiceNamespaceReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme        *runtime.Scheme
+	EventRecorder record.EventRecorder
 }
 
 const (
@@ -35,7 +38,7 @@ const (
 )
 
 func (r *ServiceNamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	l := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("CappName", req.Name, "CappNamespace", req.Namespace)
 	capp := rcsv1alpha1.Capp{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &capp); err != nil {
 		if errors.IsNotFound(err) {
@@ -43,18 +46,16 @@ func (r *ServiceNamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 		return ctrl.Result{}, err
 	}
-
-	l.Info("Start reconciling Service in ServiceNamespace controller")
-	if err, deleted := utils.HandleResourceDeletion(ctx, capp, l, r.Client); err != nil {
-		if deleted {
-			return ctrl.Result{}, nil
+	if capp.ObjectMeta.DeletionTimestamp != nil {
+		if err := utils.HandleResourceDeletion(ctx, capp, logger, r.Client); err != nil {
+			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 	if err := utils.EnsureFinalizer(ctx, capp, r.Client); err != nil {
 		return ctrl.Result{}, err
 	}
-	return r.SyncManifestWork(capp, ctx, l)
+	return r.SyncManifestWork(capp, ctx, logger)
 }
 
 var CappPredicateFuncs = predicate.Funcs{
@@ -76,14 +77,15 @@ var CappPredicateFuncs = predicate.Funcs{
 
 // SyncManifestWork checks whether the manifest work deploying the service exists in the managed cluster namespace
 // If it does, it updates the service in the manifest work spec, if it doesn't, it creates it
-func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Context, l logr.Logger) (ctrl.Result, error) {
+func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Context, logger logr.Logger) (ctrl.Result, error) {
 	mwName := utils.NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
 	managedClusterName := capp.Annotations[utils.AnnotationKeyHasPlacement]
 	var mw workv1.ManifestWork
-	manifests, err := utils.GatherCappResources(capp, ctx, l, r.Client)
+	manifests, err := utils.GatherCappResources(capp, ctx, logger, r.Client)
 	if err != nil {
-		statusutils.SetVolumesCondition(capp, ctx, r.Client, l, false, err.Error())
-		return ctrl.Result{}, err
+		r.EventRecorder.Event(&capp, eventTypeError, eventCappVolumeNotFound, err.Error())
+		statusutils.SetVolumesCondition(capp, ctx, r.Client, logger, false, err.Error())
+		return ctrl.Result{}, fmt.Errorf("failed to get one of the volumes from Capp spec: %s", err.Error())
 	}
 
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: managedClusterName}, &mw); err != nil {
@@ -91,8 +93,11 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 			mw := utils.GenerateManifestWorkGeneric(mwName, managedClusterName, manifests, workv1.ManifestConfigOption{})
 			utils.SetManifestWorkCappAnnotations(*mw, capp)
 			if err := r.Create(ctx, mw); err != nil {
-				return ctrl.Result{}, err
+				r.EventRecorder.Event(&capp, eventTypeError, eventCappManifestWorkCreationFailed, err.Error())
+				return ctrl.Result{}, fmt.Errorf("failed to create ManifestWork: %s", err.Error())
 			}
+			logger.Info(fmt.Sprintf("Created ManifestWork %s for Capp %s", mwName, capp.Name))
+			r.EventRecorder.Event(&capp, eventTypeNormal, eventCappManifestWorkCreated, fmt.Sprintf("Created ManifestWork %s for capp %s", mwName, capp.Name))
 			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
@@ -100,13 +105,12 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 	mw.Spec.Workload.Manifests = manifests
 
 	if err = r.Update(ctx, &mw); err != nil {
-		l.Error(err, "unable to update ManifestWork")
 		if errors.IsConflict(err) {
+			logger.Info(fmt.Sprint("Conflict while updating ManifestWork trying again in a few seconds"))
 			return ctrl.Result{RequeueAfter: time.Second * 2}, nil
 		}
-		return ctrl.Result{}, err
+		return ctrl.Result{}, fmt.Errorf("failed to sync ManifestWork: %s", err.Error())
 	}
-	l.Info("done reconciling Workflow")
 	return ctrl.Result{}, err
 }
 

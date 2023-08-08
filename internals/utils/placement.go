@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
@@ -21,15 +22,13 @@ func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx contex
 	listopts := &client.ListOptions{}
 	requirement, err := labels.NewRequirement(clusterv1beta1.PlacementLabel, selection.Equals, []string{placementRef})
 	if err != nil {
-		log.Error(err, "unable to create new PlacementDecision label requirement")
-		return nil, err
+		return nil, fmt.Errorf("unable to create new PlacementDecision label requirement: %s", err.Error())
 	}
 	labelSelector := labels.NewSelector().Add(*requirement)
 	listopts.LabelSelector = labelSelector
 	listopts.Namespace = placementsNamespace
 	placementDecisions := &clusterv1beta1.PlacementDecisionList{}
 	if err = r.List(ctx, placementDecisions, listopts); err != nil {
-		log.Error(err, "unable to list PlacementDecisions")
 		return nil, err
 	}
 	return placementDecisions, nil
@@ -39,7 +38,7 @@ func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx contex
 func GetDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecisionList, log logr.Logger) string {
 	pd := placementDecisions.Items[0]
 	if len(pd.Status.Decisions) == 0 {
-		log.Info("unable to find any Decisions from PlacementDecision, try again after 10 seconds")
+		log.Info("Unable to find PlacementDecision")
 		return ""
 	}
 
@@ -48,7 +47,7 @@ func GetDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecision
 		managedClusterName = pd.Status.Decisions[1].ClusterName
 	}
 	if len(managedClusterName) == 0 {
-		log.Info("unable to find a valid ManagedCluster from PlacementDecision, try again after 10 seconds")
+		log.Info("Unable to find a valid ManagedCluster from PlacementDecision")
 		return ""
 	}
 	return managedClusterName

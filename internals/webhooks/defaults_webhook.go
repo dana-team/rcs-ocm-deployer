@@ -27,10 +27,10 @@ const (
 
 func (c *DefaultMutator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	logger := log.FromContext(ctx).WithValues("webhook", "capp defaults Webhook", "Name", req.Name)
-	logger.Info("webhook request received")
+	logger.Info("Webhook request received")
 	capp := rcsv1alpha1.Capp{}
 	if err := c.Decoder.DecodeRaw(req.Object, &capp); err != nil {
-		logger.Error(err, "could not decode capp object")
+		logger.Error(err, "could not decode Capp object")
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 	c.handle(&capp)

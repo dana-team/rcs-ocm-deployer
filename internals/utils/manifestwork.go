@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
@@ -68,7 +69,7 @@ func GetRelatedManifestwork(ctx context.Context, r client.Client, l logr.Logger,
 	mw := workv1.ManifestWork{}
 	mwName := NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: capp.ObjectMeta.Annotations[AnnotationKeyHasPlacement]}, &mw); err != nil {
-		return mw, err
+		return mw, fmt.Errorf("failed to get related ManifestWork: %s", err.Error())
 	}
 	return mw, nil
 }

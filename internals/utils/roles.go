@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 
@@ -91,7 +92,7 @@ func GetUsersfromNamespace(ctx context.Context, r client.Client, capp rcsv1alpha
 		Namespace: capp.GetNamespace(),
 	}
 	if err := r.List(ctx, &rolebindings, listOps); err != nil {
-		return users, err
+		return users, fmt.Errorf("failed to list roleBindings in the namespace: %s", err.Error())
 	}
 	for _, rb := range rolebindings.Items {
 		if rb.RoleRef.Name != "admin" && rb.RoleRef.Name != "logs-reader" {

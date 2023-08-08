@@ -33,7 +33,7 @@ func setCappCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Clien
 		meta.SetStatusCondition(&capp.Status.Conditions, condition)
 	}
 	if err := r.Status().Update(ctx, &capp); err != nil {
-		l.Error(err, fmt.Sprintf("Unable to set Capp condition %v", condition.Type))
+		l.Error(err, fmt.Sprintf("unable to set Capp condition: %v", condition.Type))
 		return err
 	}
 	return nil
@@ -61,7 +61,7 @@ func generateCondtion(condType string, status bool, reason ...string) metav1.Con
 func SetVolumesCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
 	condition := generateCondtion(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {
-		return err
+		return fmt.Errorf("failed to set volumeCondition on app: %s", err)
 	}
 	return nil
 }
@@ -73,7 +73,7 @@ func SetVolumesCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Cl
 func SetHasPlacementCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
 	condition := generateCondtion(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {
-		return err
+		return fmt.Errorf("failed to set placementCondition on Capp: %s", err)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func SetHasPlacementCondition(capp rcsv1alpha1.Capp, ctx context.Context, r clie
 func SetDeployedCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
 	condition := generateCondtion(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {
-		return err
+		return fmt.Errorf("failed to set deployedCondition on Capp: %s", err)
 	}
 	return nil
 }
