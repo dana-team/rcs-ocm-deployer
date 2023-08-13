@@ -36,19 +36,32 @@ func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx contex
 
 // GetDecisionClusterName retrieves the name of a managed cluster from a PlacementDecisionList.
 func GetDecisionClusterName(placementDecisions *clusterv1beta1.PlacementDecisionList, log logr.Logger) string {
-	pd := placementDecisions.Items[0]
-	if len(pd.Status.Decisions) == 0 {
+	if len(placementDecisions.Items) == 0 {
 		log.Info("Unable to find PlacementDecision")
 		return ""
 	}
 
-	managedClusterName := pd.Status.Decisions[0].ClusterName
-	if managedClusterName == "local-cluster" {
-		managedClusterName = pd.Status.Decisions[1].ClusterName
-	}
-	if len(managedClusterName) == 0 {
-		log.Info("Unable to find a valid ManagedCluster from PlacementDecision")
+	pd := placementDecisions.Items[0]
+	if len(pd.Status.Decisions) == 0 {
+		log.Info("No PlacementDecision decisions found")
 		return ""
 	}
-	return managedClusterName
+
+	if len(pd.Status.Decisions) == 1 {
+		managedClusterName := pd.Status.Decisions[0].ClusterName
+		if len(managedClusterName) == 0 {
+			log.Info("Unable to find a valid ManagedCluster from PlacementDecision")
+			return ""
+		}
+		return managedClusterName
+	}
+
+	for _, decision := range pd.Status.Decisions {
+		if decision.ClusterName != "local-cluster" {
+			return decision.ClusterName
+		}
+	}
+
+	log.Info("Unable to find a valid ManagedCluster from PlacementDecision")
+	return ""
 }
