@@ -53,7 +53,7 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-const Placementskey = "PLACEMENTS"
+const PlacementsKey = "PLACEMENTS"
 const PlacementsNamespaceKey = "PLACEMENTS_NAMESPACE"
 const DefaultPlacementsNamespaces = "default"
 
@@ -98,11 +98,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	placementsEnv := os.Getenv(Placementskey)
+	placementsEnv := os.Getenv(PlacementsKey)
 	placementsNamespace := os.Getenv(PlacementsNamespaceKey)
 	var placements []string
 	if placementsEnv == "" {
-		setupLog.Error(err, "unable to read placement envinroment variable")
+		setupLog.Error(err, "unable to read placement environment variable")
 		os.Exit(1)
 	} else {
 		placements = strings.Split(placementsEnv, ",")
@@ -111,7 +111,7 @@ func main() {
 		placementsNamespace = DefaultPlacementsNamespaces
 	}
 
-	if err = (&controllers.ServicePlacementReconciler{
+	if err = (&controllers.CappPlacementReconciler{
 		Client:              mgr.GetClient(),
 		Scheme:              mgr.GetScheme(),
 		Placements:          placements,
@@ -122,7 +122,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.ServiceNamespaceReconciler{
+	if err = (&controllers.CappNamespaceReconciler{
 		Client:        mgr.GetClient(),
 		Scheme:        mgr.GetScheme(),
 		EventRecorder: mgr.GetEventRecorderFor("cappPlacement_controller"),

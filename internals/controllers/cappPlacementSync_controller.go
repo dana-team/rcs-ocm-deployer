@@ -24,8 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-// ServiceNamespaceReconciler reconciles a ServiceNamespace object
-type ServiceNamespaceReconciler struct {
+// CappNamespaceReconciler reconciles a CappNamespace object
+type CappNamespaceReconciler struct {
 	client.Client
 	Scheme        *runtime.Scheme
 	EventRecorder record.EventRecorder
@@ -37,7 +37,7 @@ const (
 	NamespaceManifestWorkPrefix  = "mw-create-"
 )
 
-func (r *ServiceNamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *CappNamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithValues("CappName", req.Name, "CappNamespace", req.Namespace)
 	capp := rcsv1alpha1.Capp{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &capp); err != nil {
@@ -61,23 +61,23 @@ func (r *ServiceNamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Req
 var CappPredicateFuncs = predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
 		newCapp := e.ObjectNew.(*rcsv1alpha1.Capp)
-		return utils.ContainesPlacementAnnotation(*newCapp)
+		return utils.ContainsPlacementAnnotation(*newCapp)
 
 	},
 	CreateFunc: func(e event.CreateEvent) bool {
 		capp := e.Object.(*rcsv1alpha1.Capp)
-		return utils.ContainesPlacementAnnotation(*capp)
+		return utils.ContainsPlacementAnnotation(*capp)
 	},
 
 	DeleteFunc: func(e event.DeleteEvent) bool {
 		capp := e.Object.(*rcsv1alpha1.Capp)
-		return utils.ContainesPlacementAnnotation(*capp)
+		return utils.ContainsPlacementAnnotation(*capp)
 	},
 }
 
-// SyncManifestWork checks whether the manifest work deploying the service exists in the managed cluster namespace
-// If it does, it updates the service in the manifest work spec, if it doesn't, it creates it
-func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Context, logger logr.Logger) (ctrl.Result, error) {
+// SyncManifestWork checks whether the manifest work deploying the Capp exists in the managed cluster namespace
+// If it does, it updates the Capp in the manifest work spec. If it doesn't then it creates it
+func (r *CappNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Context, logger logr.Logger) (ctrl.Result, error) {
 	mwName := utils.NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
 	managedClusterName := capp.Annotations[utils.AnnotationKeyHasPlacement]
 	var mw workv1.ManifestWork
@@ -106,7 +106,7 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 
 	if err = r.Update(ctx, &mw); err != nil {
 		if errors.IsConflict(err) {
-			logger.Info(fmt.Sprint("Conflict while updating ManifestWork trying again in a few seconds"))
+			logger.Info("Conflict while updating ManifestWork trying again in a few seconds")
 			return ctrl.Result{RequeueAfter: time.Second * 2}, nil
 		}
 		return ctrl.Result{}, fmt.Errorf("failed to sync ManifestWork: %s", err.Error())
@@ -115,7 +115,7 @@ func (r *ServiceNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ServiceNamespaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *CappNamespaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&rcsv1alpha1.Capp{}).
 		WithEventFilter(CappPredicateFuncs).

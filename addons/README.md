@@ -1,45 +1,46 @@
-# Capp Status Sync Add-on
-By applying this add-on to your OCM hub cluster, the Capp status will automatically be sync back from `managed` (`spoke`) clusters to `hub` cluster.
+# Capp status sync add-on
 
-There are two components:
+By applying this add-on to your `OCM` Hub Cluster, the `Capp` status will automatically be synced back from Managed/Spoke Clusters to the Hub cluster.
 
-- The agent that lives on the `managed` (`spoke`)  clusters, which responsible to update the Capp statuses on the `hub` cluster .
-- The manager that lives on the `hub` cluster that is responsible for deploying and lifecycle of the agent to the `managed` (`spoke`)  clusters.
+## The components
 
-# Prerequisite
+- `agent` - deployed on the Managed/Spoke clusters; responsible for syncing the `Capp` status between the Managed Cluster and the Hub Cluster.
 
-Set up an Open Cluster Management environment. See: https://open-cluster-management.io/getting-started/quick-start/ for more details
+- `manager` - deployed on the Hub Cluster; responsible for deploying the `agent` on the Managed/Spoke clusters.
 
-# Get started
+## Getting Started
 
-Deploy the add-on the OCM `Hub` cluster:
+1. Deploy the add-on the Hub Cluster.
 
-```
-$ make deploy-addon
-$ kubectl -n open-cluster-management get deploy
-NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-capp-status-sync-addon   1/1     1            1           14s
-```
+    ```bash
+    $ make deploy-addon IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
+    $ kubectl -n open-cluster-management get deploy
 
-The controller will automatically install the add-on agent to all `managed` (`spoke`) clusters.
+    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+    capp-status-sync-addon   1/1     1            1           14s
+    ```
 
-Validate the add-on agent is installed on a `managed` (`spoke`) cluster:
+2. The controller will automatically install the add-on `agent` on all Managed/Spoke Clusters. Validate the add-on agent is installed on a Managed/Spoke` cluster:
 
-```
-$ kubectl -n open-cluster-management-agent-addon get deploy
-NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
-capp-status-sync-addon-agent    1/1     1            1           2m24s
-```
+    ```bash
+    $ kubectl -n open-cluster-management-agent-addon get deploy
 
-You can also validate and check the status of the add-on on the `Hub` cluster:
+    NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
+    capp-status-sync-addon-agent    1/1     1            1           2m24s
+    ```
 
-```
-$ kubectl -n cluster1 get managedclusteraddon # replace "cluster1" with your managed cluster name
-NAME                                AVAILABLE   DEGRADED   PROGRESSING
-capp-status-sync-addon      True                   
-```
+3. You can also validate and check the status of the add-on on the Hub cluster:
 
-Undeploy the add-on the OCM `Hub` cluster:
-```
-$ make undeploy-addon                
-```
+    ```bash
+    # replace "cluster1" with your managed cluster name
+    $ kubectl -n cluster1 get managedclusteraddon
+    
+    NAME                                AVAILABLE   DEGRADED   PROGRESSING
+    capp-status-sync-addon      True                   
+    ```
+
+4. Undeploy the add-on:
+
+    ```bash
+    $ make undeploy-addon                
+    ```

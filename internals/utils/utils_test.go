@@ -11,7 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/dana-team/container-app-operator/api/v1alpha1"
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
 	"github.com/go-logr/logr"
@@ -153,7 +152,7 @@ func TestGetUsersfromNamespace(t *testing.T) {
 
 func TestGetPlacementDecisionList(t *testing.T) {
 	// Create a test Capp
-	capp := v1alpha1.Capp{
+	capp := rcsv1alpha1.Capp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-capp",
 			Namespace: "test-namespace",
