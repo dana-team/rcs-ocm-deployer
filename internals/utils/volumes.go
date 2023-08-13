@@ -97,5 +97,7 @@ func GetResourceVolumesFromContainerSpec(capp rcsv1alpha1.Capp, ctx context.Cont
 		secrets = append(secrets, secret.Name)
 	}
 
+	secrets = append(secrets, capp.Spec.RouteSpec.TlsSecret)
+
 	return configMaps, secrets
 }

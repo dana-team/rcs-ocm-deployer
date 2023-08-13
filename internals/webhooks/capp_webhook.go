@@ -45,5 +45,8 @@ func (c *CappValidator) handle(ctx context.Context, req admission.Request, capp 
 	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname); errs != nil {
 		return admission.Denied(errs.Error())
 	}
+	if errs := validateTlsFields(capp); errs != nil {
+		return admission.Denied(errs.Error())
+	}
 	return admission.Allowed("")
 }
