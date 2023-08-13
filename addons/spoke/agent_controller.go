@@ -18,18 +18,18 @@ type CappSyncReconciler struct {
 }
 
 func (r *CappSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	logger := log.FromContext(ctx).WithName("status-sync-controller").WithValues("Capp", req.NamespacedName)
 	logger.Info("Starting Reconcile")
+	
 	// get instance of spoke capp
 	spokeCapp := &rcsv1alpha1.Capp{}
 	logger.Info("Trying to fetch Capp from spoke")
 	if err := r.spokeClient.Get(ctx, req.NamespacedName, spokeCapp); err != nil {
 		if errors.IsNotFound(err) {
-			logger.Info("didnt found Capp")
+			logger.Info("failed to find Capp")
 			return ctrl.Result{}, nil
 		} else {
-			logger.Error(err, "fail to get Capp from spoke")
+			logger.Error(err, "failed to get Capp from spoke")
 			return ctrl.Result{}, err
 		}
 	}
@@ -39,17 +39,17 @@ func (r *CappSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger.Info("Trying to fetch Capp from hub")
 	hubCapp := &rcsv1alpha1.Capp{}
 	if err := r.hubClient.Get(ctx, req.NamespacedName, hubCapp); err != nil {
-		logger.Error(err, "fail to get capp")
+		logger.Error(err, "failed to get Capp")
 		return ctrl.Result{}, err
 
 	}
-	logger.Info("fetched Capp from hub successfully")
+	logger.Info("Fetched Capp from hub successfully")
 	syncCappStatus(&spokeCapp.Status, &hubCapp.Status)
 	if err := r.hubClient.Status().Update(ctx, hubCapp); err != nil {
 		logger.Error(err, "failed to update status on hub cluster")
 		return ctrl.Result{}, err
 	}
-	logger.Info("updated Capp status successfully on hub cluster")
+	logger.Info("Updated Capp status successfully on hub cluster")
 	return ctrl.Result{}, nil
 }
 

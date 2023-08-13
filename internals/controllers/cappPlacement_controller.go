@@ -36,8 +36,8 @@ const (
 	eventTypeError                      = "Error"
 )
 
-// ServicePlacementReconciler reconciles a ServicePlacement object
-type ServicePlacementReconciler struct {
+// CappPlacementReconciler reconciles a CappPlacement object
+type CappPlacementReconciler struct {
 	client.Client
 	Scheme              *runtime.Scheme
 	EventRecorder       record.EventRecorder
@@ -50,7 +50,7 @@ type ServicePlacementReconciler struct {
 //+kubebuilder:rbac:groups=cluster.open-cluster-management.io,resources=placements,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
-func (r *ServicePlacementReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *CappPlacementReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithValues("CappName", req.Name, "CappNamespace", req.Namespace)
 	capp := rcsv1alpha1.Capp{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &capp); err != nil {
@@ -80,37 +80,34 @@ func (r *ServicePlacementReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-var ServicePredicateFunctions = predicate.Funcs{
+var CappPredicateFunctions = predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
 		newCapp := e.ObjectNew.(*rcsv1alpha1.Capp)
-		return !utils.ContainesPlacementAnnotation(*newCapp)
+		return !utils.ContainsPlacementAnnotation(*newCapp)
 
 	},
 	CreateFunc: func(e event.CreateEvent) bool {
 		capp := e.Object.(*rcsv1alpha1.Capp)
-		return !utils.ContainesPlacementAnnotation(*capp)
+		return !utils.ContainsPlacementAnnotation(*capp)
 	},
 
 	DeleteFunc: func(e event.DeleteEvent) bool {
 		capp := e.Object.(*rcsv1alpha1.Capp)
-		return !utils.ContainesPlacementAnnotation(*capp)
+		return !utils.ContainsPlacementAnnotation(*capp)
 	},
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ServicePlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *CappPlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&rcsv1alpha1.Capp{}).
-		WithEventFilter(ServicePredicateFunctions).
+		WithEventFilter(CappPredicateFunctions).
 		Complete(r)
 }
 
-// pickDecision gets a service logger and context
-// The function decides the name of the managed cluster to deploy to
-// And adds an annotation to the capp with its name
-// Returns controller result and error
-
-func (r *ServicePlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (string, error) {
+// pickDecision decides the name of the managed cluster to deploy the Capp on,
+// and adds an annotation to the Capp with its name
+func (r *CappPlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (string, error) {
 	placementRef := capp.Spec.Site
 	if capp.Spec.Site == "" {
 		placementRef = r.Placements[0]

@@ -1,148 +1,193 @@
 # rcs-ocm-deployer
-The `rcs-ocm-deployer` is an operator designed to deploy `knative service` workloads created on the hub to the managed cluster with the lowest load average on specific namespace.
 
-## Open Cluster Management and Knative
+`rcs-ocm-deployer` is an operator designed to deploy `Capp` (ContainerApp) workloads created on the Hub Cluster on the most suitable Managed Cluster using `OCM` (Open Cluster Management) APIs of `Placement` and `ManifestWork`. It also includes a `OCM AddOn` to sync the status of `Capp` between the Managed Clusters and the Hub Cluster.
+
+## RCS
+
+`RCS` (Run Container Service) is an open-source implementation of Container as a Service solution.
+
+It utilizes the `OCM` project to create and manage workloads across multiple clusters, providing cloud-like features and technologies to users running on-premise.
+
+It offers an auto cluster scheduler based on cluster usage and availability, requires basic configuration, and provides an auto-scaler template based on a single metric, among other features.
+
+`RCS` aims to simplify and streamline the management of containerized applications, making it easier for developers to focus on writing code.
+
+## Capp
+
+This operator works together with the `container-app-operator`. For more information about `Capp` and about its API, please check [the Capp repo](https://github.com/dana-team/container-app-operator).
+
+## Open Cluster Management
+
 This project uses the `Placement` and `ManifestWork` APIs of the Open Cluster Management (OCM) project. For more information please refer to the [OCM documentation](https://open-cluster-management.io/concepts/).
 
-In order, please refer to the [Knative Serving documentation](https://knative.dev/docs/serving/) for more information about the `knative service` object.
+## High-level architecture
 
-## Description
-### The Annotations
-Two annotations are required in the `knative service` yaml:  
+![image info](./images/rcs-architecture.svg)
 
-- `dana.io/ocm-placement: <PLACEMENT>` - The name of the placement to decide from which manage cluster to deploy on.
-- `dana.io/ocm-managed-cluster-namespace: <MANAGED_CLUSTER_NS>` - The namespace on the managed cluster where `knative service` needs to be deployed.
+1. The client creates the `Capp` CR in a Namespace on the Hub Cluster.
+
+2. The `rcs-ocm-deployer` controller on Hub Cluster watches for `Capp` CRs and reconciles them.
+
+3. The controller chooses the ‘most suitable’ Managed Cluster to deploy the `Capp` workload using the `Placement` API.
+
+4. Each Managed Cluster on the Hub Cluster has a dedicated namespace. The controller creates a `ManifestWork` object on the Hub Cluster in the namespace of the chosen Managed Cluster.
+
+5. The Managed Cluster pulls the `ManifestWork` from the Hub Cluster using the `work agent` and creates a `Capp` CR on the Managed Cluster.
+
+6. A `Capp` controller runs on Managed Cluster, watches for `Capp` CRs and reconciles them.
+
+7. A status is returned from the Managed Cluster to the Hub Cluster using an `OCM AddOn`.
 
 ### The controllers
 
-1. `service placement controller`: The controller extracts the placement from the `knative serivce` annotation and adds an annotation containing the cluster where to deploy, in accordance to the `placementDesicion`.
+1. `cappPlacement`: The controller adds an annotation containing the chosen Managed Cluster to deploy the `Capp` workload on, in accordance to the `placementDecision` and the desired `Site`.
 
-2. `service namespace controller`: The controller extracts the namespace name from the `knative serivce` annotaion and creates a `ManifestWork` in the desired `ManagedCluster` namespace, which contains the namespace with the desired name to be deployed, and adds an annotation to the service when the namespace is created.
+2. `cappPlacementSync`: The controller controls the lifecycle of the `ManifestWork` CR in the namespace of the chosen Managed Cluster. The `ManifestWork` contains the `Capp` CR as well as all the `Secrets` and `Volumes` referenced in the `Capp` CR, thus making sure that all the `Secrets` and `Volumes` also exist on the Managed Cluster, in the same namespace the `Capp CR` exists in on the Hub Cluster.
 
-3. `service controller`: The controller extracts the namespace name and the desired cluster from the `knative serivce` annotations and creates a `ManifestWork` in the desired `ManagedCluster` namespace; the agent on the `ManagedCluster` takes care of deploying the `knative serivce` on the cluster itself.
+3. `addOns`: Refer [here](./addons/README.md) for more information.
 
 ## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KinD](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
-**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 ### Setting Up a Hub Cluster and Managed Clusters locally
+
 The [OCM project](https://github.com/open-cluster-management-io/OCM) contains a script that allows spinning up a `KinD`-based environment, containing of a Hub Cluster and 2 Managed Clusters.
 
-You can clone the repository and set up the environment, provided that you have `KinD` and `docker` installed on your machine. 
+#### Prerequisites
 
-This script would create 3 clusters with the following Kubernetes contextes: 
+The following should be installed on your Linux machine:
+
+- [`KinD`](https://kind.sigs.k8s.io/docs/user/quick-start/)
+- [`docker`](https://docs.docker.com/engine/install/)
+- [`clusteradm`](https://github.com/open-cluster-management-io/clusteradm)
+- [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
+
+#### The script
+
+You can clone the repository and set up the environment. This script would create 3 clusters with the following Kubernetes contexts:
 
 - `kind-hub`
 - `kind-cluster1`
 - `kind-cluster2`
 
-To switch between contexes, use `kubectl config set-context <CONTEXT_NAME>`
+To switch between contexts, use:
 
+```bash
+ $ kubectl config use-context <CONTEXT_NAME>
 ```
+
+Run the script:
+
+```bash
 $ git clone https://github.com/open-cluster-management-io/OCM
 $ bash ./OCM/solutions/setup-dev-environment/local-up.sh
 ```
 
-### Installing Knative
-Follow the instructions of the Knative website to [install the Knative CLI](https://knative.dev/docs/getting-started/quickstart-install/#install-the-knative-cli), `kn`. Install Knative on the Managed Clusters:
+### Create ManagedClusterSet
 
-```
-$ kubectl config use-context kind-cluster1
-$ kn quickstart kind --name cluster1
+`ManagedClusterSet` is an [OCM cluster-scoped API](https://open-cluster-management.io/concepts/managedclusterset/) in the Hub Cluster for grouping a few managed clusters into a "set".
 
-Running Knative Quickstart using Kind
-✅ Checking dependencies...
-    Kind version is: 0.17.0
+To create a `ManagedClusterSet`, run the following command on the Hub Cluster:
 
-Knative Cluster kind-cluster1 already installed.
-Delete and recreate [y/N]: N
-
-    Installation skipped
-🍿 Installing Knative Serving v1.8.0 ...
-    CRDs installed...
-    Core installed...
-    Finished installing Knative Serving
-🕸️ Installing Kourier networking layer v1.8.0 ...
-    Kourier installed...
-    Ingress patched...
-    Finished installing Kourier Networking layer
-🕸 Configuring Kourier for Kind...
-    Kourier service installed...
-    Domain DNS set up...
-    Finished configuring Kourier
-🔥 Installing Knative Eventing v1.8.0 ...
-    CRDs installed...
-    Core installed...
-    In-memory channel installed...
-    Mt-channel broker installed...
-    Example broker installed...
-    Finished installing Knative Eventing
-```
-```
-$ kubectl config use-context kind-cluster2
-$ kn quickstart kind --name cluster2
-
-Running Knative Quickstart using Kind
-✅ Checking dependencies...
-    Kind version is: 0.17.0
-
-Knative Cluster kind-cluster2 already installed.
-Delete and recreate [y/N]: N
-
-    Installation skipped
-🍿 Installing Knative Serving v1.8.0 ...
-    CRDs installed...
-    Core installed...
-    Finished installing Knative Serving
-🕸️ Installing Kourier networking layer v1.8.0 ...
-    Kourier installed...
-    Ingress patched...
-    Finished installing Kourier Networking layer
-🕸 Configuring Kourier for Kind...
-    Kourier service installed...
-    Domain DNS set up...
-    Finished configuring Kourier
-🔥 Installing Knative Eventing v1.8.0 ...
-    CRDs installed...
-    Core installed...
-    In-memory channel installed...
-    Mt-channel broker installed...
-    Example broker installed...
-    Finished installing Knative Eventing
-```
-### Deploying the `rcs-ocm-deployer`
-On the hub cluster, install just the Knative Service CRD:
-
-```
-$ kubectl apply -f hack/crds/knative-serving-crds.yaml
+```bash
+$ clusteradm create clusterset <clusterSet-name>
 ```
 
-Use the `Makefile` in order to deploy controllers onto the Hub cluster. You can either push the image to a remote registry, using `docker-push`, or work locally without pusing the image.
+To add a Managed Cluster to the `ManagedClusterSet`, run the following command on the Hub Cluster:
 
-When working locally:
-
-```
-$ kubectl config use-context kind-hub
-```
-```
-$ make docker-build IMG=rcs-ocm-deployer:v0.1
-$ kind load docker-image rcs-ocm-deployer:v0.1
-$ make deploy IMG=rcs-ocm-deployer:v0.1
+```bash
+$ clusteradm clusterset set <clusterSet-name> --clusters <cluster-name>
 ```
 
-## License
+To bind the cluster set to a namespace, run the following command on the Hub Cluster:
 
-Copyright 2022.
+```bash
+$ clusteradm clusterset bind <clusterSet-name> --namespace <clusterSet-namespace>
+```
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+### Create Placement
 
-    http://www.apache.org/licenses/LICENSE-2.0
+For the controller to work, it is needed to create a `Placement` CR. The `Placement` name then needs to be referenced in the [environment variables of the controller manager](#environment-variables).
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+```yaml
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: <placement-name>
+  namespace: <clusterSet-namespace>
+spec:
+  clusterSets:
+    - <clusterSet-name>
+```
 
+### Install the Capp CRD
+
+The `Capp` CRD needs to be installed on the Hub Cluster:
+
+```bash
+$ git clone https://github.com/dana-team/container-app-operator
+$ cd container-app-operator
+$ make install
+```
+
+### Install cert-manager
+
+To use `rcs-ocm-deployer`, you need to have `cert-manager` installed on your cluster. Follow the [instruction here](https://cert-manager.io/docs/installation/).
+
+### Deploying the controller
+
+```bash
+$ make deploy IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
+```
+
+#### Environment Variables
+
+The `rcs-ocm-deployer` manager has 2 environment variables that need to be set for the controller to work:
+
+| Environment Variable   | Explanation                                                      | Example                     | Default Value |
+|------------------------|------------------------------------------------------------------|-----------------------------|---------------|
+| `PLACEMENTS`           | Comma-separated names of `Placement` CRs the operator should use | placement-1st,placement-2st | placement-1st |
+| `PLACEMENTS_NAMESPACE` | The namespace where the `Placement` CRs exist                    | default                     | default       |
+
+- Note: In future releases, the environment variables may be replaced by a config CRD.
+
+### Deploy the add-on
+
+Follow the [instructions here](./addons/README.md). Note that the `AddOn` and the controller use the same image.
+
+#### Build your own image
+
+```bash
+$ make docker-build docker-push IMG=<registry>/rcs-ocm-deployer:<tag>
+```
+
+### Capp example
+
+```yaml
+apiVersion: rcs.dana.io/v1alpha1
+kind: Capp
+metadata:
+  name: capp-sample
+  namespace: capp-sample
+spec:
+  configurationSpec:
+    template:
+      spec:
+        containers:
+          - env:
+              - name: APP_NAME
+                value: capp-env-var
+            image: 'quay.io/danateamorg/example-python-app:v1-flask'
+            name: capp-sample
+  routeSpec:
+    hostname: capp.dev
+    tlsEnabled: true
+    tlsSecret: cappTlsSecretName
+  logSpec:
+    type: elastic
+    host: 10.11.12.13
+    index: main
+    username: elastic
+    passwordSecretName: es-elastic-user
+    sslVerify: false
+  scaleMetric: cpu
+```
