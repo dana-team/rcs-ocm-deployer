@@ -36,6 +36,13 @@ const (
 	eventTypeError                      = "Error"
 )
 
+// Custom error type for the requeue scenario
+type ErrNoManagedCluster struct{}
+
+func (e ErrNoManagedCluster) Error() string {
+	return "No managed cluster was found to deploy on. Requeue"
+}
+
 // CappPlacementReconciler reconciles a CappPlacement object
 type CappPlacementReconciler struct {
 	client.Client
@@ -63,13 +70,13 @@ func (r *CappPlacementReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	if placementRef == "" || slices.Contains(r.Placements, placementRef) {
 		cluster, err := r.pickDecision(capp, logger, ctx)
 		if err != nil {
+			if _, ok := err.(ErrNoManagedCluster); ok {
+				logger.Info(fmt.Sprintf("Requeuing Capp %s, waiting for PlacementDecision to be satisfied", capp.Name))
+				r.EventRecorder.Event(&capp, eventTypeWarning, "PlacementDecisionNotSatisfied", fmt.Sprintf("Failed to schedule Capp %s on managed cluster. PlacementDecision with optional clusters was not found for placement %s", capp.Name, placementRef))
+				return ctrl.Result{RequeueAfter: 10 * time.Second * 2}, nil
+			}
 			logger.Error(err, fmt.Sprintf("failed to pick managed cluster for placement %s", placementRef))
 			return ctrl.Result{}, err
-		}
-		if cluster == "requeue" {
-			logger.Info(fmt.Sprintf("Requeuing Capp %s, waiting for PlacementDecision to be satisfied", capp.Name))
-			r.EventRecorder.Event(&capp, eventTypeWarning, "PlacementDecisionNotSatisfied", fmt.Sprintf("Failed to schedule Capp %s on managed cluster. PlacementDecision with optional clusters was not found for placement %s", capp.Name, placementRef))
-			return ctrl.Result{RequeueAfter: 10 * time.Second * 2}, nil
 		}
 		placementRef = cluster
 	}
@@ -118,14 +125,14 @@ func (r *CappPlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.L
 	}
 	placementDecisions, err := utils.GetPlacementDecisionList(capp, log, ctx, placementRef, r.PlacementsNamespace, r.Client)
 	if len(placementDecisions.Items) == 0 {
-		return "requeue", nil
+		return "", ErrNoManagedCluster{}
 	}
 	if err != nil {
 		return "", fmt.Errorf("failed to list placementDecisions: %s", err.Error())
 	}
 	managedClusterName := utils.GetDecisionClusterName(placementDecisions, log)
 	if managedClusterName == "" {
-		return "requeue", nil
+		return "", ErrNoManagedCluster{}
 	}
 	return managedClusterName, nil
 }
