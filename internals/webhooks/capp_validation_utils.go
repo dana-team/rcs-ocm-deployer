@@ -74,10 +74,10 @@ func validateDomainName(domainname string) (errs *apis.FieldError) {
 // validateTlsFields checks if the fields of the tls feature in the capp spec is written correctly.
 // It takes a rcsv1alpha1.Capp object and returns aggregated error if the any of the validations falied.
 func validateTlsFields(capp rcsv1alpha1.Capp) (errs *apis.FieldError) {
-	if capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret == nil{
+	if capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret == "" {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf(
-					"it's forbidden to set '.spec.routeSpec.tlsEnabled' to 'true' without specifying a secret name in the '.spec.routeSpec.tlsSecret' field")))
-	}else if !capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret != nil{
+			"it's forbidden to set '.spec.routeSpec.tlsEnabled' to 'true' without specifying a secret name in the '.spec.routeSpec.tlsSecret' field")))
+	} else if !capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret != "" {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf(
 			"it's forbidden to set '.spec.routeSpec.tlsEnabled' to 'false' and specifying a secret name in the '.spec.routeSpec.tlsSecret' field")))
 	}

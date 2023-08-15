@@ -3,7 +3,7 @@ module github.com/dana-team/rcs-ocm-deployer
 go 1.20
 
 require (
-	github.com/dana-team/container-app-operator v0.1.2
+	github.com/dana-team/container-app-operator v0.1.3
 	github.com/go-logr/logr v1.2.4
 	github.com/go-logr/zapr v1.2.4
 	github.com/onsi/gomega v1.27.7
