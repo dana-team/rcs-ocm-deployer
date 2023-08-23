@@ -160,30 +160,6 @@ deploy-addon: kustomize ## Deploy addon to the k8s cluster specified in ~/.kube/
 undeploy-addon: kustomize ## Undeploy addon from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build addons/deploy/status-sync/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
-.PHONY: setup-clusters
-setup-clusters: ## Create 3 kind clusters: kind-hub, kind-cluster1 and kind-cluster2. The last two are managed clusters for the kind-hub cluster.
-	git clone https://github.com/open-cluster-management-io/OCM
-	bash ./OCM/solutions/setup-dev-environment/local-up.sh
-	rm -rf OCM/
-
-.PHONY: install-ocm
-install-ocm: ## Install OCM operator on the cluster.
-	@if [ $(command -v clusteradm) ]; then \
-		wget -O $(LOCALBIN)/clusteradm.sh https://raw.githubusercontent.com/open-cluster-management-io/clusteradm/main/install.sh;\
-		./clusteradm.sh;\
-	fi
-	clusteradm init --wait --context kind-hub
-
-.PHONY: install-capp
-install-capp: ## Install capp crd on the cluster.
-	git clone https://github.com/dana-team/container-app-operator ../capp
-	make install -C ../capp
-	rm -rf ../capp
-
-.PHONY: create-placement-env
-create-placement-env: ## Create placement YAML for env variables
-	kubectl apply -f hack/placement.yml
-
 ##@ Build Dependencies
 
 ## Location to install dependencies to
@@ -297,3 +273,7 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+.PHONY: quickstart
+quickstart: ## Run the rcs-quickstart script
+	./solutions/rcs-quickstart.sh
