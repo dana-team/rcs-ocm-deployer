@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
@@ -36,7 +38,7 @@ const (
 	eventTypeError                      = "Error"
 )
 
-// Custom error type for the requeue scenario
+// ErrNoManagedCluster is a custom error type for the requeue scenario
 type ErrNoManagedCluster struct{}
 
 func (e ErrNoManagedCluster) Error() string {
@@ -46,10 +48,8 @@ func (e ErrNoManagedCluster) Error() string {
 // CappPlacementReconciler reconciles a CappPlacement object
 type CappPlacementReconciler struct {
 	client.Client
-	Scheme              *runtime.Scheme
-	EventRecorder       record.EventRecorder
-	Placements          []string
-	PlacementsNamespace string
+	Scheme        *runtime.Scheme
+	EventRecorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=rcs.dana.io,resources=capps,verbs=get;list;watch
@@ -59,6 +59,21 @@ type CappPlacementReconciler struct {
 
 func (r *CappPlacementReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithValues("CappName", req.Name, "CappNamespace", req.Namespace)
+	config := rcsdv1alpha1.RCSConfig{}
+	if err := r.Get(ctx, types.NamespacedName{Name: utils.RcsConfigName, Namespace: utils.RcsConfigNamespace}, &config); err != nil {
+		if statusError, isStatusError := err.(*errors.StatusError); isStatusError {
+			if statusError.ErrStatus.Reason == metav1.StatusReasonNotFound {
+				logger.Error(err, "rcs config has not been defined")
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, err
+	}
+	placements := config.Spec.Placements
+	placementsNamespace := config.Spec.PlacementsNamespace
+	if placementsNamespace == "" {
+		placementsNamespace = utils.DefaultPlacementsNamespace
+	}
 	capp := rcsv1alpha1.Capp{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &capp); err != nil {
 		if errors.IsNotFound(err) {
@@ -67,8 +82,8 @@ func (r *CappPlacementReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 	placementRef := capp.Spec.Site
-	if placementRef == "" || slices.Contains(r.Placements, placementRef) {
-		cluster, err := r.pickDecision(capp, logger, ctx)
+	if placementRef == "" || slices.Contains(placements, placementRef) {
+		cluster, err := r.pickDecision(capp, placements, placementsNamespace, logger, ctx)
 		if err != nil {
 			if _, ok := err.(ErrNoManagedCluster); ok {
 				logger.Info(fmt.Sprintf("Requeuing Capp %s, waiting for PlacementDecision to be satisfied", capp.Name))
@@ -114,16 +129,16 @@ func (r *CappPlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 // pickDecision decides the name of the managed cluster to deploy the Capp on,
 // and adds an annotation to the Capp with its name
-func (r *CappPlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context) (string, error) {
+func (r *CappPlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, placements []string, placementsNamespace string, log logr.Logger, ctx context.Context) (string, error) {
 	placementRef := capp.Spec.Site
 	if capp.Spec.Site == "" {
-		placementRef = r.Placements[0]
+		placementRef = placements[0]
 	}
 	placement := clusterv1beta1.Placement{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: placementRef, Namespace: r.PlacementsNamespace}, &placement); err != nil {
+	if err := r.Client.Get(ctx, types.NamespacedName{Name: placementRef, Namespace: placementsNamespace}, &placement); err != nil {
 		return "", fmt.Errorf("failed to get placement: %s", err.Error())
 	}
-	placementDecisions, err := utils.GetPlacementDecisionList(capp, log, ctx, placementRef, r.PlacementsNamespace, r.Client)
+	placementDecisions, err := utils.GetPlacementDecisionList(capp, log, ctx, placementRef, placementsNamespace, r.Client)
 	if len(placementDecisions.Items) == 0 {
 		return "", ErrNoManagedCluster{}
 	}
