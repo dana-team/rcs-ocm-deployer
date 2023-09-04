@@ -139,16 +139,27 @@ To use `rcs-ocm-deployer`, you need to have `cert-manager` installed on your clu
 $ make deploy IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
 ```
 
-#### Environment Variables
+#### Configuration Using RCSConfig CRD
 
-The `rcs-ocm-deployer` manager has 2 environment variables that need to be set for the controller to work:
+The `rcs-ocm-deployer` operator utilizes the RCSConfig Custom Resource Definition (CRD) to manage its configuration and deployment options.
 
-| Environment Variable   | Explanation                                                      | Example                     | Default Value |
-|------------------------|------------------------------------------------------------------|-----------------------------|---------------|
-| `PLACEMENTS`           | Comma-separated names of `Placement` CRs the operator should use | placement-1st,placement-2st | placement-1st |
-| `PLACEMENTS_NAMESPACE` | The namespace where the `Placement` CRs exist                    | default                     | default       |
-
-- Note: In future releases, the environment variables may be replaced by a config CRD.
+In order to to configure the operator, Create an Instance of RCSConfig CRD.
+An instance of the RCSConfig CRD named rcs-config should exist in the rcs-deployer-system namespace. This CRD instance contains the necessary configuration for the operator.
+```bash
+apiVersion: rcs.deployer.example.com/v1alpha1
+kind: RCSConfig
+metadata:
+name: rcs-config
+namespace: rcs-deployer-system
+spec:
+placements:
+- placement-1st
+- placement-2nd
+# Add more placement names as needed
+placementsNamespace: your-placements-namespace
+```
+Ensure that the spec section includes a list of `placements` and specifies the `placementsNamespace` as required for your setup.
+- Note: In former releases, there were environment variables for the `placements` and `placementsNamespace`. However, please note that these environment variables have been deprecated and are no longer used.
 
 ### Deploy the add-on
 

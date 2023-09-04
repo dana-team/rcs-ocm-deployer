@@ -1,0 +1,10 @@
+apiVersion: rcsd.dana.io/v1alpha1
+kind: RCSConfig
+metadata:
+  name: rcs-config
+  namespace: rcs-deployer-system
+spec:
+  placements:
+    - "placement-1st"
+    - "placement-2nd"
+  placementsNamespace: "default"
