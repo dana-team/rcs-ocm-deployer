@@ -40,7 +40,7 @@ func isSiteVaild(capp rcsv1alpha1.Capp, placements []string, r client.Client, ct
 // and returns the list of cluster names as a slice of strings.
 // If there is an error while retrieving the list of managed clusters, the function returns an error.
 func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) {
-	clusterNames := []string{}
+	var clusterNames []string
 	clusters := clusterv1.ManagedClusterList{}
 	if err := r.List(ctx, &clusters); err != nil {
 		return clusterNames, err
@@ -83,4 +83,47 @@ func validateTlsFields(capp rcsv1alpha1.Capp) (errs *apis.FieldError) {
 	}
 
 	return errs
+}
+
+// validateLogSpec checks if the LogSpec is valid based on the Type field.
+func validateLogSpec(logSpec rcsv1alpha1.LogSpec) *apis.FieldError {
+	requiredFields := map[string][]string{
+		"elastic": {"Host", "Index", "UserName", "PasswordSecretName"},
+		"splunk":  {"Host", "Index", "HecTokenSecretName"},
+	}
+	required, exists := requiredFields[logSpec.Type]
+	if !exists {
+		validTypes := make([]string, 0, len(requiredFields))
+		for validType := range requiredFields {
+			validTypes = append(validTypes, validType)
+		}
+		return apis.ErrGeneric(
+			fmt.Sprintf("Invalid LogSpec Type: %s. Valid types are: %s", logSpec.Type, strings.Join(validTypes, ", ")),
+			"logSpec.Type")
+	}
+	missingFields := findMissingFields(logSpec, required)
+	if len(missingFields) > 0 {
+		return apis.ErrGeneric(
+			fmt.Sprintf("%s log configuration is missing: %s", logSpec.Type, strings.Join(missingFields, ",")),
+			"logSpec")
+	}
+	return nil
+}
+
+// findMissingFields checks for missing fields in LogSpec.
+func findMissingFields(logSpec rcsv1alpha1.LogSpec, required []string) []string {
+	missingFields := []string{}
+	fieldValues := map[string]string{
+		"Host":               logSpec.Host,
+		"Index":              logSpec.Index,
+		"UserName":           logSpec.UserName,
+		"PasswordSecretName": logSpec.PasswordSecretName,
+		"HecTokenSecretName": logSpec.HecTokenSecretName,
+	}
+	for _, reqField := range required {
+		if value, ok := fieldValues[reqField]; !ok || value == "" {
+			missingFields = append(missingFields, reqField)
+		}
+	}
+	return missingFields
 }
