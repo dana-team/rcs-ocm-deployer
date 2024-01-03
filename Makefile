@@ -273,3 +273,7 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+.PHONY: quickstart
+quickstart: ## Run the rcs-quickstart script
+	./solutions/rcs-quickstart.sh $(CAPP_OPERATOR_IMG)
