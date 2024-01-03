@@ -276,4 +276,4 @@ catalog-push: ## Push a catalog image.
 
 .PHONY: quickstart
 quickstart: ## Run the rcs-quickstart script
-	./solutions/rcs-quickstart.sh $(QUICKSTART_IMG)
+	./solutions/rcs-quickstart.sh $(CAPP_OPERATOR_IMG)
