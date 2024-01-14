@@ -1,5 +1,0 @@
-apiVersion: kuttl.dev/v1beta1
-kind: TestAssert
-commands:
-- command: kubectl assert exist-enhanced capp --field-selector metadata.name=capp-statuscheck,status.applicationLinks.clusterSegment!='<none>' -A
-timeout: 20

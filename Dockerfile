@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.20 as builder
+FROM golang:1.21 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -10,12 +10,13 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY main.go main.go
+COPY cmd/main.go cmd/main.go
+COPY api/ api/
 COPY internals/ internals/
 COPY addons/ addons/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager cmd/main.go
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o status-sync-addon addons/cmd/main.go
 
 # Use distroless as minimal base image to package the manager binary

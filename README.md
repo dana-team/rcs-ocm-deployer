@@ -48,11 +48,7 @@ This project uses the `Placement` and `ManifestWork` APIs of the Open Cluster Ma
 
 ## Getting Started
 
-### Setting Up a Hub Cluster and Managed Clusters locally
-
-The [OCM project](https://github.com/open-cluster-management-io/OCM) contains a script that allows spinning up a `KinD`-based environment, containing of a Hub Cluster and 2 Managed Clusters.
-
-#### Prerequisites
+### Prerequisites
 
 The following should be installed on your Linux machine:
 
@@ -61,7 +57,21 @@ The following should be installed on your Linux machine:
 - [`clusteradm`](https://github.com/open-cluster-management-io/clusteradm)
 - [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 
-#### The script
+### Automatic Approach
+
+Simply run the following to get a Hub cluster ready to have `rcs-ocm-deployer` deployed on it, and 2 Managed Cluster with `container-app-operator` already installed on them.
+
+```bash
+$ make quickstart CAPP_OPERATOR_IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
+```
+
+### Manuel Approach
+
+#### Setting Up a Hub Cluster and Managed Clusters locally
+
+The [OCM project](https://github.com/open-cluster-management-io/OCM) contains a script that allows spinning up a `KinD`-based environment, containing of a Hub Cluster and 2 Managed Clusters.
+
+##### The script
 
 You can clone the repository and set up the environment. This script would create 3 clusters with the following Kubernetes contexts:
 
@@ -82,7 +92,7 @@ $ git clone https://github.com/open-cluster-management-io/OCM
 $ bash ./OCM/solutions/setup-dev-environment/local-up.sh
 ```
 
-### Create ManagedClusterSet
+#### Create ManagedClusterSet
 
 `ManagedClusterSet` is an [OCM cluster-scoped API](https://open-cluster-management.io/concepts/managedclusterset/) in the Hub Cluster for grouping a few managed clusters into a "set".
 
@@ -104,7 +114,7 @@ To bind the cluster set to a namespace, run the following command on the Hub Clu
 $ clusteradm clusterset bind <clusterSet-name> --namespace <clusterSet-namespace>
 ```
 
-### Create Placement
+#### Create Placement
 
 For the controller to work, it is needed to create a `Placement` CR. The `Placement` name then needs to be referenced in the [environment variables of the controller manager](#environment-variables).
 
@@ -119,7 +129,7 @@ spec:
     - <clusterSet-name>
 ```
 
-### Install the Capp CRD
+#### Install the Capp CRD
 
 The `Capp` CRD needs to be installed on the Hub Cluster:
 
@@ -129,11 +139,11 @@ $ cd container-app-operator
 $ make install
 ```
 
-### Install cert-manager
+#### Install cert-manager
 
 To use `rcs-ocm-deployer`, you need to have `cert-manager` installed on your cluster. Follow the [instruction here](https://cert-manager.io/docs/installation/).
 
-### Deploying the controller
+#### Deploying the controller
 
 ```bash
 $ make deploy IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
@@ -141,25 +151,27 @@ $ make deploy IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
 
 #### Configuration Using RCSConfig CRD
 
-The `rcs-ocm-deployer` operator utilizes the RCSConfig Custom Resource Definition (CRD) to manage its configuration and deployment options.
+The `rcs-ocm-deployer` operator utilizes the `RCSConfig` CRD to manage its configuration and deployment options.
 
-In order to to configure the operator, Create an Instance of RCSConfig CRD.
-An instance of the RCSConfig CRD named rcs-config should exist in the rcs-deployer-system namespace. This CRD instance contains the necessary configuration for the operator.
+An instance of the `RCSConfig` CRD named `rcs-config` should exist in the `rcs-deployer-system` namespace. This CRD instance contains the necessary configuration for the operator.
+
 ```bash
-apiVersion: rcs.deployer.example.com/v1alpha1
+apiVersion: rcsd.dana.io/v1alpha1
 kind: RCSConfig
 metadata:
-name: rcs-config
-namespace: rcs-deployer-system
+  name: rcs-config
+  namespace: rcs-deployer-system
 spec:
-placements:
-- placement-1st
-- placement-2nd
-# Add more placement names as needed
-placementsNamespace: your-placements-namespace
+  placements:
+  - placement-1st
+  - placement-2nd
+  # Add more placement names as needed
+  placementsNamespace: your-placements-namespace
 ```
+
 Ensure that the spec section includes a list of `placements` and specifies the `placementsNamespace` as required for your setup.
-- Note: In former releases, there were environment variables for the `placements` and `placementsNamespace`. However, please note that these environment variables have been deprecated and are no longer used.
+
+- Note: In previos releases, there were environment variables for the `placements` and `placementsNamespace`. However, please note that these environment variables have been deprecated and are no longer used.
 
 ### Deploy the add-on
 

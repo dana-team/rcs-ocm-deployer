@@ -52,7 +52,7 @@ type CappPlacementReconciler struct {
 	EventRecorder record.EventRecorder
 }
 
-//+kubebuilder:rbac:groups=rcs.dana.io,resources=capps,verbs=get;list;watch
+//+kubebuilder:rbac:groups=rcs.dana.io,resources=capps,verbs=get;list;watch;update;patch
 //+kubebuilder:rbac:groups=cluster.open-cluster-management.io,resources=placementdecisions,verbs=get;list;watch
 //+kubebuilder:rbac:groups=cluster.open-cluster-management.io,resources=placements,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
