@@ -7,8 +7,8 @@ resources:
 
 images:
 - name: controller
-  newName: danateam/rcs-deployer
-  newTag: main
+  newName: quay.io/danateamorg/rcs-ocm-deployer
+  newTag: v0.1.0
 
 patches:
 - path: addon_manager_env_var_patch.yaml

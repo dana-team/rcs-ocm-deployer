@@ -13,7 +13,6 @@ import (
 	"github.com/openshift/library-go/pkg/operator/resource/resourceapply"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -33,8 +32,6 @@ import (
 
 var (
 	genericScheme = runtime.NewScheme()
-	genericCodecs = serializer.NewCodecFactory(genericScheme)
-	genericCodec  = genericCodecs.UniversalDeserializer()
 )
 
 func init() {

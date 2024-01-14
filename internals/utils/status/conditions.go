@@ -39,10 +39,10 @@ func setCappCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Clien
 	return nil
 }
 
-// This function generates a new metav1.Condition object with the specified
+// generateCondition generates a new metav1.Condition object with the specified
 // condType and status, along with an optional reason. If no reason is specified,
 // it defaults to "unknown".
-func generateCondtion(condType string, status bool, reason ...string) metav1.Condition {
+func generateCondition(condType string, status bool, reason ...string) metav1.Condition {
 	if len(reason) == 0 {
 		reason[0] = "unknown"
 	}
@@ -59,7 +59,7 @@ func generateCondtion(condType string, status bool, reason ...string) metav1.Con
 // uses the setCappCondition function internally to update the status of the
 // object.
 func SetVolumesCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
-	condition := generateCondtion(condVolumesType, status, reason...)
+	condition := generateCondition(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {
 		return fmt.Errorf("failed to set volumeCondition on app: %s", err)
 	}
@@ -71,7 +71,7 @@ func SetVolumesCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Cl
 // It uses the setCappCondition function internally to update the status of the
 // object.
 func SetHasPlacementCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
-	condition := generateCondtion(condVolumesType, status, reason...)
+	condition := generateCondition(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {
 		return fmt.Errorf("failed to set placementCondition on Capp: %s", err)
 	}
@@ -82,7 +82,7 @@ func SetHasPlacementCondition(capp rcsv1alpha1.Capp, ctx context.Context, r clie
 // capp object to the specified status, along with an optional reason. It uses
 // the setCappCondition function internally to update the status of the object.
 func SetDeployedCondition(capp rcsv1alpha1.Capp, ctx context.Context, r client.Client, l logr.Logger, status bool, reason ...string) error {
-	condition := generateCondtion(condVolumesType, status, reason...)
+	condition := generateCondition(condVolumesType, status, reason...)
 	if err := setCappCondition(capp, ctx, r, l, condition); err != nil {
 		return fmt.Errorf("failed to set deployedCondition on Capp: %s", err)
 	}

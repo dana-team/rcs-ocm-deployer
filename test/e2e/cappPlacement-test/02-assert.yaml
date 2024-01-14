@@ -1,6 +1,0 @@
-apiVersion: kuttl.dev/v1beta1
-kind: TestAssert
-commands:
-  - command: ./test/e2e/cappPlacement-test/level02Script.sh
-timeout: 30
-

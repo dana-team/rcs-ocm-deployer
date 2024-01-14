@@ -21,6 +21,7 @@ import (
 	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
 	wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
@@ -56,9 +57,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(knativev1.AddToScheme(scheme))
-	utilruntime.Must(clusterv1.AddToScheme(scheme))
-	utilruntime.Must(clusterv1beta1.AddToScheme(scheme))
-	utilruntime.Must(workv1.AddToScheme(scheme))
+	utilruntime.Must(clusterv1.Install(scheme))
+	utilruntime.Must(clusterv1beta1.Install(scheme))
+	utilruntime.Must(workv1.Install(scheme))
 	utilruntime.Must(rcsv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(rcsdv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
@@ -82,13 +83,16 @@ func main() {
 	flag.Parse()
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Scheme: scheme,
+		Metrics: server.Options{
+			BindAddress: metricsAddr,
+		},
+		WebhookServer:          webhook.NewServer(webhook.Options{Port: 9443}),
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "b1aaaaf8.dana.io",
+		LeaderElectionID:       "80807133.rcs.dana.io",
 	})
+
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
