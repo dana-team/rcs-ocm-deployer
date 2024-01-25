@@ -20,7 +20,7 @@ type CappSyncReconciler struct {
 func (r *CappSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("status-sync-controller").WithValues("Capp", req.NamespacedName)
 	logger.Info("Starting Reconcile")
-	
+
 	// get instance of spoke capp
 	spokeCapp := &rcsv1alpha1.Capp{}
 	logger.Info("Trying to fetch Capp from spoke")
