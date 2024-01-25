@@ -202,6 +202,10 @@ helmify: $(HELMIFY) ## Download helmify locally if necessary.
 $(HELMIFY): $(LOCALBIN)
 	test -s $(LOCALBIN)/helmify || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
 	
-.PHONY: quickstart
-quickstart: ## Run the rcs-quickstart script
-	./solutions/rcs-quickstart.sh $(CAPP_OPERATOR_IMG)
+.PHONY: local-quickstart
+local-quickstart: ## Run the local-quickstart script
+	./solutions/local-quickstart.sh
+
+.PHONY: ci-quickstart
+ci-quickstart: ## Run the ci-quickstart script
+	./solutions/ci-quickstart.sh
