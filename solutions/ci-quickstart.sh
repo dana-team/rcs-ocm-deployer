@@ -1,4 +1,4 @@
 #!/bin/bash
 
-bash ./solutions/ocm-join-clusters.sh
-bash ./solutions/setup-rcs-deployer.sh
+bash $(shell pwd)/solutions/ocm-join-clusters.sh $1
+bash $(shell pwd)/solutions/setup-rcs-deployer.sh $1

@@ -159,6 +159,14 @@ undeploy-addon: kustomize ## Undeploy addon from the K8s cluster specified in ~/
 helm: manifests kustomize helmify
 	$(KUSTOMIZE) build config/default | $(HELMIFY)
 
+.PHONY: local-quickstart
+local-quickstart: clusteradm ## Run the local-quickstart script
+	$(shell pwd)/solutions/local-quickstart.sh $(CLUSTERADM)
+
+.PHONY: ci-quickstart
+ci-quickstart: clusteradm ## Run the ci-quickstart script
+	$(shell pwd)/solutions/ci-quickstart.sh $(CLUSTERADM)
+
 ##@ Build Dependencies
 
 ## Location to install dependencies to
@@ -172,6 +180,7 @@ KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 HELMIFY ?= $(LOCALBIN)/helmify
+CLUSTERADM ?= $(LOCALBIN)/clusteradm
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.2.1
@@ -201,11 +210,8 @@ $(ENVTEST): $(LOCALBIN)
 helmify: $(HELMIFY) ## Download helmify locally if necessary.
 $(HELMIFY): $(LOCALBIN)
 	test -s $(LOCALBIN)/helmify || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
-	
-.PHONY: local-quickstart
-local-quickstart: ## Run the local-quickstart script
-	./solutions/local-quickstart.sh
 
-.PHONY: ci-quickstart
-ci-quickstart: ## Run the ci-quickstart script
-	./solutions/ci-quickstart.sh
+.PHONY: clusteradm
+clusteradm: $(CLUSTERADM) ## Download clusteradm locally if necessary.
+$(CLUSTERADM): $(LOCALBIN)
+	test -s $(LOCALBIN)/clusteradm || curl -L https://raw.githubusercontent.com/open-cluster-management-io/clusteradm/main/install.sh | sed  's|/usr/local/bin|$(LOCALBIN)|g' | bash
