@@ -1,5 +1,22 @@
 #!/bin/bash
 
+
+initialize_clusteradm() {
+    if [ -x "$1" ]; then
+        clusteradm="$1"
+    else
+        clusteradm="/usr/local/bin/clusteradm"
+    fi
+}
+
+initialize_clusteradm "$1"
+
+# Check if clusteradm is executable
+if [ ! -x "$clusteradm" ]; then
+    echo "Error: The specified clusteradm binary is not executable or does not exist." >&2
+    exit 1
+fi
+
 hub=${CLUSTER1:-hub}
 c1=${CLUSTER1:-cluster1}
 c2=${CLUSTER2:-cluster2}
@@ -12,13 +29,13 @@ cappimage="ghcr.io/dana-team/rcs-ocm-deployer:main"
 clusterset="test-clusterset"
 ns="test"
 
-# Create ManagedClusterSet and Palcement on Hub
+# Create ManagedClusterSet and Placement on Hub
 kubectl config use-context "${hubctx}"
-clusteradm create clusterset "${clusterset}"
-clusteradm clusterset set "${clusterset}" --clusters "${c1}"
-clusteradm clusterset set "${clusterset}" --clusters "${c2}"
+"${clusteradm}" create clusterset "${clusterset}"
+"${clusteradm}" clusterset set "${clusterset}" --clusters "${c1}"
+"${clusteradm}" clusterset set "${clusterset}" --clusters "${c2}"
 kubectl create ns "${ns}"
-clusteradm clusterset bind "${clusterset}" --namespace "${ns}"
+"${clusteradm}" clusterset bind "${clusterset}" --namespace "${ns}"
 cat <<EOF | kubectl apply -f -
 apiVersion: cluster.open-cluster-management.io/v1beta1
 kind: Placement
@@ -41,7 +58,7 @@ make -C container-app-operator prereq
 make -C container-app-operator deploy IMG="${cappimage}"
 kubectl config use-context "${c2ctx}"
 make -C container-app-operator prereq
-make -c container-app-operator deploy IMG="${cappimage}"
+make -C container-app-operator deploy IMG="${cappimage}"
 rm -rf container-app-operator/
 
 # Create RCSConfig Object on Hub
