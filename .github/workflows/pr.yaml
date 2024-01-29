@@ -41,23 +41,32 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
+          
       - name: Setup Hub KinD
         uses: container-tools/kind-action@v2
         with:
           cluster_name: kind-hub
+          
       - name: Setup cluster1 KinD
         uses: container-tools/kind-action@v2
         with:
           cluster_name: cluster1
+          registry: false
+          
       - name: Setup cluster2 KinD
         uses: container-tools/kind-action@v2
         with:
           cluster_name: cluster2
+          registry: false
+          
       - name: Setup rcs environment
         run: make ci-quickstart
+        
       - name: Build rcs-ocm-deployer image
         run: make docker-build docker-push IMG=kind-registry:5000/rcs-ocm-deployer:test-${GITHUB_REF##*/}
+        
       - name: Deploy to cluster
         run: make install deploy deploy-addon IMG=kind-registry:5000/rcs-ocm-deployer:test-${GITHUB_REF##*/}
+        
       - name: Run e2e tests
         run: make test-e2e
