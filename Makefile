@@ -161,11 +161,11 @@ helm: manifests kustomize helmify
 
 .PHONY: local-quickstart
 local-quickstart: clusteradm ## Run the local-quickstart script
-	./solutions/local-quickstart.sh $(CLUSTERADM)
+	$(shell pwd)/solutions/local-quickstart.sh $(CLUSTERADM)
 
 .PHONY: ci-quickstart
 ci-quickstart: clusteradm ## Run the ci-quickstart script
-	./solutions/ci-quickstart.sh $(CLUSTERADM)
+	$(shell pwd)/solutions/ci-quickstart.sh $(CLUSTERADM)
 
 ##@ Build Dependencies
 
