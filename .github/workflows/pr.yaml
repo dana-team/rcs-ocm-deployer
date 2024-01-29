@@ -45,18 +45,21 @@ jobs:
       - name: Setup Hub KinD
         uses: container-tools/kind-action@v2
         with:
+          version: v0.18.0
           cluster_name: hub
           
       - name: Setup cluster1 KinD
         uses: container-tools/kind-action@v2
         with:
           cluster_name: cluster1
+          version: v0.18.0
           registry: false
           
       - name: Setup cluster2 KinD
         uses: container-tools/kind-action@v2
         with:
           cluster_name: cluster2
+          version: v0.18.0
           registry: false
           
       - name: Setup rcs environment
