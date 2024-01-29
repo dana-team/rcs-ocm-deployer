@@ -1,25 +1,33 @@
 #!/bin/bash
-# Create 1 Hub KinD cluster and 2 Managed KinD clusters using a script from the OCM repository
-git clone https://github.com/open-cluster-management-io/OCM
-bash ./OCM/solutions/setup-dev-environment/local-up.sh
-rm -rf OCM/
+
+hub=${CLUSTER1:-hub}
+c1=${CLUSTER1:-cluster1}
+c2=${CLUSTER2:-cluster2}
+
+hubctx="kind-${hub}"
+c1ctx="kind-${c1}"
+c2ctx="kind-${c2}"
+
+cappimage="ghcr.io/dana-team/rcs-ocm-deployer:main"
+clusterset="test-clusterset"
+ns="test"
 
 # Create ManagedClusterSet and Palcement on Hub
-kubectl config use-context kind-hub
-clusteradm create clusterset test-clusterset
-clusteradm clusterset set test-clusterset --clusters cluster1
-clusteradm clusterset set test-clusterset --clusters cluster2
-kubectl create ns test
-clusteradm clusterset bind test-clusterset --namespace test
+kubectl config use-context "${hubctx}"
+clusteradm create clusterset "${clusterset}"
+clusteradm clusterset set "${clusterset}" --clusters "${c1}"
+clusteradm clusterset set "${clusterset}" --clusters "${c2}"
+kubectl create ns "${ns}"
+clusteradm clusterset bind "${clusterset}" --namespace "${ns}"
 cat <<EOF | kubectl apply -f -
 apiVersion: cluster.open-cluster-management.io/v1beta1
 kind: Placement
 metadata:
   name: test-placement
-  namespace: test
+  namespace: "${ns}"
 spec:
   clusterSets:
-  - test-clusterset
+  - "${clusterset}"
 EOF
 
 # Install cert-manager on Hub and install Capp CRD
@@ -28,16 +36,16 @@ git clone https://github.com/dana-team/container-app-operator
 make -C container-app-operator install
 
 # Set up Managed Clusters by installing container-app-operator and its prerequisites on them
-kubectl config use-context kind-cluster1
+kubectl config use-context "${c1ctx}"
 make -C container-app-operator prereq
-make -C container-app-operator deploy IMG=$1
-kubectl config use-context kind-cluster2
+make -C container-app-operator deploy IMG="${cappimage}"
+kubectl config use-context "${c2ctx}"
 make -C container-app-operator prereq
-make -c container-app-operator deploy IMG=$1
+make -c container-app-operator deploy IMG="${cappimage}"
 rm -rf container-app-operator/
 
 # Create RCSConfig Object on Hub
-kubectl config use-context kind-hub
+kubectl config use-context "${hubctx}"
 make install
 kubectl create ns rcs-deployer-system
 cat <<EOF | kubectl apply -f -
