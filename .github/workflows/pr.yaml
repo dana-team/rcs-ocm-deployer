@@ -78,6 +78,7 @@ jobs:
           namespace: "rcs-deployer-system"
           timeout: 60
           max-restarts: 0
+
         
       - name: Run e2e tests
         run: kubectl get pods -A
