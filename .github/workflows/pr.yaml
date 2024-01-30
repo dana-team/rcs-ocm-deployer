@@ -70,6 +70,14 @@ jobs:
         
       - name: Deploy to cluster
         run: make install deploy deploy-addon IMG=kind-registry:5000/rcs-ocm-deployer:test-${GITHUB_REF##*/}
+
+      - name: Await rcs
+        uses: jupyterhub/action-k8s-await-workloads@v2
+        with:
+          workloads: "" # all
+          namespace: "" # default
+          timeout: 60
+          max-restarts: 0
         
       - name: Run e2e tests
         run: kubectl get pods -A
