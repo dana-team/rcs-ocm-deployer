@@ -75,7 +75,7 @@ jobs:
         uses: jupyterhub/action-k8s-await-workloads@v2
         with:
           workloads: "" # all
-          namespace: "" # default
+          namespace: "rcs-ocm-deployer"
           timeout: 60
           max-restarts: 0
         
