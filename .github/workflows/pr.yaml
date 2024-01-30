@@ -79,6 +79,5 @@ jobs:
           timeout: 60
           max-restarts: 0
 
-        
       - name: Run e2e tests
-        run: kubectl get pods -A
+        run: make test-e2e
