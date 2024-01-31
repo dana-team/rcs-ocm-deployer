@@ -18,9 +18,10 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
 	wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -45,6 +46,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	runtimezap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -65,22 +67,32 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+func initEcsLogger() {
+	encoderConfig := ecszap.NewDefaultEncoderConfig()
+	core := ecszap.NewCore(encoderConfig, os.Stdout, zap.DebugLevel)
+	logger := zap.New(core, zap.AddCaller())
+	logf.SetLogger(zapr.NewLogger(logger))
+}
+
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var ecsLogging bool
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-
-	encoderConfig := ecszap.NewDefaultEncoderConfig()
-	core := ecszap.NewCore(encoderConfig, os.Stdout, zap.DebugLevel)
-	logger := zap.New(core, zap.AddCaller())
-	logf.SetLogger(zapr.NewLogger(logger))
+	flag.BoolVar(&ecsLogging, "ecs-logging", true, "Display controller logs in ecs format.")
 
 	flag.Parse()
+
+	if ecsLogging {
+		initEcsLogger()
+	} else {
+		ctrl.SetLogger(runtimezap.New())
+	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
