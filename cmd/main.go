@@ -18,9 +18,10 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
 	wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -123,11 +124,6 @@ func main() {
 		Client:  mgr.GetClient(),
 		Decoder: decoder,
 	}})
-	hookServer.Register(wh.DefaultsServingPath, &webhook.Admission{Handler: &wh.DefaultMutator{
-		Client:  mgr.GetClient(),
-		Decoder: decoder,
-	}})
-
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

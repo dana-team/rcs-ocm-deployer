@@ -16,14 +16,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var SupportedScaleMetrics = []string{"rps", "concurrency", "cpu", "memory"}
-
-// isScaleMetricSupported checks if the specified scaling metric is supported by the system.
-// It takes a rcsv1alpha1.Capp object and returns a boolean value indicating whether the metric is supported or not.
-func isScaleMetricSupported(capp rcsv1alpha1.Capp) bool {
-	return slices.Contains(SupportedScaleMetrics, capp.Spec.ScaleMetric)
-}
-
 // isSiteValid checks if the specified site cluster name is valid or not.
 // It takes a rcsv1alpha1.Capp object, a list of placements, a Kubernetes client.Client, and a context.Context.
 // The function returns a boolean value based on the validity of the specified site cluster name.
