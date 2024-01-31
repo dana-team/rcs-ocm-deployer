@@ -1,63 +1,86 @@
-name: CI
+name: tests
 on:
   pull_request:
     branches:
       - main
     types: [opened, reopened, synchronize]
-  workflow_run:
-    workflows: [golangci-lint]
-    types: [completed]
-    
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   unit-test:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: unit-test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
     - name: Setup Go
       uses: actions/setup-go@v4
       with:
         go-version-file: go.mod
-    - name: Unit-test
+
+    - name: Run unit-tests
       run: make test
 
   e2e-tests:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: e2e-tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       IMAGE_REGISTRY: kind-registry:5000
+      KIND_VERSION: v0.18.0
+      K8S_VERSION: v1.26.3
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
-      - name: Setup Hub KinD
+          
+      - name: Start kind hub cluster
         uses: container-tools/kind-action@v2
         with:
-          cluster_name: kind-hub
-      - name: Setup cluster1 KinD
+          cluster_name: hub
+          version: ${{env.KIND_VERSION}}
+          node_image: kindest/node:${{env.K8S_VERSION}}
+          kubectl_version: ${{env.K8S_VERSION}}
+          registry: true
+
+      - name: Start kind cluster1
         uses: container-tools/kind-action@v2
         with:
           cluster_name: cluster1
-      - name: Setup cluster2 KinD
+          version: ${{env.KIND_VERSION}}
+          node_image: kindest/node:${{env.K8S_VERSION}}
+          kubectl_version: ${{env.K8S_VERSION}}
+          registry: false
+
+      - name: Start kind cluster2
         uses: container-tools/kind-action@v2
         with:
           cluster_name: cluster2
-      - name: Setup rcs environment
-        run: make ci-quickstart
-      - name: Build rcs-ocm-deployer image
-        run: make docker-build docker-push IMG=kind-registry:5000/rcs-ocm-deployer:test-${GITHUB_REF##*/}
-      - name: Deploy to cluster
-        run: make install deploy deploy-addon IMG=kind-registry:5000/rcs-ocm-deployer:test-${GITHUB_REF##*/}
+          version: ${{env.KIND_VERSION}}
+          node_image: kindest/node:${{env.K8S_VERSION}}
+          kubectl_version: ${{env.K8S_VERSION}}
+          registry: false
+
+      - name: Build controller image
+        run: make docker-build docker-push IMG=${IMAGE_REGISTRY}/rcs-ocm-deployer:test-${GITHUB_REF##*/}
+
+      - name: Setup environment
+        run: make ci-quickstart IMG=${IMAGE_REGISTRY}/rcs-ocm-deployer:test-${GITHUB_REF##*/}
+
+      - name: Deploy controller to hub cluster
+        run: make deploy deploy-addon IMG=${IMAGE_REGISTRY}/rcs-ocm-deployer:test-${GITHUB_REF##*/}
+
+      - name: Await controller to be ready
+        uses: jupyterhub/action-k8s-await-workloads@v2
+        with:
+          workloads: ""
+          namespace: "rcs-deployer-system"
+          timeout: 60
+          max-restarts: 0
+
       - name: Run e2e tests
         run: make test-e2e

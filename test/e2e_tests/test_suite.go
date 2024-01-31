@@ -3,11 +3,10 @@ package e2e_tests
 import (
 	"context"
 	"fmt"
-	"time"
-
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	mock "github.com/dana-team/container-app-operator/test/k8s_tests/mocks"
 	utilst "github.com/dana-team/container-app-operator/test/k8s_tests/utils"
+	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
 	loggingv1beta1 "github.com/kube-logging/logging-operator/pkg/sdk/logging/api/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -30,12 +29,6 @@ import (
 
 var (
 	k8sClient client.Client
-)
-
-const (
-	TimeoutNameSpace = 5 * time.Minute
-
-	NsFetchInterval = 5 * time.Second
 )
 
 func newScheme() *runtime.Scheme {
@@ -78,7 +71,7 @@ var _ = SynchronizedBeforeSuite(func() {
 	Expect(k8sClient.Create(context.Background(), namespace)).To(Succeed())
 	Eventually(func() bool {
 		return utilst.DoesResourceExist(k8sClient, namespace)
-	}, TimeoutNameSpace, NsFetchInterval).Should(BeTrue(), "The namespace should be created")
+	}, testconsts.Timeout, testconsts.Interval).Should(BeTrue(), "The namespace should be created")
 
 }, func() {})
 
@@ -97,7 +90,7 @@ func cleanUp() {
 		Expect(k8sClient.Delete(context.Background(), namespace)).To(Succeed())
 		Eventually(func() error {
 			return k8sClient.Get(context.Background(), client.ObjectKey{Name: mock.NsName}, namespace)
-		}, TimeoutNameSpace, NsFetchInterval).Should(HaveOccurred(), "The namespace should be deleted")
+		}, testconsts.Timeout, testconsts.Interval).Should(HaveOccurred(), "The namespace should be deleted")
 	}
 
 }

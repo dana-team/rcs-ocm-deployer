@@ -7,7 +7,7 @@ resources:
 
 images:
 - name: controller
-  newName: quay.io/danateamorg/rcs-ocm-deployer
+  newName: controller
   newTag: latest
 
 patches:

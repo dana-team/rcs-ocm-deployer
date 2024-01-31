@@ -1,6 +1,7 @@
 package e2e_tests
 
 import (
+	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
 	"testing"
 	"time"
 
@@ -8,15 +9,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const (
-	TimeoutCapp              = 60 * time.Second
-	CappCreationInterval     = 2 * time.Second
-	DefaultEventuallySeconds = 2
-)
-
 func TestE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	SetDefaultEventuallyTimeout(time.Second * DefaultEventuallySeconds)
+	SetDefaultEventuallyTimeout(time.Second * testconsts.DefaultEventuallySeconds)
 	RunSpecs(t, "RCS Suite")
 }
