@@ -3,14 +3,14 @@ package webhooks
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"net/http"
-	"strings"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 
@@ -54,9 +54,6 @@ func (c *CappValidator) handle(ctx context.Context, capp rcsv1alpha1.Capp) admis
 		return admission.Denied("Failed to fetch RCSConfig")
 	}
 	placements := config.Spec.Placements
-	if !isScaleMetricSupported(capp) {
-		return admission.Denied(fmt.Sprintf("this scale metric %s is unsupported. the avilable options are %s", capp.Spec.ScaleMetric, strings.Join(SupportedScaleMetrics, ",")))
-	}
 	if !isSiteVaild(capp, placements, c.Client, ctx) {
 		return admission.Denied(fmt.Sprintf("this site %s is unsupported. Site field accepts either cluster name or placement name", capp.Spec.Site))
 	}

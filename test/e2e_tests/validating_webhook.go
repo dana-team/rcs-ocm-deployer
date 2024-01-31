@@ -9,20 +9,12 @@ import (
 )
 
 const (
-	UnsupportedScaleMetric = "storage"
-	UnsupportedCluster     = "my-cluster"
-	UnsupportedSite        = "my-site"
-	UnsupportedHostname    = "...aaa.a...."
+	UnsupportedCluster  = "my-cluster"
+	UnsupportedSite     = "my-site"
+	UnsupportedHostname = "...aaa.a...."
 )
 
 var _ = Describe("Validate the validating webhook", func() {
-
-	It("Should deny the use of an unsupported scale metric", func() {
-		baseCapp := mock.CreateBaseCapp()
-		baseCapp.Spec.ScaleMetric = UnsupportedScaleMetric
-		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
-
-	})
 
 	It("Should deny the use of a non-existing cluster", func() {
 		baseCapp := mock.CreateBaseCapp()
