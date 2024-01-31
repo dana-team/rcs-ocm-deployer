@@ -13,7 +13,7 @@ import (
 const (
 	charset              = "abcdefghijklmnopqrstuvwxyz0123456789"
 	RandStrLength        = 10
-	TimeoutCapp          = 30 * time.Second
+	TimeoutCapp          = 10 * time.Second
 	CappCreationInterval = 2 * time.Second
 )
 
@@ -37,7 +37,7 @@ func CreateCapp(k8sClient client.Client, capp *rcsv1alpha1.Capp) *rcsv1alpha1.Ca
 	Expect(k8sClient.Create(context.Background(), newCapp)).To(Succeed())
 	Eventually(func() string {
 		return GetCapp(k8sClient, newCapp.Name, newCapp.Namespace).Status.StateStatus.State
-	}, TimeoutCapp, CappCreationInterval).Should(Equal("running"), "Should fetch capp")
+	}, TimeoutCapp, CappCreationInterval).Should(Equal("enabled"), "Should fetch capp")
 	return newCapp
 
 }

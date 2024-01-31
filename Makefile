@@ -61,7 +61,7 @@ vet: ## Run go vet against code.
 
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./internals/... -coverprofile cover.out
 
 .PHONY: test-e2e
 test-e2e: ## Run end to end tests
@@ -159,6 +159,14 @@ undeploy-addon: kustomize ## Undeploy addon from the K8s cluster specified in ~/
 helm: manifests kustomize helmify
 	$(KUSTOMIZE) build config/default | $(HELMIFY)
 
+.PHONY: local-quickstart
+local-quickstart: kind clusteradm ## Run the local-quickstart script
+	$(shell pwd)/hack/local-quickstart.sh $(KIND) $(CLUSTERADM) $(IMG)
+
+.PHONY: ci-quickstart
+ci-quickstart: kind clusteradm ## Run the ci-quickstart script
+	$(shell pwd)/hack/ci-quickstart.sh $(KIND) $(CLUSTERADM) $(IMG)
+
 ##@ Build Dependencies
 
 ## Location to install dependencies to
@@ -172,10 +180,13 @@ KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 HELMIFY ?= $(LOCALBIN)/helmify
+CLUSTERADM ?= $(LOCALBIN)/clusteradm
+KIND ?= $(LOCALBIN)/kind
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.2.1
 CONTROLLER_TOOLS_VERSION ?= v0.13.0
+KIND_VERSION ?= v0.18.0
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. If wrong version is installed, it will be removed before downloading.
@@ -201,11 +212,13 @@ $(ENVTEST): $(LOCALBIN)
 helmify: $(HELMIFY) ## Download helmify locally if necessary.
 $(HELMIFY): $(LOCALBIN)
 	test -s $(LOCALBIN)/helmify || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
-	
-.PHONY: local-quickstart
-local-quickstart: ## Run the local-quickstart script
-	./solutions/local-quickstart.sh
 
-.PHONY: ci-quickstart
-ci-quickstart: ## Run the ci-quickstart script
-	./solutions/ci-quickstart.sh
+.PHONY: clusteradm
+clusteradm: $(CLUSTERADM) ## Download clusteradm locally if necessary.
+$(CLUSTERADM): $(LOCALBIN)
+	test -s $(LOCALBIN)/clusteradm || curl -L https://raw.githubusercontent.com/open-cluster-management-io/clusteradm/main/install.sh | sed  's|/usr/local/bin|$(LOCALBIN)|g' | bash
+
+.PHONY: kind
+kind: $(KIND) ## Download kind locally if necessary.
+$(KIND): $(LOCALBIN)
+	test -s $(LOCALBIN)/kind || GOBIN=$(LOCALBIN) go install sigs.k8s.io/kind@$(KIND_VERSION)
