@@ -2,7 +2,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: manager-role
 rules:
 - apiGroups:
@@ -12,6 +11,22 @@ rules:
   verbs:
   - create
   - patch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cluster.open-cluster-management.io
+  resources:
+  - managedclusters
+  verbs:
+  - get
+  - list
+  - watch
 - apiGroups:
   - cluster.open-cluster-management.io
   resources:
@@ -29,10 +44,46 @@ rules:
   - list
   - watch
 - apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - rcs.dana.io
   resources:
   - capps
   verbs:
   - get
   - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rcs.dana.io
+  resources:
+  - capps/status
+  verbs:
+  - update
+- apiGroups:
+  - rcsd.dana.io
+  resources:
+  - rcsconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - work.open-cluster-management.io
+  resources:
+  - manifestworks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
   - watch

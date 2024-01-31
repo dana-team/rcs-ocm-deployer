@@ -37,6 +37,12 @@ const (
 	NamespaceManifestWorkPrefix  = "mw-create-"
 )
 
+//+kubebuilder:rbac:groups=rcs.dana.io,resources=capps/status,verbs=update
+//+kubebuilder:rbac:groups=work.open-cluster-management.io,resources=manifestworks,verbs=get;list;watch;create;patch;update;delete
+//+kubebuilder:rbac:groups="rcsd.dana.io",resources=rcsconfigs,verbs=get;list;watch
+//+kubebuilder:rbac:groups="rbac.authorization.k8s.io",resources=rolebindings,verbs=get;list;watch
+//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
+
 func (r *CappNamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithValues("CappName", req.Name, "CappNamespace", req.Namespace)
 	capp := rcsv1alpha1.Capp{}
@@ -84,7 +90,9 @@ func (r *CappNamespaceReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx co
 	manifests, err := utils.GatherCappResources(capp, ctx, logger, r.Client)
 	if err != nil {
 		r.EventRecorder.Event(&capp, eventTypeError, eventCappVolumeNotFound, err.Error())
-		statusutils.SetVolumesCondition(capp, ctx, r.Client, logger, false, err.Error())
+		if err := statusutils.SetVolumesCondition(capp, ctx, r.Client, logger, false, err.Error()); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to set volume condition: %s", err.Error())
+		}
 		return ctrl.Result{}, fmt.Errorf("failed to get one of the volumes from Capp spec: %s", err.Error())
 	}
 

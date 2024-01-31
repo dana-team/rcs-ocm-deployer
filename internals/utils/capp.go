@@ -17,8 +17,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// AnnotationKeyHasPlacement is the key used to store the managed cluster name in an annotation on a Capp resource.
-const AnnotationKeyHasPlacement = "dana.io/has-placement"
+const (
+	// AnnotationKeyHasPlacement is the key used to store the managed cluster name in an annotation on a Capp resource
+	AnnotationKeyHasPlacement = "dana.io/has-placement"
+	// RcsConfigName is the name of the RCS Deployer Config CRD instance
+	RcsConfigName = "rcs-config"
+	// RcsConfigNamespace is the namespace that contains the RCS Deployer Config CRD instance
+	RcsConfigNamespace = "rcs-deployer-system"
+	// DefaultPlacementsNamespace is the default namespace contains the placements
+	DefaultPlacementsNamespace = "default"
+)
 
 // ContainsPlacementAnnotation checks if a Capp resource has an annotation indicating it has been placed on a managed cluster.
 func ContainsPlacementAnnotation(capp rcsv1alpha1.Capp) bool {

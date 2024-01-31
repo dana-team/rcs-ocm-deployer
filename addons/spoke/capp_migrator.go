@@ -11,4 +11,6 @@ func syncCappStatus(sourceCappStatus *rcsv1alpha1.CappStatus, destinationCappSta
 	}
 	destinationCappStatus.RevisionInfo = sourceCappStatus.RevisionInfo
 	destinationCappStatus.KnativeObjectStatus = sourceCappStatus.KnativeObjectStatus
+	destinationCappStatus.LoggingStatus = sourceCappStatus.LoggingStatus
+	destinationCappStatus.StateStatus = sourceCappStatus.StateStatus
 }

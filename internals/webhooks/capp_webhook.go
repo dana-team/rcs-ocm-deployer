@@ -3,6 +3,12 @@ package webhooks
 import (
 	"context"
 	"fmt"
+	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
+	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
+	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 	"strings"
 
@@ -14,9 +20,9 @@ import (
 )
 
 type CappValidator struct {
-	Client     client.Client
-	Decoder    *admission.Decoder
-	Placements []string
+	Client  client.Client
+	Decoder *admission.Decoder
+	Log     logr.Logger
 }
 
 // +kubebuilder:webhook:path=/validate-capp,mutating=false,sideEffects=NoneOnDryRun,failurePolicy=fail,groups="rcs.dana.io",resources=capps,verbs=create;update,versions=v1alpha1,name=capp.validate.rcs.dana.io,admissionReviewVersions=v1;v1beta1
@@ -31,15 +37,27 @@ func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admis
 		logger.Error(err, "could not decode capp object")
 		return admission.Errored(http.StatusBadRequest, err)
 	}
-	return c.handle(ctx, req, capp)
+	return c.handle(ctx, capp)
 
 }
 
-func (c *CappValidator) handle(ctx context.Context, req admission.Request, capp rcsv1alpha1.Capp) admission.Response {
+func (c *CappValidator) handle(ctx context.Context, capp rcsv1alpha1.Capp) admission.Response {
+	config, err := c.getRCSConfig(ctx)
+	if err != nil {
+		if statusError, isStatusError := err.(*errors.StatusError); isStatusError {
+			if statusError.ErrStatus.Reason == metav1.StatusReasonNotFound {
+				c.Log.Error(err, "rcs config has not been defined")
+			}
+		} else {
+			c.Log.Error(err, "failed to fetch rcs config")
+		}
+		return admission.Denied("Failed to fetch RCSConfig")
+	}
+	placements := config.Spec.Placements
 	if !isScaleMetricSupported(capp) {
 		return admission.Denied(fmt.Sprintf("this scale metric %s is unsupported. the avilable options are %s", capp.Spec.ScaleMetric, strings.Join(SupportedScaleMetrics, ",")))
 	}
-	if !isSiteVaild(capp, c.Placements, c.Client, ctx) {
+	if !isSiteVaild(capp, placements, c.Client, ctx) {
 		return admission.Denied(fmt.Sprintf("this site %s is unsupported. Site field accepts either cluster name or placement name", capp.Spec.Site))
 	}
 	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname); errs != nil {
@@ -54,4 +72,13 @@ func (c *CappValidator) handle(ctx context.Context, req admission.Request, capp 
 		}
 	}
 	return admission.Allowed("")
+}
+
+func (c *CappValidator) getRCSConfig(ctx context.Context) (*rcsdv1alpha1.RCSConfig, error) {
+	config := rcsdv1alpha1.RCSConfig{}
+	key := types.NamespacedName{Name: utils.RcsConfigName, Namespace: utils.RcsConfigNamespace}
+	if err := c.Client.Get(ctx, key, &config); err != nil {
+		return nil, err
+	}
+	return &config, nil
 }
