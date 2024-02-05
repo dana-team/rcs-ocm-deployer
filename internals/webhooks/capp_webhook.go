@@ -54,7 +54,7 @@ func (c *CappValidator) handle(ctx context.Context, capp rcsv1alpha1.Capp) admis
 		return admission.Denied("Failed to fetch RCSConfig")
 	}
 	placements := config.Spec.Placements
-	if !isSiteVaild(capp, placements, c.Client, ctx) {
+	if !isSiteValid(capp, placements, c.Client, ctx) {
 		return admission.Denied(fmt.Sprintf("this site %s is unsupported. Site field accepts either cluster name or placement name", capp.Spec.Site))
 	}
 	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname); errs != nil {
@@ -62,6 +62,11 @@ func (c *CappValidator) handle(ctx context.Context, capp rcsv1alpha1.Capp) admis
 	}
 	if errs := validateTlsFields(capp); errs != nil {
 		return admission.Denied(errs.Error())
+	}
+	if capp.Spec.LogSpec != (rcsv1alpha1.LogSpec{}) {
+		if errs := validateLogSpec(capp.Spec.LogSpec); errs != nil {
+			return admission.Denied(errs.Error())
+		}
 	}
 	return admission.Allowed("")
 }
