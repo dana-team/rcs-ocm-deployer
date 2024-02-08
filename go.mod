@@ -7,7 +7,7 @@ require (
 	github.com/go-logr/logr v1.4.1
 	github.com/go-logr/zapr v1.3.0
 	github.com/kube-logging/logging-operator/pkg/sdk v0.9.1
-	github.com/onsi/ginkgo/v2 v2.13.0
+	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.30.0
 	github.com/openshift/api v0.0.0-20231218131639-7a5aa77cc72d
 	github.com/openshift/library-go v0.0.0-20240112145826-26e0d27811cb
@@ -144,7 +144,6 @@ require (
 	k8s.io/kube-aggregator v0.29.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
 	knative.dev/networking v0.0.0-20231017124814-2a7676e912b7 // indirect
-	open-cluster-management.io/clusteradm v0.7.2 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.28.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kube-storage-version-migrator v0.0.6-0.20230721195810-5c8923c5ff96 // indirect
