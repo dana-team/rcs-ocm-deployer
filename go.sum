@@ -468,8 +468,8 @@ knative.dev/pkg v0.0.0-20240111013350-bc230ae58d14 h1:F3+36IHb7qFLg0r43QBfF+PRcM
 knative.dev/pkg v0.0.0-20240111013350-bc230ae58d14/go.mod h1:8/u65OwQ+l56FFE1j8BB/rMiy6B9dom4fTrvLFZ/Vqg=
 knative.dev/serving v0.39.3 h1:x3p3iCY0eKwKZmlXUZfc9C0YawyiB6Kc1HlE66b530I=
 knative.dev/serving v0.39.3/go.mod h1:bWylSgwnRZeL659qy7m3/TZioYk25TIfusPUEeR695A=
-open-cluster-management.io/addon-framework v0.8.0 h1:i1OReMHuZIoAw2Q04SLjkieU25DnxYilzVZzBNyROwU=
-open-cluster-management.io/addon-framework v0.8.0/go.mod h1:20DP06VXhJ9RE1PetAMEQyeFCP7+nhs92pCAkqbWUOg=
+open-cluster-management.io/addon-framework v0.8.1 h1:6NVdesr1aFn4fInlT+euAb/kpyBCWSLxIPIR8FCpKqc=
+open-cluster-management.io/addon-framework v0.8.1/go.mod h1:20DP06VXhJ9RE1PetAMEQyeFCP7+nhs92pCAkqbWUOg=
 open-cluster-management.io/api v0.12.0 h1:sNkj4k2XyWA/GLsTiFg82bLIZ7JDZKkLLLyZjJUlJMs=
 open-cluster-management.io/api v0.12.0/go.mod h1:/CZhelEH+30/pX7vXGSZOzLMX0zvjthYOkT/5ZTzVTQ=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.28.0 h1:TgtAeesdhpm2SGwkQasmbeqDo8th5wOBA5h/AjTKA4I=
