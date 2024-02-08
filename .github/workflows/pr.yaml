@@ -75,7 +75,7 @@ jobs:
         run: make deploy deploy-addon IMG=${IMAGE_REGISTRY}/rcs-ocm-deployer:test-${GITHUB_REF##*/}
 
       - name: Await controller to be ready
-        uses: jupyterhub/action-k8s-await-workloads@v2
+        uses: jupyterhub/action-k8s-await-workloads@v3
         with:
           workloads: ""
           namespace: "rcs-deployer-system"
