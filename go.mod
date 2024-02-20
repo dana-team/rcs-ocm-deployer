@@ -3,13 +3,13 @@ module github.com/dana-team/rcs-ocm-deployer
 go 1.21.6
 
 require (
-	github.com/dana-team/container-app-operator v0.1.4-0.20240208102144-e8552a05d1b5
+	github.com/dana-team/container-app-operator v0.1.4-0.20240220111754-5e735b590b77
 	github.com/go-logr/logr v1.4.1
 	github.com/go-logr/zapr v1.3.0
 	github.com/kube-logging/logging-operator/pkg/sdk v0.11.0
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.1
-	github.com/openshift/api v0.0.0-20240112192513-412e126bd40b
+	github.com/openshift/api v0.0.0-20240215110531-750a3e21ebaf
 	github.com/openshift/library-go v0.0.0-20240112145826-26e0d27811cb
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5

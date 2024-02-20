@@ -12,4 +12,5 @@ func syncCappStatus(sourceCappStatus *rcsv1alpha1.CappStatus, destinationCappSta
 	destinationCappStatus.KnativeObjectStatus = sourceCappStatus.KnativeObjectStatus
 	destinationCappStatus.LoggingStatus = sourceCappStatus.LoggingStatus
 	destinationCappStatus.StateStatus = sourceCappStatus.StateStatus
+	destinationCappStatus.RouteStatus = sourceCappStatus.RouteStatus
 }

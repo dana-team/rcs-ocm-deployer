@@ -138,10 +138,12 @@ var _ = Describe("Validate the placement sync controller", func() {
 			return secret
 		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue())
 	})
+
 	It("Should copy the secret from RouteSpec to ManifestWork ", func() {
 		baseSecret := mock.CreateSecret()
 		secret := utilst.CreateSecret(k8sClient, baseSecret)
 		baseCapp := mock.CreateBaseCapp()
+		baseCapp.Spec.RouteSpec.Hostname = testconsts.Hostname
 		baseCapp.Spec.RouteSpec.TlsEnabled = true
 		baseCapp.Spec.RouteSpec.TlsSecret = secret.Name
 		desiredCapp := utilst.CreateCapp(k8sClient, baseCapp)
