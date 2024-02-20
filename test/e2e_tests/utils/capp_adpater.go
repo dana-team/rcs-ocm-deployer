@@ -13,7 +13,7 @@ import (
 const (
 	charset              = "abcdefghijklmnopqrstuvwxyz0123456789"
 	RandStrLength        = 10
-	TimeoutCapp          = 10 * time.Second
+	TimeoutCapp          = 60 * time.Second
 	CappCreationInterval = 2 * time.Second
 )
 
@@ -39,7 +39,6 @@ func CreateCapp(k8sClient client.Client, capp *rcsv1alpha1.Capp) *rcsv1alpha1.Ca
 		return GetCapp(k8sClient, newCapp.Name, newCapp.Namespace).Status.StateStatus.State
 	}, TimeoutCapp, CappCreationInterval).Should(Equal("enabled"), "Should fetch capp")
 	return newCapp
-
 }
 
 // UpdateCapp updates an existing Capp instance.
@@ -50,7 +49,6 @@ func UpdateCapp(k8sClient client.Client, capp *rcsv1alpha1.Capp) {
 // DeleteCapp deletes an existing Capp instance.
 func DeleteCapp(k8sClient client.Client, capp *rcsv1alpha1.Capp) {
 	Expect(k8sClient.Delete(context.Background(), capp)).To(Succeed())
-
 }
 
 // GetCapp fetch existing and return an instance of Capp.

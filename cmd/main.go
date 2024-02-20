@@ -21,18 +21,20 @@ import (
 	"os"
 
 	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
-	wh "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
+	rcswebhooks "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
+
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	placementctrl "github.com/dana-team/rcs-ocm-deployer/internals/placement/controller"
+	syncctrl "github.com/dana-team/rcs-ocm-deployer/internals/sync/controller"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	"github.com/dana-team/rcs-ocm-deployer/internals/controllers"
-
 	"github.com/go-logr/zapr"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
@@ -104,25 +106,24 @@ func main() {
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "80807133.rcs.dana.io",
 	})
-
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	if err = (&controllers.CappPlacementReconciler{
+	if err = (&syncctrl.SyncReconciler{
 		Client:        mgr.GetClient(),
 		Scheme:        mgr.GetScheme(),
-		EventRecorder: mgr.GetEventRecorderFor("cappPlacementSync_controller"),
+		EventRecorder: mgr.GetEventRecorderFor("sync-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Capp")
 		os.Exit(1)
 	}
 
-	if err = (&controllers.CappNamespaceReconciler{
+	if err = (&placementctrl.PlacementReconciler{
 		Client:        mgr.GetClient(),
 		Scheme:        mgr.GetScheme(),
-		EventRecorder: mgr.GetEventRecorderFor("cappPlacement_controller"),
+		EventRecorder: mgr.GetEventRecorderFor("placement-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Capp")
 		os.Exit(1)
@@ -130,11 +131,11 @@ func main() {
 
 	hookServer := mgr.GetWebhookServer()
 	decoder := admission.NewDecoder(scheme)
-	hookServer.Register(wh.ServingPath, &webhook.Admission{Handler: &wh.CappValidator{
-
+	hookServer.Register(rcswebhooks.ServingPath, &webhook.Admission{Handler: &rcswebhooks.CappValidator{
 		Client:  mgr.GetClient(),
 		Decoder: decoder,
 	}})
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

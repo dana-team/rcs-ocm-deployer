@@ -33,8 +33,7 @@ type RCSConfigSpec struct {
 }
 
 // RCSConfigStatus defines the observed state of RCSConfig
-type RCSConfigStatus struct {
-}
+type RCSConfigStatus struct{}
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status

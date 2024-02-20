@@ -9,7 +9,6 @@ import (
 )
 
 var _ = Describe("Validate the placement controller", func() {
-
 	It("Should update the site in status and an annotation", func() {
 		baseCapp := mock.CreateBaseCapp()
 		desiredCapp := utilst.CreateCapp(k8sClient, baseCapp)
@@ -25,9 +24,8 @@ var _ = Describe("Validate the placement controller", func() {
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-
 	})
 
 	It("Should update a site from placement in status and an annotation", func() {
@@ -48,7 +46,7 @@ var _ = Describe("Validate the placement controller", func() {
 		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue(), "Should fetch capp.")
 		Eventually(func() bool {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			status, err := utilst.IsSiteInPlacement(k8sClient, assertionCapp.Annotations["dana.io/has-placement"], assertionCapp.Spec.Site, "test")
+			status, err := utilst.IsSiteInPlacement(k8sClient, assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement], assertionCapp.Spec.Site, "test")
 			Expect(err).Should(BeNil())
 			return status
 		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue(), "Should fetch capp.")
@@ -70,7 +68,7 @@ var _ = Describe("Validate the placement controller", func() {
 		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue(), "Should fetch capp.")
 		Eventually(func() bool {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"] == assertionCapp.Spec.Site
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement] == assertionCapp.Spec.Site
 		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue(), "Should fetch capp.")
 	})
 })

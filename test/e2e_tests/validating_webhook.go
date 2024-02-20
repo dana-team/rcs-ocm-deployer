@@ -20,7 +20,6 @@ const (
 )
 
 var _ = Describe("Validate the validating webhook", func() {
-
 	It("Should deny the use of a non-existing cluster", func() {
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Spec.Site = UnsupportedCluster

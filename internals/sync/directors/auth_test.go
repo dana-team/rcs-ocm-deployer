@@ -1,33 +1,17 @@
-package utils_test
+package directors
 
 import (
 	"context"
 	"testing"
 
+	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
-	"github.com/go-logr/logr"
-	clusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
 )
-
-func newScheme() *runtime.Scheme {
-	s := runtime.NewScheme()
-	_ = rcsv1alpha1.AddToScheme(s)
-	_ = clusterv1beta1.AddToScheme(s)
-	return s
-}
-
-func newFakeClient() client.Client {
-	scheme := newScheme()
-	return fake.NewClientBuilder().WithScheme(scheme).Build()
-}
 
 func TestPrepareAdminsRolesForCapp(t *testing.T) {
 	ctx := context.TODO()
@@ -43,8 +27,11 @@ func TestPrepareAdminsRolesForCapp(t *testing.T) {
 	// Create a fake client
 	fakeClient := fake.NewClientBuilder().Build()
 
-	// Call PrepareAdminsRolesForCapp with the test context, fake client, and test Capp
-	role, rolebinding, err := utils.PrepareAdminsRolesForCapp(ctx, fakeClient, capp)
+	authDirector := AuthDirector{ctx, fakeClient, logr.Discard(), record.NewFakeRecorder(10)}
+
+	mannifests, err := authDirector.AssembleManifests(capp)
+
+	role, rolebinding := mannifests[0].Object.(*rbacv1.Role), mannifests[1].Object.(*rbacv1.RoleBinding)
 
 	// Assert that there are no errors
 	assert.NoError(t, err)
@@ -72,7 +59,7 @@ func TestGenerateSubjectsFromUsers(t *testing.T) {
 	users := []string{"user1", "user2", "user3"}
 
 	// Call generateSubjectsFromUsers with the test user list
-	subjects := utils.GenerateSubjectsFromUsers(users)
+	subjects := generateSubjectsFromUsers(users)
 
 	// Assert that the returned subjects have the correct length
 	assert.Len(t, subjects, len(users))
@@ -134,8 +121,8 @@ func TestGetUsersfromNamespace(t *testing.T) {
 	// Create a fake client and add the test RoleBindings
 	fakeClient := fake.NewClientBuilder().WithObjects(&rolebinding1, &rolebinding2).Build()
 
-	// Call GetUsersfromNamespace with the test context, fake client, and test Capp
-	users, err := utils.GetUsersfromNamespace(ctx, fakeClient, capp)
+	// Call getUsersfromNamespace with the test context, fake client, and test Capp
+	users, err := getUsersfromNamespace(ctx, fakeClient, capp)
 
 	// Assert that there are no errors
 	assert.NoError(t, err)
@@ -148,53 +135,4 @@ func TestGetUsersfromNamespace(t *testing.T) {
 	assert.Contains(t, users, "user2")
 	assert.Contains(t, users, "user3")
 	assert.Contains(t, users, "user4")
-}
-
-func TestGetPlacementDecisionList(t *testing.T) {
-	// Create a test Capp
-	capp := rcsv1alpha1.Capp{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-capp",
-			Namespace: "test-namespace",
-		},
-	}
-
-	// Create a fake client
-	fakeClient := newFakeClient()
-
-	// Call GetPlacementDecisionList with the test Capp, context, fake client, and placementRef
-	placementDecisions, err := utils.GetPlacementDecisionList(capp, logr.Discard(), context.Background(), "placement-ref", "test-namespace", fakeClient)
-
-	// Assert that there are no errors
-	assert.NoError(t, err)
-
-	// Assert that the returned placementDecisions is not nil
-	assert.NotNil(t, placementDecisions)
-}
-
-func TestGetDecisionClusterName(t *testing.T) {
-	// Create a test PlacementDecisionList
-	placementDecisions := &clusterv1beta1.PlacementDecisionList{
-		Items: []clusterv1beta1.PlacementDecision{
-			{
-				Status: clusterv1beta1.PlacementDecisionStatus{
-					Decisions: []clusterv1beta1.ClusterDecision{
-						{
-							ClusterName: "cluster-1",
-						},
-						{
-							ClusterName: "cluster-2",
-						},
-					},
-				},
-			},
-		},
-	}
-
-	// Create a fake logger
-	// Call GetDecisionClusterName with the test PlacementDecisionList and fake logger
-	clusterName := utils.GetDecisionClusterName(placementDecisions, logr.Discard())
-
-	// Assert that the returned clusterName is "cluster-1"
-	assert.Equal(t, "cluster-1", clusterName)
 }

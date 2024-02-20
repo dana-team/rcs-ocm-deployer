@@ -25,7 +25,6 @@ func isSiteValid(capp rcsv1alpha1.Capp, placements []string, r client.Client, ct
 	}
 	clusters, _ := getManagedClusters(r, ctx)
 	return slices.Contains(clusters, capp.Spec.Site) || slices.Contains(placements, capp.Spec.Site)
-
 }
 
 // getManagedClusters retrieves the list of managed clusters from the Kubernetes API server

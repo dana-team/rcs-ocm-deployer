@@ -33,7 +33,6 @@ func IsSiteInPlacement(k8sClient client.Client, site string, placementName strin
 		}
 	}
 	return false, nil
-
 }
 
 // CreateSecret creates a corev1.secret object with a random suffix in its name and returns it

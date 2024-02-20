@@ -4,10 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/go-logr/zapr"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
-	"os"
 
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
@@ -24,9 +25,7 @@ import (
 	addonv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
 )
 
-var (
-	scheme = runtime.NewScheme()
-)
+var scheme = runtime.NewScheme()
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -89,7 +88,6 @@ func (o *AgentOptions) runControllerManager(ctx context.Context) error {
 		Scheme:         scheme,
 		LeaderElection: false,
 	})
-
 	if err != nil {
 		log.Error(err, "unable to start manager")
 		return fmt.Errorf("unable to create manager, err: %w", err)

@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+
 	. "github.com/onsi/ginkgo/v2"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -19,5 +20,4 @@ func DoesResourceExist(k8sClient client.Client, obj client.Object) bool {
 		Fail(fmt.Sprintf("The function failed with error: \n %s", err.Error()))
 	}
 	return true
-
 }

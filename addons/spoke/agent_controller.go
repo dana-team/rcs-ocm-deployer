@@ -2,6 +2,7 @@ package addons
 
 import (
 	"context"
+
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"

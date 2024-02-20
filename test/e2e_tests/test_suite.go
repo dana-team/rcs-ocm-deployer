@@ -3,6 +3,7 @@ package e2e_tests
 import (
 	"context"
 	"fmt"
+
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	mock "github.com/dana-team/container-app-operator/test/k8s_tests/mocks"
 	utilst "github.com/dana-team/container-app-operator/test/k8s_tests/utils"
@@ -27,9 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-var (
-	k8sClient client.Client
-)
+var k8sClient client.Client
 
 func newScheme() *runtime.Scheme {
 	s := runtime.NewScheme()
@@ -72,7 +71,6 @@ var _ = SynchronizedBeforeSuite(func() {
 	Eventually(func() bool {
 		return utilst.DoesResourceExist(k8sClient, namespace)
 	}, testconsts.Timeout, testconsts.Interval).Should(BeTrue(), "The namespace should be created")
-
 }, func() {})
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
@@ -92,5 +90,4 @@ func cleanUp() {
 			return k8sClient.Get(context.Background(), client.ObjectKey{Name: mock.NsName}, namespace)
 		}, testconsts.Timeout, testconsts.Interval).Should(HaveOccurred(), "The namespace should be deleted")
 	}
-
 }

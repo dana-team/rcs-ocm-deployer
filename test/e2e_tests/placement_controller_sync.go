@@ -2,10 +2,10 @@ package e2e_tests
 
 import (
 	"context"
-	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
 
 	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
+	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
+
 	mock "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/mocks"
 	utilst "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/utils"
 	. "github.com/onsi/ginkgo/v2"
@@ -15,8 +15,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ = Describe("Validate the placement sync controller", func() {
+const (
+	NamespaceManifestWorkPrefix = "mw-create-"
+)
 
+var _ = Describe("Validate the placement sync controller", func() {
 	It("Should add a cleanup finalizer to created capp", func() {
 		baseCapp := mock.CreateBaseCapp()
 		desiredCapp := utilst.CreateCapp(k8sClient, baseCapp)
@@ -30,7 +33,6 @@ var _ = Describe("Validate the placement sync controller", func() {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
 			return utilst.DoesFinalizerExist(k8sClient, assertionCapp.Name, assertionCapp.Namespace, "dana.io/capp-cleanup")
 		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue(), "Should fetch capp.")
-
 	})
 
 	It("Should delete all capp dependent resources when capp is deleted", func() {
@@ -44,9 +46,9 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Waiting for placement to be set on Capp")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-		mwNamespace := assertionCapp.Annotations["dana.io/has-placement"]
+		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Deletes capp")
 		utilst.DeleteCapp(k8sClient, assertionCapp)
@@ -54,7 +56,7 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Checks if ManifestWork was deleted")
 		manifestWork := &workv1.ManifestWork{}
 		Eventually(func() bool {
-			mwName := utils.NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
+			mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 			Expect(k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)).Should(Succeed())
 			return utilst.DoesResourceExist(k8sClient, manifestWork)
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(BeFalse())
@@ -87,14 +89,14 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Waiting for placement to be set on Capp")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-		mwNamespace := assertionCapp.Annotations["dana.io/has-placement"]
+		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Checks ManifestWork was synced with secret")
 		manifestWork := &workv1.ManifestWork{}
 		Eventually(func() bool {
-			mwName := utils.NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
+			mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
 			secret, err := utilst.IsObjInManifestWork(k8sClient, *manifestWork, secret.Name, secret.Namespace, &corev1.Secret{}, "Secret")
 			Expect(err).Should(BeNil())
@@ -122,14 +124,14 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Waiting for placement to be set on Capp")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-		mwNamespace := assertionCapp.Annotations["dana.io/has-placement"]
+		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Checks ManifestWork was synced with secret")
 		manifestWork := &workv1.ManifestWork{}
 		Eventually(func() bool {
-			mwName := utils.NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
+			mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 			Expect(k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)).Should(Succeed())
 			secret, err := utilst.IsObjInManifestWork(k8sClient, *manifestWork, secret.Name, secret.Namespace, &corev1.Secret{}, "Secret")
 			Expect(err).Should(BeNil())
@@ -151,14 +153,14 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Waiting for placement to be set on Capp")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-		mwNamespace := assertionCapp.Annotations["dana.io/has-placement"]
+		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Checks ManifestWork was synced with secret")
 		manifestWork := &workv1.ManifestWork{}
 		Eventually(func() bool {
-			mwName := utils.NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
+			mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
 			secret, err := utilst.IsObjInManifestWork(k8sClient, *manifestWork, secret.Name, secret.Namespace, &corev1.Secret{}, "Secret")
 			Expect(err).Should(BeNil())
@@ -182,14 +184,14 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Waiting for placement to be set on Capp")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-		mwNamespace := assertionCapp.Annotations["dana.io/has-placement"]
+		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Checks ManifestWork was synced with secret")
 		manifestWork := &workv1.ManifestWork{}
 		Eventually(func() bool {
-			mwName := utils.NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
+			mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
 			secret, err := utilst.IsObjInManifestWork(k8sClient, *manifestWork, secret.Name, secret.Namespace, &corev1.Secret{}, "Secret")
 			Expect(err).Should(BeNil())
@@ -212,14 +214,14 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Waiting for placement to be set on Capp")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-		mwNamespace := assertionCapp.Annotations["dana.io/has-placement"]
+		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Checks ManifestWork was synced with role and rolebinding")
 		manifestWork := &workv1.ManifestWork{}
 		Eventually(func() bool {
-			mwName := utils.NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
+			mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
 			return utilst.IsRbacObjInManifestWork(k8sClient, *manifestWork, assertionCapp.Name, role.Namespace, "Role") &&
 				utilst.IsRbacObjInManifestWork(k8sClient, *manifestWork, assertionCapp.Name, roleBinding.Namespace, "RoleBinding")
@@ -237,14 +239,14 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Waiting for placement to be set on Capp")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-		mwNamespace := assertionCapp.Annotations["dana.io/has-placement"]
+		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Checks ManifestWork was synced with capp and namespace")
 		manifestWork := &workv1.ManifestWork{}
 		Eventually(func() bool {
-			mwName := utils.NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
+			mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
 			ns, err := utilst.IsObjInManifestWork(k8sClient, *manifestWork, assertionCapp.Namespace, "", &corev1.Namespace{}, "Namespace")
 			Expect(err).Should(BeNil())
@@ -265,9 +267,9 @@ var _ = Describe("Validate the placement sync controller", func() {
 		By("Waiting for placement to be set on Capp")
 		Eventually(func() string {
 			assertionCapp = utilst.GetCapp(k8sClient, assertionCapp.Name, assertionCapp.Namespace)
-			return assertionCapp.Annotations["dana.io/has-placement"]
+			return assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should fetch capp.")
-		mwNamespace := assertionCapp.Annotations["dana.io/has-placement"]
+		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Update Capp")
 		assertionCapp.Spec.Site = "cluster2"
@@ -275,7 +277,7 @@ var _ = Describe("Validate the placement sync controller", func() {
 
 		By("Checks Capp site is not nil")
 		manifestWork := &workv1.ManifestWork{}
-		mwName := utils.NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
+		mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 		Eventually(func() interface{} {
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
 			return utilst.GetCappFromManifestWork(k8sClient, *manifestWork).Object["spec"].(map[string]interface{})["site"]
