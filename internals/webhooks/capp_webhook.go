@@ -38,7 +38,6 @@ func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admis
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 	return c.handle(ctx, capp)
-
 }
 
 func (c *CappValidator) handle(ctx context.Context, capp rcsv1alpha1.Capp) admission.Response {

@@ -19,7 +19,7 @@ var (
 	SecretDataValue    = "password"
 )
 
-// CreateBaseCapp is reponsible for making the most lean version of Capp so we can manipulate it in the tests
+// CreateBaseCapp is responsible for making the most lean version of Capp so we can manipulate it in the tests
 func CreateBaseCapp() *rcsv1alpha1.Capp {
 	return &rcsv1alpha1.Capp{
 		ObjectMeta: metav1.ObjectMeta{

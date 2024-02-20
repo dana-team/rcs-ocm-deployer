@@ -1,10 +1,9 @@
-package utils
+package adapters
 
 import (
 	"context"
 	"fmt"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -17,12 +16,11 @@ import (
 // a context.Context, a string placementRef used to filter the
 // PlacementDecisionList and the namespace where the PlacementDecisions are expected.
 // The function returns a pointer to a PlacementDecisionList and an error in case of failure.
-func GetPlacementDecisionList(capp rcsv1alpha1.Capp, log logr.Logger, ctx context.Context, placementRef string, placementsNamespace string, r client.Client) (*clusterv1beta1.PlacementDecisionList, error) {
-
+func GetPlacementDecisionList(ctx context.Context, placementRef string, placementsNamespace string, r client.Client) (*clusterv1beta1.PlacementDecisionList, error) {
 	listopts := &client.ListOptions{}
 	requirement, err := labels.NewRequirement(clusterv1beta1.PlacementLabel, selection.Equals, []string{placementRef})
 	if err != nil {
-		return nil, fmt.Errorf("unable to create new PlacementDecision label requirement: %s", err.Error())
+		return nil, fmt.Errorf("unable to create new PlacementDecision label requirement: %v", err.Error())
 	}
 	labelSelector := labels.NewSelector().Add(*requirement)
 	listopts.LabelSelector = labelSelector

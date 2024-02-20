@@ -30,9 +30,7 @@ import (
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
 )
 
-var (
-	genericScheme = runtime.NewScheme()
-)
+var genericScheme = runtime.NewScheme()
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(genericScheme))
@@ -195,8 +193,7 @@ func applyAgentPermissionManifestFromFile(file, clusterName, componentName strin
 }
 
 // getValueForAgentTemplate prepare values for templates at manifests/templates
-func (o *override) getValueForAgentTemplate(cluster *clusterv1.ManagedCluster,
-	addon *addonapiv1alpha1.ManagedClusterAddOn) (addonfactory.Values, error) {
+func (o *override) getValueForAgentTemplate(cluster *clusterv1.ManagedCluster, addon *addonapiv1alpha1.ManagedClusterAddOn) (addonfactory.Values, error) {
 	addonImage := os.Getenv("ADDON_IMAGE")
 	if len(addonImage) == 0 {
 		addonImage = addonImageDefault

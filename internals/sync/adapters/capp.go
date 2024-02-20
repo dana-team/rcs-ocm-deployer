@@ -1,4 +1,4 @@
-package utils
+package adapters
 
 import (
 	"context"
@@ -15,12 +15,12 @@ import (
 
 const FinalizerCleanupCapp = "dana.io/capp-cleanup"
 
-// HandleResourceDeletion handles the deletion of a Capp custom resource. It checks if the resource has a deletion timestamp
+// HandleCappDeletion handles the deletion of a Capp custom resource. It checks if the resource has a deletion timestamp
 // and contains the specified finalizer. If so, it finalizes the Capp by cleaning up associated resources.
 // It removes the finalizer once cleanup is complete and updates the resource.
-func HandleResourceDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr.Logger, r client.Client) error {
+func HandleCappDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr.Logger, r client.Client) error {
 	if controllerutil.ContainsFinalizer(&capp, FinalizerCleanupCapp) {
-		mwName := NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
+		mwName := GenerateMWName(capp)
 		if err := finalizeCapp(ctx, mwName, capp.Status.ApplicationLinks.Site, log, r); err != nil {
 			if errors.IsNotFound(err) {
 				return removeFinalizer(ctx, capp, log, r)
@@ -31,11 +31,12 @@ func HandleResourceDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr
 	return nil
 }
 
+// removeFinalizer removes the finalizer from capp
 func removeFinalizer(ctx context.Context, capp rcsv1alpha1.Capp, log logr.Logger, r client.Client) error {
-	log.Info("already deleted ManifestWork, commit the Workflow finalizer removal")
+	log.Info("Removing Capp finalizer", "finalizer", FinalizerCleanupCapp)
 	controllerutil.RemoveFinalizer(&capp, FinalizerCleanupCapp)
 	if err := r.Update(ctx, &capp); err != nil {
-		return fmt.Errorf("failed to remove finalizer from Capp: %s", err.Error())
+		return fmt.Errorf("failed to remove finalizer from Capp: %v", err.Error())
 	}
 	return nil
 }
@@ -47,9 +48,11 @@ func finalizeCapp(ctx context.Context, mwName string, managedClusterName string,
 	if err := r.Get(ctx, types.NamespacedName{Name: mwName, Namespace: managedClusterName}, &work); err != nil {
 		return err
 	}
+	log.Info("Trying to delete ManifestWork", "ManifestWork", work.Name)
 	if err := r.Delete(ctx, &work); err != nil {
-		return fmt.Errorf("unable to delete ManifestWork: %s", err.Error())
+		return fmt.Errorf("unable to delete ManifestWork: %v", err.Error())
 	}
+	log.Info("Deleted manifest work successfully")
 	return nil
 }
 
@@ -58,7 +61,7 @@ func EnsureFinalizer(ctx context.Context, capp rcsv1alpha1.Capp, r client.Client
 	if !controllerutil.ContainsFinalizer(&capp, FinalizerCleanupCapp) {
 		controllerutil.AddFinalizer(&capp, FinalizerCleanupCapp)
 		if err := r.Update(ctx, &capp); err != nil {
-			return fmt.Errorf("failed to add finalizer to Capp: %s", err.Error())
+			return fmt.Errorf("failed to add finalizer to Capp: %v", err.Error())
 		}
 	}
 	return nil
