@@ -40,11 +40,13 @@ This project uses the `Placement` and `ManifestWork` APIs of the Open Cluster Ma
 
 ### The controllers
 
-1. `cappPlacement`: The controller adds an annotation containing the chosen Managed Cluster to deploy the `Capp` workload on, in accordance to the `placementDecision` and the desired `Site`.
+1. `placement`: The controller adds an annotation containing the chosen Managed Cluster to deploy the `Capp` workload on, in accordance to the `placementDecision` and the desired `Site`.
 
-2. `cappPlacementSync`: The controller controls the lifecycle of the `ManifestWork` CR in the namespace of the chosen Managed Cluster. The `ManifestWork` contains the `Capp` CR as well as all the `Secrets` and `Volumes` referenced in the `Capp` CR, thus making sure that all the `Secrets` and `Volumes` also exist on the Managed Cluster, in the same namespace the `Capp CR` exists in on the Hub Cluster.
+2. `sync`: The controller controls the lifecycle of the `ManifestWork` CR in the namespace of the chosen Managed Cluster. The `ManifestWork` contains the `Capp` CR as well as all the `Secrets` and `Volumes` referenced in the `Capp` CR, thus making sure that all the `Secrets` and `Volumes` also exist on the Managed Cluster, in the same namespace the `Capp CR` exists in on the Hub Cluster.
 
-3. `addOns`: Refer [here](./addons/README.md) for more information.
+3. `addOns`: By applying this add-on to the Hub Cluster, the `Capp` status will automatically be synced back from Managed/Spoke Clusters to the Hub cluster. It has two components:
+    - `agent` - deployed on the Managed/Spoke clusters; responsible for syncing the `Capp` status between the Managed Cluster and the Hub Cluster.
+    - `manager` - deployed on the Hub Cluster; responsible for deploying the `agent` on the Managed/Spoke clusters.
 
 ## Getting Started
 
@@ -62,10 +64,10 @@ The following should be installed on your Linux machine:
 Simply run the following to get a Hub cluster ready to have `rcs-ocm-deployer` deployed on it, and 2 Managed Cluster with `container-app-operator` already installed on them.
 
 ```bash
-$ make local-quickstart CAPP_OPERATOR_IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
+$ make local-quickstart IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
 ```
 
-### Manuel Approach
+### Manual Approach
 
 #### Setting Up a Hub Cluster and Managed Clusters locally
 
@@ -82,7 +84,7 @@ You can clone the repository and set up the environment. This script would creat
 To switch between contexts, use:
 
 ```bash
- $ kubectl config use-context <CONTEXT_NAME>
+ $ kubectl config use-context <context-name>
 ```
 
 Run the script:
@@ -175,7 +177,33 @@ Ensure that the spec section includes a list of `placements` and specifies the `
 
 ### Deploy the add-on
 
-Follow the [instructions here](./addons/README.md). Note that the `AddOn` and the controller use the same image.
+Deploy the add-on the `Hub` cluster:
+
+```bash
+$ make deploy-addon IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
+$ kubectl -n open-cluster-management get deploy
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+capp-status-sync-addon   1/1     1            1           14s
+```
+
+The controller will automatically install the add-on `agent` on all Managed/Spoke Clusters. Validate the add-on agent is installed on a Managed/Spoke` cluster:
+
+```bash
+$ kubectl -n open-cluster-management-agent-addon get deploy
+
+NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
+capp-status-sync-addon-agent    1/1     1            1           2m24s
+```
+
+You can also validate and check the status of the add-on on the Hub cluster:
+
+```bash
+$ kubectl -n <managed-cluster> get managedclusteraddon
+
+NAME                                AVAILABLE   DEGRADED   PROGRESSING
+capp-status-sync-addon      True                   
+```
 
 #### Build your own image
 
@@ -212,5 +240,6 @@ spec:
     username: elastic
     passwordSecretName: es-elastic-user
     sslVerify: false
-  scaleMetric: cpu
+  scaleMetric: concurrency
+  state: enabled
 ```
