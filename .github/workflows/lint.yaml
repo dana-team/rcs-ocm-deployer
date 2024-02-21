@@ -22,3 +22,9 @@ jobs:
 
       - name: Run vet
         run: go vet ./...
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=2m
