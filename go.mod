@@ -3,7 +3,7 @@ module github.com/dana-team/rcs-ocm-deployer
 go 1.21.6
 
 require (
-	github.com/dana-team/container-app-operator v0.1.4-0.20240220111754-5e735b590b77
+	github.com/dana-team/container-app-operator v0.1.4
 	github.com/go-logr/logr v1.4.1
 	github.com/go-logr/zapr v1.3.0
 	github.com/kube-logging/logging-operator/pkg/sdk v0.11.0
