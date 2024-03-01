@@ -25,7 +25,7 @@ require (
 	knative.dev/serving v0.40.1
 	open-cluster-management.io/addon-framework v0.8.0
 	open-cluster-management.io/api v0.12.0
-	sigs.k8s.io/controller-runtime v0.17.0
+	sigs.k8s.io/controller-runtime v0.17.2
 )
 
 require (
