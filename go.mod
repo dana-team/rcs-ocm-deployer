@@ -3,7 +3,7 @@ module github.com/dana-team/rcs-ocm-deployer
 go 1.21.6
 
 require (
-	github.com/dana-team/container-app-operator v0.1.4
+	github.com/dana-team/container-app-operator v0.1.5
 	github.com/go-logr/logr v1.4.1
 	github.com/go-logr/zapr v1.3.0
 	github.com/kube-logging/logging-operator/pkg/sdk v0.11.0
@@ -13,12 +13,12 @@ require (
 	github.com/openshift/library-go v0.0.0-20240116081341-964bcb3f545c
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	go.elastic.co/ecszap v1.0.2
 	go.uber.org/zap v1.27.0
-	k8s.io/api v0.29.1
-	k8s.io/apimachinery v0.29.1
-	k8s.io/client-go v0.29.1
+	k8s.io/api v0.29.2
+	k8s.io/apimachinery v0.29.2
+	k8s.io/client-go v0.29.2
 	k8s.io/component-base v0.29.1
 	k8s.io/utils v0.0.0-20240102154912-e7106e64919e
 	knative.dev/pkg v0.0.0-20240116073220-b488e7be5902
