@@ -225,8 +225,8 @@ var _ = Describe("Validate the placement sync controller", func() {
 		Eventually(func() bool {
 			mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
-			return utilst.IsRbacObjInManifestWork(k8sClient, *manifestWork, assertionCapp.Name, role.Namespace, "Role") &&
-				utilst.IsRbacObjInManifestWork(k8sClient, *manifestWork, assertionCapp.Name, roleBinding.Namespace, "RoleBinding")
+			return utilst.IsRbacObjInManifestWork(*manifestWork, assertionCapp.Name, role.Namespace, "Role") &&
+				utilst.IsRbacObjInManifestWork(*manifestWork, assertionCapp.Name, roleBinding.Namespace, "RoleBinding")
 		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue())
 	})
 
@@ -274,7 +274,7 @@ var _ = Describe("Validate the placement sync controller", func() {
 		mwNamespace := assertionCapp.Annotations[testconsts.AnnotationKeyHasPlacement]
 
 		By("Update Capp")
-		assertionCapp.Spec.Site = "cluster2"
+		assertionCapp.Spec.Site = testconsts.Cluster2
 		Expect(k8sClient.Update(context.Background(), assertionCapp)).Should(Succeed())
 
 		By("Checks Capp site is not nil")
@@ -282,13 +282,13 @@ var _ = Describe("Validate the placement sync controller", func() {
 		mwName := NamespaceManifestWorkPrefix + assertionCapp.Namespace + "-" + assertionCapp.Name
 		Eventually(func() interface{} {
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
-			return utilst.GetCappFromManifestWork(k8sClient, *manifestWork).Object["spec"].(map[string]interface{})["site"]
+			return utilst.GetCappFromManifestWork(*manifestWork).Object["spec"].(map[string]interface{})["site"]
 		}, testconsts.Timeout, testconsts.Interval).ShouldNot(BeNil())
 
 		By("Checks ManifestWork was synced with new capp")
 		Eventually(func() string {
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
-			return utilst.GetCappFromManifestWork(k8sClient, *manifestWork).Object["spec"].(map[string]interface{})["site"].(string)
-		}, testconsts.Timeout, testconsts.Interval).Should(Equal("cluster2"))
+			return utilst.GetCappFromManifestWork(*manifestWork).Object["spec"].(map[string]interface{})["site"].(string)
+		}, testconsts.Timeout, testconsts.Interval).Should(Equal(testconsts.Cluster2))
 	})
 })

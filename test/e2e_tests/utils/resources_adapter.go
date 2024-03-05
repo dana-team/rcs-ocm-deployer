@@ -12,22 +12,25 @@ import (
 )
 
 // IsSiteInPlacement checks if a given site is part of a clusterset mentioned in a placement
-func IsSiteInPlacement(k8sClient client.Client, site string, placementName string, placementNamespace string) (bool, error) {
+func IsSiteInPlacement(k8sClient client.Client, placementName string, placementNamespace string) (bool, error) {
 	placement := clusterv1beta1.Placement{}
-	clustersets := []string{}
+	var clusterSets []string
+
 	managedClusterList := clusterv1.ManagedClusterList{}
 	err := k8sClient.Get(context.Background(), client.ObjectKey{Name: placementName, Namespace: placementNamespace}, &placement)
 	if err != nil {
 		return false, err
 	}
-	clustersets = append(clustersets, placement.Spec.ClusterSets...)
+
+	clusterSets = append(clusterSets, placement.Spec.ClusterSets...)
 	err = k8sClient.List(context.Background(), &managedClusterList)
 	if err != nil {
 		return false, err
 	}
+
 	for _, managedCluster := range managedClusterList.Items {
-		for _, clusterset := range clustersets {
-			if managedCluster.GetLabels()["cluster.open-cluster-management.io/clusterset"] == clusterset {
+		for _, clusterSet := range clusterSets {
+			if managedCluster.GetLabels()["cluster.open-cluster-management.io/clusterset"] == clusterSet {
 				return true, nil
 			}
 		}

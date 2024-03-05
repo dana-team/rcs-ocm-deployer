@@ -1,12 +1,12 @@
 package main
 
 import (
+	goflag "flag"
 	"fmt"
+
 	"math/rand"
 	"os"
 	"time"
-
-	goflag "flag"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
@@ -16,8 +16,8 @@ import (
 	utilflag "k8s.io/component-base/cli/flag"
 	"open-cluster-management.io/addon-framework/pkg/version"
 
-	hubaddon "github.com/dana-team/rcs-ocm-deployer/addons/hub"
-	spokeaddon "github.com/dana-team/rcs-ocm-deployer/addons/spoke"
+	"github.com/dana-team/rcs-ocm-deployer/addons/score/hub"
+	"github.com/dana-team/rcs-ocm-deployer/addons/score/spoke"
 )
 
 func main() {
@@ -26,30 +26,30 @@ func main() {
 	pflag.CommandLine.SetNormalizeFunc(utilflag.WordSepNormalizeFunc)
 	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 
-	var logger logr.Logger
-
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to start up logger %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "failed to start up logger %v\n", err)
 		os.Exit(1)
 	}
 
-	logger = zapr.NewLogger(zapLog)
+	logger := zapr.NewLogger(zapLog)
 
 	command := newCommand(logger)
 	if err := command.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 }
 
+// newCommand creates a new Cobra command for the score-addon CLI.
+// It initializes the root command with the appropriate metadata and subcommands.
 func newCommand(logger logr.Logger) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "status-sync-addon",
-		Short: "status-sync-addon",
+		Use:   "score-addon",
+		Short: "score-addon",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := cmd.Help(); err != nil {
-				fmt.Fprintf(os.Stderr, "%v\n", err)
+				_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
 			}
 			os.Exit(1)
 		},
@@ -61,8 +61,8 @@ func newCommand(logger logr.Logger) *cobra.Command {
 		cmd.Version = v
 	}
 
-	cmd.AddCommand(hubaddon.NewManagerCommand("capp-status-sync-addon", logger.WithName("capp-status-manager")))
-	cmd.AddCommand(spokeaddon.NewAgentCommand("capp-status-sync-addon", logger.WithName("capp-status-agent")))
+	cmd.AddCommand(hub.NewManagerCommand("rcs-score-addon-controller", logger.WithName("rcs-score-addon-controller")))
+	cmd.AddCommand(spoke.NewAgentCommand("rcs-score-addon-agent", hub.AddonName, logger.WithName("rcs-score-addon-controller")))
 
 	return cmd
 }

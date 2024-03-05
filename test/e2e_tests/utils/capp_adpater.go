@@ -17,7 +17,7 @@ const (
 	CappCreationInterval = 2 * time.Second
 )
 
-var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 // generateRandomString returns a random string of the specified length using characters from the charset.
 func generateRandomString(length int) string {
@@ -41,24 +41,19 @@ func CreateCapp(k8sClient client.Client, capp *rcsv1alpha1.Capp) *rcsv1alpha1.Ca
 	return newCapp
 }
 
-// UpdateCapp updates an existing Capp instance.
-func UpdateCapp(k8sClient client.Client, capp *rcsv1alpha1.Capp) {
-	Expect(k8sClient.Update(context.Background(), capp)).To(Succeed())
-}
-
 // DeleteCapp deletes an existing Capp instance.
 func DeleteCapp(k8sClient client.Client, capp *rcsv1alpha1.Capp) {
 	Expect(k8sClient.Delete(context.Background(), capp)).To(Succeed())
 }
 
-// GetCapp fetch existing and return an instance of Capp.
+// GetCapp fetches an existing Capp and return the instance.
 func GetCapp(k8sClient client.Client, name string, namespace string) *rcsv1alpha1.Capp {
 	capp := &rcsv1alpha1.Capp{}
 	Expect(k8sClient.Get(context.Background(), client.ObjectKey{Name: name, Namespace: namespace}, capp)).To(Succeed())
 	return capp
 }
 
-// DoesFinalizerExist checks if a finalizer exists on a Capp
+// DoesFinalizerExist checks if a finalizer exists on a Capp.
 func DoesFinalizerExist(k8sClient client.Client, cappName string, cappNamespace string, finalizerName string) bool {
 	capp := GetCapp(k8sClient, cappName, cappNamespace)
 	for _, finalizer := range capp.GetFinalizers() {
