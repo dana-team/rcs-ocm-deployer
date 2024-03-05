@@ -146,14 +146,29 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 	
-.PHONY: deploy-addon
-deploy-addon: kustomize ## Deploy addon to the k8s cluster specified in ~/.kube/config.
-	cd addons/deploy/status-sync/default && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build addons/deploy/status-sync/default | kubectl apply -f -
+.PHONY: deploy-status-addon
+deploy-status-addon: kustomize ## Deploy addon to the k8s cluster specified in ~/.kube/config.
+	cd addons/status/deploy/status-sync/default && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build addons/status/deploy/status-sync/default | kubectl apply -f -
 
-.PHONY: undeploy-addon
-undeploy-addon: kustomize ## Undeploy addon from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build addons/deploy/status-sync/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+.PHONY: deploy-score-addon
+deploy-score-addon: kustomize ## Deploy addon to the k8s cluster specified in ~/.kube/config.
+	cd addons/score/deploy/resources/default && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build addons/score/deploy/resources/default | kubectl apply -f -
+
+.PHONY: undeploy-status-addon
+undeploy-status-addon: kustomize ## Undeploy addon from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build addons/status/deploy/status-sync/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+
+.PHONY: undeploy-score-addon
+undeploy-score-addon: kustomize ## Undeploy addon from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build addons/score/deploy/resources/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+
+.PHONY: deploy-addons
+deploy-addons: deploy-score-addon deploy-status-addon
+
+.PHONY: undeploy-addons
+undeploy-addons: undeploy-score-addon undeploy-status-addon
 
 .PHONY: helm
 helm: manifests kustomize helmify

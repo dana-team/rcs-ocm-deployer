@@ -42,7 +42,8 @@ kubectl config use-context "${hubctx}"
 "${clusteradm}" clusterset set "${clusterset}" --clusters "${c2}"
 kubectl create ns "${ns}"
 "${clusteradm}" clusterset bind "${clusterset}" --namespace "${ns}"
-cat <<EOF | kubectl apply -f -
+
+cat << EOF | kubectl apply -f -
 apiVersion: cluster.open-cluster-management.io/v1beta1
 kind: Placement
 metadata:
@@ -50,7 +51,16 @@ metadata:
   namespace: "${ns}"
 spec:
   clusterSets:
-  - "${clusterset}"
+    - "${clusterset}"
+  prioritizerPolicy:
+    mode: Exact
+    configurations:
+      - scoreCoordinate:
+          type: AddOn
+          addOn:
+            resourceName: rcs-score
+            scoreName: cpuAvailable
+        weight: 1
 EOF
 
 # Install cert-manager on Hub and install Capp CRD
@@ -92,3 +102,28 @@ spec:
   - test-placement
   placementsNamespace: test
 EOF
+
+## Deploy add-ons on placement and create configuration for them
+make deploy-addons IMG=${rcsimage}
+
+cat <<EOF | kubectl apply -f -
+apiVersion: addon.open-cluster-management.io/v1alpha1
+kind: AddOnDeploymentConfig
+metadata:
+  name: rcs-score-deploy-config
+  namespace: open-cluster-management-hub
+spec:
+  agentInstallNamespace: open-cluster-management-agent-addon
+  customizedVariables:
+  - name: MAX_CPU_COUNT
+    value: "1"
+  - name: MIN_CPU_COUNT
+    value: "0"
+  - name: MAX_MEMORY_BYTES
+    value: "104857"
+  - name: MIN_MEMORY_BYTES
+    value: "0"
+EOF
+
+kubectl patch clustermanagementaddon rcs-score --type merge -p \
+'{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"test-placement","namespace":"'"${ns}"'","configs":[{"group":"addon.open-cluster-management.io","resource":"addondeploymentconfigs","name":"rcs-score-deploy-config","namespace":"open-cluster-management-hub"}]}]}}}'

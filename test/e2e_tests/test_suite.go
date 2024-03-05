@@ -20,6 +20,7 @@ import (
 	knativev1 "knative.dev/serving/pkg/apis/serving/v1"
 	knativev1alphav1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
+	clusterv1alpha1 "open-cluster-management.io/api/cluster/v1alpha1"
 	clusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
 	clusterv1beta2 "open-cluster-management.io/api/cluster/v1beta2"
 	workv1 "open-cluster-management.io/api/work/v1"
@@ -40,6 +41,7 @@ func newScheme() *runtime.Scheme {
 	_ = networkingv1.Install(s)
 	_ = routev1.Install(s)
 	_ = clusterv1.Install(s)
+	_ = clusterv1alpha1.Install(s)
 	_ = clusterv1beta1.Install(s)
 	_ = clusterv1beta2.Install(s)
 	_ = workv1.Install(s)
@@ -48,14 +50,11 @@ func newScheme() *runtime.Scheme {
 }
 
 var _ = SynchronizedBeforeSuite(func() {
-	// Get the cluster configuration.
-	// get the k8sClient or die
 	config, err := config.GetConfig()
 	if err != nil {
 		Fail(fmt.Sprintf("Couldn't get kubeconfig %v", err))
 	}
 
-	// Create the client using the controller-runtime
 	k8sClient, err = ctrl.New(config, ctrl.Options{Scheme: newScheme()})
 	Expect(err).NotTo(HaveOccurred())
 
@@ -77,7 +76,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 	cleanUp()
 })
 
-// cleanUp make sure the test environment is clean
+// cleanUp makes sure the test environment is clean
 func cleanUp() {
 	namespace := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{

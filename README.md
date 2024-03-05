@@ -28,7 +28,7 @@ This project uses the `Placement` and `ManifestWork` APIs of the Open Cluster Ma
 
 2. The `rcs-ocm-deployer` controller on Hub Cluster watches for `Capp` CRs and reconciles them.
 
-3. The controller chooses the ‘most suitable’ Managed Cluster to deploy the `Capp` workload using the `Placement` API.
+3. The controller chooses the Managed Cluster with the highest score to deploy the `Capp` workload using the `Placement` API. The score is computed by the `rcs-score` addon which creates an `AddOnPlacementScore`.
 
 4. Each Managed Cluster on the Hub Cluster has a dedicated namespace. The controller creates a `ManifestWork` object on the Hub Cluster in the namespace of the chosen Managed Cluster.
 
@@ -44,9 +44,11 @@ This project uses the `Placement` and `ManifestWork` APIs of the Open Cluster Ma
 
 2. `sync`: The controller controls the lifecycle of the `ManifestWork` CR in the namespace of the chosen Managed Cluster. The `ManifestWork` contains the `Capp` CR as well as all the `Secrets` and `Volumes` referenced in the `Capp` CR, thus making sure that all the `Secrets` and `Volumes` also exist on the Managed Cluster, in the same namespace the `Capp CR` exists in on the Hub Cluster.
 
-3. `addOns`: By applying this add-on to the Hub Cluster, the `Capp` status will automatically be synced back from Managed/Spoke Clusters to the Hub cluster. It has two components:
-    - `agent` - deployed on the Managed/Spoke clusters; responsible for syncing the `Capp` status between the Managed Cluster and the Hub Cluster.
-    - `manager` - deployed on the Hub Cluster; responsible for deploying the `agent` on the Managed/Spoke clusters.
+3. `addOns`: 
+    - `status addon`: By applying this add-on to the Hub Cluster, the `Capp` status will automatically be synced back from Managed/Spoke Clusters to the Hub cluster. It has two components:
+      - `agent` - deployed on the Managed/Spoke clusters; responsible for syncing the `Capp` status between the Managed Cluster and the Hub Cluster.
+      - `manager` - deployed on the Hub Cluster; responsible for deploying the `agent` on the Managed/Spoke clusters.
+    - `score addon`: Based on the [resource-usage-collect-addon](https://github.com/open-cluster-management-io/addon-contrib/tree/main/resource-usage-collect-addon), this add-on implements an  `AddonPlacementScore` which gives a score to each Managed Cluster. The score is in the range of [-100, 100] and is computed from collecting resource usage information (CPU Request and Memory Request).
 
 ## Getting Started
 
@@ -61,7 +63,7 @@ The following should be installed on your Linux machine:
 
 ### Automatic Approach
 
-Simply run the following to get a Hub cluster ready to have `rcs-ocm-deployer` deployed on it, and 2 Managed Cluster with `container-app-operator` already installed on them.
+Simply run the following to get a Hub cluster ready to have `rcs-ocm-deployer` deployed on it, and 2 Managed Cluster with `container-app-operator` already installed on them, with all add-ons installed as well.
 
 ```bash
 $ make local-quickstart IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
@@ -131,6 +133,28 @@ spec:
     - <clusterSet-name>
 ```
 
+You can also create a Placement such that the clusters are selected using the customized scores. This uses the `AddonPlacementScore` which is deployed later:
+
+```yaml
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: <placement-name>
+  namespace: <clusterSet-namespace>
+spec:
+  clusterSets:
+    - <clusterSet-name>
+  prioritizerPolicy:
+    mode: Exact
+    configurations:
+      - scoreCoordinate:
+          type: AddOn
+          addOn:
+            resourceName: rcs-score
+            scoreName: cpuAvailable
+        weight: 1
+```
+
 #### Install the Capp CRD
 
 The `Capp` CRD needs to be installed on the Hub Cluster:
@@ -173,14 +197,15 @@ spec:
 
 Ensure that the spec section includes a list of `placements` and specifies the `placementsNamespace` as required for your setup.
 
-- Note: In previos releases, there were environment variables for the `placements` and `placementsNamespace`. However, please note that these environment variables have been deprecated and are no longer used.
 
-### Deploy the add-on
+### Deploy the add-ons
+
+#### Status add-on
 
 Deploy the add-on the `Hub` cluster:
 
 ```bash
-$ make deploy-addon IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
+$ make deploy-status-addon IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
 $ kubectl -n open-cluster-management get deploy
 
 NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
@@ -205,7 +230,43 @@ NAME                                AVAILABLE   DEGRADED   PROGRESSING
 capp-status-sync-addon      True                   
 ```
 
-#### Build your own image
+#### Score add-on
+
+Deploy the add-on the `Hub` cluster:
+
+```bash
+$ make deploy-score-addon IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
+```
+
+Deploy the `AddOnDeploymentConfig` which uses `customizedVariables` to pass the `max` value and `min` value [of the customized scores](https://open-cluster-management.io/scenarios/extend-multicluster-scheduling-capabilities/) as environment variables to the add-on deployment on the Managed Clusters.
+
+```yaml
+apiVersion: addon.open-cluster-management.io/v1alpha1
+kind: AddOnDeploymentConfig
+metadata:
+  name: rcs-score-deploy-config
+  namespace: open-cluster-management-hub
+spec:
+  agentInstallNamespace: open-cluster-management-agent-addon
+  customizedVariables:
+  - name: MAX_CPU_COUNT
+    value: "<MAX_CPU_COUNT>"
+  - name: MIN_CPU_COUNT
+    value: "<MIN_CPU_COUNT>>"
+  - name: MAX_MEMORY_BYTES
+    value: "<MAX_MEMORY_BYTES>"
+  - name: MIN_MEMORY_BYTES
+    value: "<MIN_MEMEORY_BYTES>"
+```
+
+Patch the `ClusterManagementAddon` CR of the score, called `rcs-score` to add the created `Placement` and `AddonDeploymentConfigs` to the add-on, so that it's deployed on all clusters in the `Placement` with the default configuration.
+
+```bash
+kubectl patch clustermanagementaddon rcs-score --type merge -p \
+'{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"<placement-name>","namespace":"<clusterSet-namespace>","configs":[{"group":"addon.open-cluster-management.io","resource":"addondeploymentconfigs","name":"rcs-score-deploy-config","namespace":"open-cluster-management-hub"}]}]}}}'
+```
+
+### Build your own image
 
 ```bash
 $ make docker-build docker-push IMG=<registry>/rcs-ocm-deployer:<tag>

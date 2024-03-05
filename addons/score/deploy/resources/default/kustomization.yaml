@@ -1,7 +1,7 @@
 namespace: open-cluster-management
 
 resources:
-- addon-manager.yaml
+- manager.yaml
 - clustermanagementaddon.yaml
 - ../rbac
 
@@ -20,7 +20,7 @@ vars:
   objref:
     group: apps
     kind: Deployment
-    name: capp-status-sync-addon
+    name: rcs-score-addon-manager
     version: v1
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization

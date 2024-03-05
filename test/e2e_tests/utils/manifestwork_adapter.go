@@ -39,7 +39,7 @@ func IsObjInManifestWork(k8sClient client.Client, manifestWork workv1.ManifestWo
 }
 
 // IsRbacObjInManifestWork checks if a given  role/rolebinding object is in the ManifestWork's manifests list
-func IsRbacObjInManifestWork(k8sClient client.Client, manifestWork workv1.ManifestWork, cappName string, nsName string, kind string) bool {
+func IsRbacObjInManifestWork(manifestWork workv1.ManifestWork, cappName string, nsName string, kind string) bool {
 	for _, manifest := range manifestWork.Spec.Workload.Manifests {
 		obj, err := convertManifestToUnstructred(manifest.Raw)
 		if err != nil {
@@ -54,7 +54,7 @@ func IsRbacObjInManifestWork(k8sClient client.Client, manifestWork workv1.Manife
 }
 
 // GetCappFromManifestWork returns a Capp from its corresponding ManifestWork
-func GetCappFromManifestWork(k8sClient client.Client, manifestWork workv1.ManifestWork) unstructured.Unstructured {
+func GetCappFromManifestWork(manifestWork workv1.ManifestWork) unstructured.Unstructured {
 	for _, manifest := range manifestWork.Spec.Workload.Manifests {
 		obj, err := convertManifestToUnstructred(manifest.Raw)
 		if err != nil {
