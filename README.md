@@ -142,6 +142,7 @@ metadata:
   name: <placement-name>
   namespace: <clusterSet-namespace>
 spec:
+  numberOfClusters: 1
   clusterSets:
     - <clusterSet-name>
   prioritizerPolicy:
@@ -209,16 +210,20 @@ $ make deploy-status-addon IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
 $ kubectl -n open-cluster-management get deploy
 
 NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-capp-status-sync-addon   1/1     1            1           14s
+capp-status-addon   1/1     1            1           14s
 ```
 
+Patch the `ClusterManagementAddon` CR of the status addon, called `capp-status` to add the created `Placement` to the add-on, so that it's deployed on all clusters.
+```bash
+$ kubectl patch clustermanagementaddon capp-status-addon --type merge -p '{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"all-clusters","namespace":"'"${ns}"'"}]}}}'
+```
 The controller will automatically install the add-on `agent` on all Managed/Spoke Clusters. Validate the add-on agent is installed on a Managed/Spoke` cluster:
 
 ```bash
 $ kubectl -n open-cluster-management-agent-addon get deploy
 
 NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
-capp-status-sync-addon-agent    1/1     1            1           2m24s
+capp-status-addon-agent    1/1     1            1           2m24s
 ```
 
 You can also validate and check the status of the add-on on the Hub cluster:
@@ -227,7 +232,7 @@ You can also validate and check the status of the add-on on the Hub cluster:
 $ kubectl -n <managed-cluster> get managedclusteraddon
 
 NAME                                AVAILABLE   DEGRADED   PROGRESSING
-capp-status-sync-addon      True                   
+capp-status-addon      True                   
 ```
 
 #### Score add-on

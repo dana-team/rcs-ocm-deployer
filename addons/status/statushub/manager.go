@@ -1,4 +1,4 @@
-package addons
+package statushub
 
 import (
 	"context"
@@ -38,10 +38,10 @@ func init() {
 }
 
 const (
-	templatePath      = "manifests/templates"
-	agentNameLength   = 5
-	installNameSpace  = "open-cluster-management-agent-addon"
-	addonImageDefault = "danateam/rcs-deployer:main"
+	templatePath          = "manifests/templates"
+	agentNameLength       = 5
+	agentInstallNameSpace = "open-cluster-management-agent-addon"
+	addonImageDefault     = "ghcr.io/dana-team/rcs-ocm-deployer:main"
 )
 
 //go:embed manifests
@@ -89,17 +89,17 @@ func NewManagerCommand(componentName string, log logr.Logger) *cobra.Command {
 			operatorNamespace: controllerContext.OperatorNamespace,
 			withOverride:      withOverride,
 		}
-
 		agentAddon, err := addonfactory.NewAgentAddonFactory(componentName, fs, templatePath).
-			WithGetValuesFuncs(o.getValueForAgentTemplate, addonfactory.GetValuesFromAddonAnnotation).
+			WithGetValuesFuncs(
+				o.getValueForAgentTemplate,
+				addonfactory.GetValuesFromAddonAnnotation,
+			).
 			WithAgentRegistrationOption(registrationOption).
-			WithInstallStrategy(frameworkagent.InstallAllStrategy(installNameSpace)).
 			BuildTemplateAgentAddon()
 		if err != nil {
 			log.Error(err, "failed to build agent")
 			return err
 		}
-
 		err = mgr.AddAgent(agentAddon)
 		if err != nil {
 			log.Error(err, "failed to add agent")
@@ -118,8 +118,8 @@ func NewManagerCommand(componentName string, log logr.Logger) *cobra.Command {
 
 	cmdConfig := controllercmd.
 		NewControllerCommandConfig(componentName, version.Get(), runController)
-
-	cmd := cmdConfig.NewCommand()
+	ctx := context.TODO()
+	cmd := cmdConfig.NewCommandWithContext(ctx)
 	cmd.Use = "manager"
 	cmd.Short = fmt.Sprintf("Start the %s's manager", componentName)
 
@@ -127,7 +127,6 @@ func NewManagerCommand(componentName string, log logr.Logger) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVar(&cmdConfig.DisableLeaderElection, "disable-leader-election", true, "Disable leader election for the agent.")
 	flags.BoolVar(&withOverride, "with-image-override", false, "Use image from override configmap")
-
 	return cmd
 }
 
@@ -194,6 +193,10 @@ func applyAgentPermissionManifestFromFile(file, clusterName, componentName strin
 
 // getValueForAgentTemplate prepare values for templates at manifests/templates
 func (o *override) getValueForAgentTemplate(cluster *clusterv1.ManagedCluster, addon *addonapiv1alpha1.ManagedClusterAddOn) (addonfactory.Values, error) {
+	installNamespace := addon.Spec.InstallNamespace
+	if len(installNamespace) == 0 {
+		installNamespace = agentInstallNameSpace
+	}
 	addonImage := os.Getenv("ADDON_IMAGE")
 	if len(addonImage) == 0 {
 		addonImage = addonImageDefault
@@ -209,7 +212,7 @@ func (o *override) getValueForAgentTemplate(cluster *clusterv1.ManagedCluster, a
 		AgentServiceAccountName string
 	}{
 		KubeConfigSecret:        fmt.Sprintf("%s-hub-kubeconfig", addon.Name),
-		AddonInstallNamespace:   installNameSpace,
+		AddonInstallNamespace:   installNamespace,
 		ClusterName:             cluster.Name,
 		AddonName:               fmt.Sprintf("%s-agent", addon.Name),
 		Image:                   addonImage,

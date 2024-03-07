@@ -52,6 +52,7 @@ metadata:
 spec:
   clusterSets:
     - "${clusterset}"
+  numberOfClusters: 1
   prioritizerPolicy:
     mode: Exact
     configurations:
@@ -61,6 +62,16 @@ spec:
             resourceName: rcs-score
             scoreName: cpuAvailable
         weight: 1
+EOF
+cat << EOF | kubectl apply -f -
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: all-clusters
+  namespace: "${ns}"
+spec:
+  clusterSets:
+    - "${clusterset}"
 EOF
 
 # Install cert-manager on Hub and install Capp CRD
@@ -126,4 +137,6 @@ spec:
 EOF
 
 kubectl patch clustermanagementaddon rcs-score --type merge -p \
-'{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"test-placement","namespace":"'"${ns}"'","configs":[{"group":"addon.open-cluster-management.io","resource":"addondeploymentconfigs","name":"rcs-score-deploy-config","namespace":"open-cluster-management-hub"}]}]}}}'
+'{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"all-clusters","namespace":"'"${ns}"'","configs":[{"group":"addon.open-cluster-management.io","resource":"addondeploymentconfigs","name":"rcs-score-deploy-config","namespace":"open-cluster-management-hub"}]}]}}}'
+kubectl patch clustermanagementaddon capp-status-addon --type merge -p \
+'{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"all-clusters","namespace":"'"${ns}"'"}]}}}'

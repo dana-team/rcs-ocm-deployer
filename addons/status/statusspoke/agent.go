@@ -1,4 +1,4 @@
-package addons
+package statusspoke
 
 import (
 	"context"
@@ -29,7 +29,7 @@ var scheme = runtime.NewScheme()
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(addonv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(addonv1alpha1.Install(scheme))
 	utilruntime.Must(rcsv1alpha1.AddToScheme(scheme))
 }
 

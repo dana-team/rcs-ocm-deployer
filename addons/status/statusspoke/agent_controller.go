@@ -1,4 +1,4 @@
-package addons
+package statusspoke
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type CappSyncReconciler struct {
 }
 
 func (r *CappSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx).WithName("status-sync-controller").WithValues("Capp", req.NamespacedName)
+	logger := log.FromContext(ctx).WithName("status-controller").WithValues("Capp", req.NamespacedName)
 	logger.Info("Starting Reconcile")
 
 	// get instance of spoke capp

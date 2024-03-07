@@ -16,8 +16,8 @@ import (
 	utilflag "k8s.io/component-base/cli/flag"
 	"open-cluster-management.io/addon-framework/pkg/version"
 
-	hubaddon "github.com/dana-team/rcs-ocm-deployer/addons/status/hub"
-	spokeaddon "github.com/dana-team/rcs-ocm-deployer/addons/status/spoke"
+	"github.com/dana-team/rcs-ocm-deployer/addons/status/statushub"
+	"github.com/dana-team/rcs-ocm-deployer/addons/status/statusspoke"
 )
 
 func main() {
@@ -45,8 +45,8 @@ func main() {
 
 func newCommand(logger logr.Logger) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "status-sync-addon",
-		Short: "status-sync-addon",
+		Use:   "status-addon",
+		Short: "status-addon",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := cmd.Help(); err != nil {
 				fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -61,8 +61,8 @@ func newCommand(logger logr.Logger) *cobra.Command {
 		cmd.Version = v
 	}
 
-	cmd.AddCommand(hubaddon.NewManagerCommand("capp-status-sync-addon", logger.WithName("capp-status-manager")))
-	cmd.AddCommand(spokeaddon.NewAgentCommand("capp-status-sync-addon", logger.WithName("capp-status-agent")))
+	cmd.AddCommand(statushub.NewManagerCommand("capp-status-addon", logger.WithName("capp-status-manager")))
+	cmd.AddCommand(statusspoke.NewAgentCommand("capp-status-addon", logger.WithName("capp-status-agent")))
 
 	return cmd
 }
