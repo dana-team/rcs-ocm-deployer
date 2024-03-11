@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	builder "github.com/dana-team/rcs-ocm-deployer/internals/sync/builders"
 	"github.com/go-logr/logr"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -22,7 +22,7 @@ type AuthDirector struct {
 
 // AssembleManifests constructs a slice of workv1.Manifest objects for a given capp, including a Role and a RoleBinding manifest.
 // The Role manifest is created for pod log access, and the RoleBinding manifest associates the Role with subjects derived from users in the capp's namespace.
-func (d AuthDirector) AssembleManifests(capp rcsv1alpha1.Capp) ([]workv1.Manifest, error) {
+func (d AuthDirector) AssembleManifests(capp cappv1alpha1.Capp) ([]workv1.Manifest, error) {
 	var manifests []workv1.Manifest
 	roleManifest := builder.BuildRole(capp.Name, capp.Namespace)
 	manifests = append(manifests, roleManifest)
@@ -52,9 +52,9 @@ func generateSubjectsFromUsers(users []string) []rbacv1.Subject {
 	return subjects
 }
 
-// getUsersfromNamespace returns a list of all user names with admin or logs-reader Roles It takes a context.Context, a Kubernetes client.Client, and a rcsv1alpha1.Capp object representing the Container Application for which the user names are being retrieved,
+// getUsersfromNamespace returns a list of all user names with admin or logs-reader Roles It takes a context.Context, a Kubernetes client.Client, and a cappv1alpha1.Capp object representing the Container Application for which the user names are being retrieved,
 // and returns a slice of string representing the user names, and an error (if any).
-func getUsersfromNamespace(ctx context.Context, r client.Client, capp rcsv1alpha1.Capp) ([]string, error) {
+func getUsersfromNamespace(ctx context.Context, r client.Client, capp cappv1alpha1.Capp) ([]string, error) {
 	rolebindings := rbacv1.RoleBindingList{}
 	users := []string{}
 	listOps := &client.ListOptions{

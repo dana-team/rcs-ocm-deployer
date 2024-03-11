@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils/events"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -40,13 +40,13 @@ func GenerateManifestWorkGeneric(name string, namespace string, manifests []work
 }
 
 // GenerateMWName returns a manifestWork name combining NamespaceManifestWorkPrefix, capp namespace and name.
-func GenerateMWName(capp rcsv1alpha1.Capp) string {
+func GenerateMWName(capp cappv1alpha1.Capp) string {
 	return NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
 }
 
 // CreateManifestWork uses the Kubernetes client to create a ManifestWork resource
 // from the specified capp, cluster name, manifests, and logs the process.
-func CreateManifestWork(capp rcsv1alpha1.Capp, managedClusterName string, logger logr.Logger, client client.Client, ctx context.Context, e record.EventRecorder, manifests []workv1.Manifest) error {
+func CreateManifestWork(capp cappv1alpha1.Capp, managedClusterName string, logger logr.Logger, client client.Client, ctx context.Context, e record.EventRecorder, manifests []workv1.Manifest) error {
 	mwName := GenerateMWName(capp)
 	mw := GenerateManifestWorkGeneric(GenerateMWName(capp), managedClusterName, manifests, workv1.ManifestConfigOption{})
 	SetManifestWorkCappAnnotations(*mw, capp)
@@ -61,7 +61,7 @@ func CreateManifestWork(capp rcsv1alpha1.Capp, managedClusterName string, logger
 
 // SetManifestWorkCappAnnotations sets the annotations of the specified manifest
 // work object with the name and namespace of the specified Capp object.
-func SetManifestWorkCappAnnotations(mw workv1.ManifestWork, capp rcsv1alpha1.Capp) {
+func SetManifestWorkCappAnnotations(mw workv1.ManifestWork, capp cappv1alpha1.Capp) {
 	mw.ObjectMeta.Annotations = make(map[string]string)
 	mw.Annotations[CappNameKey] = capp.Name
 	mw.Annotations[CappNamespaceKey] = capp.Namespace

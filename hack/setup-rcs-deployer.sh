@@ -103,7 +103,7 @@ kubectl config use-context "${hubctx}"
 make install
 kubectl create ns rcs-deployer-system
 cat <<EOF | kubectl apply -f -
-apiVersion: rcsd.dana.io/v1alpha1
+apiVersion: rcs.dana.io/v1alpha1
 kind: RCSConfig
 metadata:
   name: rcs-config

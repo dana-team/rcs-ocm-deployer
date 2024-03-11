@@ -68,7 +68,7 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - rcsd.dana.io
+  - rcs.dana.io
   resources:
   - rcsconfigs
   verbs:

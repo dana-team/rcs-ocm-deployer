@@ -26,6 +26,7 @@ import (
 // RCSConfigSpec defines the desired state of RCSConfig
 type RCSConfigSpec struct {
 	// PlacementsNamespace defines the namespace where the Placement CRs exist
+	// +kubebuilder:default:="placements"
 	PlacementsNamespace string `json:"placementsNamespace"`
 
 	// Placements is an array of Placement names that the operator should use

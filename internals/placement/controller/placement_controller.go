@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
+	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/placement/adapters"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils/events"
 
@@ -60,7 +60,7 @@ type PlacementReconciler struct {
 
 func (r *PlacementReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithValues("CappName", req.Name, "CappNamespace", req.Namespace)
-	config := rcsdv1alpha1.RCSConfig{}
+	config := rcsv1alpha1.RCSConfig{}
 	if err := r.Get(ctx, types.NamespacedName{Name: RCSConfigName, Namespace: RCSConfigNamespace}, &config); err != nil {
 		if statusError, isStatusError := err.(*errors.StatusError); isStatusError {
 			if statusError.ErrStatus.Reason == metav1.StatusReasonNotFound {
@@ -75,7 +75,7 @@ func (r *PlacementReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if placementsNamespace == "" {
 		placementsNamespace = DefaultPlacementsNamespace
 	}
-	capp := rcsv1alpha1.Capp{}
+	capp := cappv1alpha1.Capp{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &capp); err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -105,16 +105,16 @@ func (r *PlacementReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 var CappPredicateFunctions = predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
-		newCapp := e.ObjectNew.(*rcsv1alpha1.Capp)
+		newCapp := e.ObjectNew.(*cappv1alpha1.Capp)
 		return !utils.ContainsPlacementAnnotation(*newCapp)
 	},
 	CreateFunc: func(e event.CreateEvent) bool {
-		capp := e.Object.(*rcsv1alpha1.Capp)
+		capp := e.Object.(*cappv1alpha1.Capp)
 		return !utils.ContainsPlacementAnnotation(*capp)
 	},
 
 	DeleteFunc: func(e event.DeleteEvent) bool {
-		capp := e.Object.(*rcsv1alpha1.Capp)
+		capp := e.Object.(*cappv1alpha1.Capp)
 		return !utils.ContainsPlacementAnnotation(*capp)
 	},
 }
@@ -122,14 +122,14 @@ var CappPredicateFunctions = predicate.Funcs{
 // SetupWithManager sets up the controller with the Manager.
 func (r *PlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&rcsv1alpha1.Capp{}).
+		For(&cappv1alpha1.Capp{}).
 		WithEventFilter(CappPredicateFunctions).
 		Complete(r)
 }
 
 // pickDecision decides the name of the managed cluster to deploy the Capp on,
 // and adds an annotation to the Capp with its name
-func (r *PlacementReconciler) pickDecision(capp rcsv1alpha1.Capp, placements []string, placementsNamespace string, log logr.Logger, ctx context.Context) (string, error) {
+func (r *PlacementReconciler) pickDecision(capp cappv1alpha1.Capp, placements []string, placementsNamespace string, log logr.Logger, ctx context.Context) (string, error) {
 	placementRef := capp.Spec.Site
 	if capp.Spec.Site == "" {
 		placementRef = placements[0]

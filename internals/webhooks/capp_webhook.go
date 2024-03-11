@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
-	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
+	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -32,7 +32,7 @@ const ServingPath = "/validate-capp"
 func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	logger := log.FromContext(ctx).WithValues("webhook", "capp Webhook", "Name", req.Name)
 	logger.Info("Webhook request received")
-	capp := rcsv1alpha1.Capp{}
+	capp := cappv1alpha1.Capp{}
 	if err := c.Decoder.DecodeRaw(req.Object, &capp); err != nil {
 		logger.Error(err, "could not decode capp object")
 		return admission.Errored(http.StatusBadRequest, err)
@@ -40,7 +40,7 @@ func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admis
 	return c.handle(ctx, capp)
 }
 
-func (c *CappValidator) handle(ctx context.Context, capp rcsv1alpha1.Capp) admission.Response {
+func (c *CappValidator) handle(ctx context.Context, capp cappv1alpha1.Capp) admission.Response {
 	config, err := c.getRCSConfig(ctx)
 	if err != nil {
 		if statusError, isStatusError := err.(*errors.StatusError); isStatusError {
@@ -62,7 +62,7 @@ func (c *CappValidator) handle(ctx context.Context, capp rcsv1alpha1.Capp) admis
 	if errs := validateTlsFields(capp); errs != nil {
 		return admission.Denied(errs.Error())
 	}
-	if capp.Spec.LogSpec != (rcsv1alpha1.LogSpec{}) {
+	if capp.Spec.LogSpec != (cappv1alpha1.LogSpec{}) {
 		if errs := validateLogSpec(capp.Spec.LogSpec); errs != nil {
 			return admission.Denied(errs.Error())
 		}
@@ -70,8 +70,8 @@ func (c *CappValidator) handle(ctx context.Context, capp rcsv1alpha1.Capp) admis
 	return admission.Allowed("")
 }
 
-func (c *CappValidator) getRCSConfig(ctx context.Context) (*rcsdv1alpha1.RCSConfig, error) {
-	config := rcsdv1alpha1.RCSConfig{}
+func (c *CappValidator) getRCSConfig(ctx context.Context) (*rcsv1alpha1.RCSConfig, error) {
+	config := rcsv1alpha1.RCSConfig{}
 	key := types.NamespacedName{Name: utils.RcsConfigName, Namespace: utils.RcsConfigNamespace}
 	if err := c.Client.Get(ctx, key, &config); err != nil {
 		return nil, err

@@ -3,7 +3,7 @@
 package utils
 
 import (
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 // ContainsPlacementAnnotation checks if a Capp resource has an annotation indicating it has been placed on a managed cluster.
-func ContainsPlacementAnnotation(capp rcsv1alpha1.Capp) bool {
+func ContainsPlacementAnnotation(capp cappv1alpha1.Capp) bool {
 	annotations := capp.GetAnnotations()
 	if len(annotations) == 0 {
 		return false

@@ -1,4 +1,4 @@
-apiVersion: rcsd.dana.io/v1alpha1
+apiVersion: rcs.dana.io/v1alpha1
 kind: RCSConfig
 metadata:
   name: rcs-config

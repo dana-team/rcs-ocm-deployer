@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,13 +20,13 @@ var (
 )
 
 // CreateBaseCapp is responsible for making the most lean version of Capp so we can manipulate it in the tests
-func CreateBaseCapp() *rcsv1alpha1.Capp {
-	return &rcsv1alpha1.Capp{
+func CreateBaseCapp() *cappv1alpha1.Capp {
+	return &cappv1alpha1.Capp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      CappName,
 			Namespace: NsName,
 		},
-		Spec: rcsv1alpha1.CappSpec{
+		Spec: cappv1alpha1.CappSpec{
 			ConfigurationSpec: knativev1.ConfigurationSpec{
 				Template: knativev1.RevisionTemplateSpec{
 					Spec: knativev1.RevisionSpec{

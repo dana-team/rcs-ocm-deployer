@@ -1,7 +1,7 @@
 package builders
 
 import (
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -9,9 +9,9 @@ import (
 )
 
 // BuildCapp prepares a Capp resource for inclusion in a manifest work by setting its TypeMeta and ObjectMeta.
-func BuildCapp(capp rcsv1alpha1.Capp) workv1.Manifest {
+func BuildCapp(capp cappv1alpha1.Capp) workv1.Manifest {
 	capp.TypeMeta = metav1.TypeMeta{
-		APIVersion: rcsv1alpha1.GroupVersion.String(),
+		APIVersion: cappv1alpha1.GroupVersion.String(),
 		Kind:       capp.Kind,
 	}
 	capp.ObjectMeta = metav1.ObjectMeta{

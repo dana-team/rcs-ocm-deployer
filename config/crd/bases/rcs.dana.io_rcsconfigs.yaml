@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.13.0
-  name: rcsconfigs.rcsd.dana.io
+  name: rcsconfigs.rcs.dana.io
 spec:
-  group: rcsd.dana.io
+  group: rcs.dana.io
   names:
     kind: RCSConfig
     listKind: RCSConfigList
@@ -41,6 +41,7 @@ spec:
                   type: string
                 type: array
               placementsNamespace:
+                default: placements
                 description: PlacementsNamespace defines the namespace where the Placement
                   CRs exist
                 type: string

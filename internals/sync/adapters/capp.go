@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -18,7 +18,7 @@ const FinalizerCleanupCapp = "dana.io/capp-cleanup"
 // HandleCappDeletion handles the deletion of a Capp custom resource. It checks if the resource has a deletion timestamp
 // and contains the specified finalizer. If so, it finalizes the Capp by cleaning up associated resources.
 // It removes the finalizer once cleanup is complete and updates the resource.
-func HandleCappDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr.Logger, r client.Client) error {
+func HandleCappDeletion(ctx context.Context, capp cappv1alpha1.Capp, log logr.Logger, r client.Client) error {
 	if controllerutil.ContainsFinalizer(&capp, FinalizerCleanupCapp) {
 		mwName := GenerateMWName(capp)
 		if err := finalizeCapp(ctx, mwName, capp.Status.ApplicationLinks.Site, log, r); err != nil {
@@ -32,7 +32,7 @@ func HandleCappDeletion(ctx context.Context, capp rcsv1alpha1.Capp, log logr.Log
 }
 
 // removeFinalizer removes the finalizer from capp
-func removeFinalizer(ctx context.Context, capp rcsv1alpha1.Capp, log logr.Logger, r client.Client) error {
+func removeFinalizer(ctx context.Context, capp cappv1alpha1.Capp, log logr.Logger, r client.Client) error {
 	log.Info("Removing Capp finalizer", "finalizer", FinalizerCleanupCapp)
 	controllerutil.RemoveFinalizer(&capp, FinalizerCleanupCapp)
 	if err := r.Update(ctx, &capp); err != nil {
@@ -57,7 +57,7 @@ func finalizeCapp(ctx context.Context, mwName string, managedClusterName string,
 }
 
 // EnsureFinalizer ensures the Capp has the finalizer specified (FinalizerCleanupCapp).
-func EnsureFinalizer(ctx context.Context, capp rcsv1alpha1.Capp, r client.Client) error {
+func EnsureFinalizer(ctx context.Context, capp cappv1alpha1.Capp, r client.Client) error {
 	if !controllerutil.ContainsFinalizer(&capp, FinalizerCleanupCapp) {
 		controllerutil.AddFinalizer(&capp, FinalizerCleanupCapp)
 		if err := r.Update(ctx, &capp); err != nil {
