@@ -25,7 +25,7 @@ spec:
         image: {{ .Image }}
         imagePullPolicy: IfNotPresent
         command:
-          - /status-sync-addon
+          - /status-addon
         args:
           - "agent"
           - "--hub-kubeconfig=/var/run/hub/kubeconfig"

@@ -7,8 +7,8 @@ resources:
 
 images:
 - name: controller
-  newName: controller
-  newTag: latest
+  newName: dvirgilad/rcs
+  newTag: 0.0.6
 
 patches:
 - path: addon_manager_env_var_patch.yaml
@@ -20,7 +20,7 @@ vars:
   objref:
     group: apps
     kind: Deployment
-    name: capp-status-sync-addon
+    name: capp-status-addon
     version: v1
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization

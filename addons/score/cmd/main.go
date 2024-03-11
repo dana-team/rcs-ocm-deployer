@@ -16,8 +16,8 @@ import (
 	utilflag "k8s.io/component-base/cli/flag"
 	"open-cluster-management.io/addon-framework/pkg/version"
 
-	"github.com/dana-team/rcs-ocm-deployer/addons/score/hub"
-	"github.com/dana-team/rcs-ocm-deployer/addons/score/spoke"
+	"github.com/dana-team/rcs-ocm-deployer/addons/score/scorehub"
+	"github.com/dana-team/rcs-ocm-deployer/addons/score/scorespoke"
 )
 
 func main() {
@@ -61,8 +61,8 @@ func newCommand(logger logr.Logger) *cobra.Command {
 		cmd.Version = v
 	}
 
-	cmd.AddCommand(hub.NewManagerCommand("rcs-score-addon-controller", logger.WithName("rcs-score-addon-controller")))
-	cmd.AddCommand(spoke.NewAgentCommand("rcs-score-addon-agent", hub.AddonName, logger.WithName("rcs-score-addon-controller")))
+	cmd.AddCommand(scorehub.NewManagerCommand("rcs-score-addon-controller", logger.WithName("rcs-score-addon-controller")))
+	cmd.AddCommand(scorespoke.NewAgentCommand("rcs-score-addon-agent", scorehub.AddonName, logger.WithName("rcs-score-addon-controller")))
 
 	return cmd
 }

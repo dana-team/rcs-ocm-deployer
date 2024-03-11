@@ -1,12 +1,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: capp-status-sync-addon
+  name: capp-status-addon
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: capp-status-sync-addon
+  name: capp-status-addon
 subjects:
   - kind: ServiceAccount
-    name: capp-status-sync-addon-sa
+    name: capp-status-addon-sa
     namespace: open-cluster-management
