@@ -15,7 +15,7 @@ resources:
     crdVersion: v1
     namespaced: true
   domain: dana.io
-  group: rcsd
+  group: rcs
   kind: RCSConfig
   path: github.com/dana-team/rcs-ocm-deployer/api/v1alpha1
   version: v1alpha1

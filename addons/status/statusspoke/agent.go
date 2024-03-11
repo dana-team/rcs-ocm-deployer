@@ -20,7 +20,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"open-cluster-management.io/addon-framework/pkg/lease"
 	addonv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
 )
@@ -30,7 +30,7 @@ var scheme = runtime.NewScheme()
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(addonv1alpha1.Install(scheme))
-	utilruntime.Must(rcsv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(cappv1alpha1.AddToScheme(scheme))
 }
 
 func NewAgentCommand(addonName string, logger logr.Logger) *cobra.Command {

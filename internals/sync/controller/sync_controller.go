@@ -7,7 +7,7 @@ import (
 
 	"github.com/dana-team/rcs-ocm-deployer/internals/sync/adapters"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	director "github.com/dana-team/rcs-ocm-deployer/internals/sync/directors"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
 	"github.com/go-logr/logr"
@@ -33,13 +33,13 @@ type SyncReconciler struct {
 
 //+kubebuilder:rbac:groups=rcs.dana.io,resources=capps/status,verbs=update
 //+kubebuilder:rbac:groups=work.open-cluster-management.io,resources=manifestworks,verbs=get;list;watch;create;patch;update;delete
-//+kubebuilder:rbac:groups="rcsd.dana.io",resources=rcsconfigs,verbs=get;list;watch
+//+kubebuilder:rbac:groups="rcs.dana.io",resources=rcsconfigs,verbs=get;list;watch
 //+kubebuilder:rbac:groups="rbac.authorization.k8s.io",resources=rolebindings,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 func (r *SyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithValues("CappName", req.Name, "CappNamespace", req.Namespace)
-	capp := rcsv1alpha1.Capp{}
+	capp := cappv1alpha1.Capp{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &capp); err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -60,23 +60,23 @@ func (r *SyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 var CappPredicateFuncs = predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
-		newCapp := e.ObjectNew.(*rcsv1alpha1.Capp)
+		newCapp := e.ObjectNew.(*cappv1alpha1.Capp)
 		return utils.ContainsPlacementAnnotation(*newCapp)
 	},
 	CreateFunc: func(e event.CreateEvent) bool {
-		capp := e.Object.(*rcsv1alpha1.Capp)
+		capp := e.Object.(*cappv1alpha1.Capp)
 		return utils.ContainsPlacementAnnotation(*capp)
 	},
 
 	DeleteFunc: func(e event.DeleteEvent) bool {
-		capp := e.Object.(*rcsv1alpha1.Capp)
+		capp := e.Object.(*cappv1alpha1.Capp)
 		return utils.ContainsPlacementAnnotation(*capp)
 	},
 }
 
 // SyncManifestWork checks whether the manifest work deploying the Capp exists in the managed cluster namespace
 // If it does, it updates the Capp in the manifest work spec. If it doesn't then it creates it
-func (r *SyncReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Context, logger logr.Logger) (ctrl.Result, error) {
+func (r *SyncReconciler) SyncManifestWork(capp cappv1alpha1.Capp, ctx context.Context, logger logr.Logger) (ctrl.Result, error) {
 	mwName := adapters.GenerateMWName(capp)
 	managedClusterName := capp.Annotations[utils.AnnotationKeyHasPlacement]
 	var mw workv1.ManifestWork
@@ -108,7 +108,7 @@ func (r *SyncReconciler) SyncManifestWork(capp rcsv1alpha1.Capp, ctx context.Con
 // SetupWithManager sets up the controller with the Manager.
 func (r *SyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&rcsv1alpha1.Capp{}).
+		For(&cappv1alpha1.Capp{}).
 		WithEventFilter(CappPredicateFuncs).
 		Complete(r)
 }

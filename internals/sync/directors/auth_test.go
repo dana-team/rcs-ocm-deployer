@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -17,7 +17,7 @@ func TestPrepareAdminsRolesForCapp(t *testing.T) {
 	ctx := context.TODO()
 
 	// Create a test Capp
-	capp := rcsv1alpha1.Capp{
+	capp := cappv1alpha1.Capp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-capp",
 			Namespace: "test-namespace",
@@ -76,7 +76,7 @@ func TestGetUsersfromNamespace(t *testing.T) {
 	ctx := context.TODO()
 
 	// Create a test Capp
-	capp := rcsv1alpha1.Capp{
+	capp := cappv1alpha1.Capp{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test-namespace",
 		},

@@ -21,7 +21,7 @@ import (
 	"k8s.io/component-base/version"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"open-cluster-management.io/addon-framework/pkg/addonfactory"
 	"open-cluster-management.io/addon-framework/pkg/addonmanager"
 	frameworkagent "open-cluster-management.io/addon-framework/pkg/agent"
@@ -34,7 +34,7 @@ var genericScheme = runtime.NewScheme()
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(genericScheme))
-	utilruntime.Must(rcsv1alpha1.AddToScheme(genericScheme))
+	utilruntime.Must(cappv1alpha1.AddToScheme(genericScheme))
 }
 
 const (

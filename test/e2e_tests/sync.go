@@ -3,7 +3,7 @@ package e2e_tests
 import (
 	"context"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
 
 	mock "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/mocks"
@@ -252,7 +252,7 @@ var _ = Describe("Validate the placement sync controller", func() {
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
 			ns, err := utilst.IsObjInManifestWork(k8sClient, *manifestWork, assertionCapp.Namespace, "", &corev1.Namespace{}, "Namespace")
 			Expect(err).Should(BeNil())
-			capp, err := utilst.IsObjInManifestWork(k8sClient, *manifestWork, assertionCapp.Name, assertionCapp.Namespace, &rcsv1alpha1.Capp{}, "Capp")
+			capp, err := utilst.IsObjInManifestWork(k8sClient, *manifestWork, assertionCapp.Name, assertionCapp.Namespace, &cappv1alpha1.Capp{}, "Capp")
 			Expect(err).Should(BeNil())
 			return ns && capp
 		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue())

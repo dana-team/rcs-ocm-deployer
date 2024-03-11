@@ -10,16 +10,16 @@ import (
 	"knative.dev/pkg/apis"
 	"knative.dev/pkg/network"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"k8s.io/utils/strings/slices"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // isSiteValid checks if the specified site cluster name is valid or not.
-// It takes a rcsv1alpha1.Capp object, a list of placements, a Kubernetes client.Client, and a context.Context.
+// It takes a cappv1alpha1.Capp object, a list of placements, a Kubernetes client.Client, and a context.Context.
 // The function returns a boolean value based on the validity of the specified site cluster name.
-func isSiteValid(capp rcsv1alpha1.Capp, placements []string, r client.Client, ctx context.Context) bool {
+func isSiteValid(capp cappv1alpha1.Capp, placements []string, r client.Client, ctx context.Context) bool {
 	if capp.Spec.Site == "" {
 		return true
 	}
@@ -63,8 +63,8 @@ func validateDomainName(domainname string) (errs *apis.FieldError) {
 }
 
 // validateTlsFields checks if the fields of the tls feature in the capp spec is written correctly.
-// It takes a rcsv1alpha1.Capp object and returns aggregated error if the any of the validations falied.
-func validateTlsFields(capp rcsv1alpha1.Capp) (errs *apis.FieldError) {
+// It takes a cappv1alpha1.Capp object and returns aggregated error if the any of the validations falied.
+func validateTlsFields(capp cappv1alpha1.Capp) (errs *apis.FieldError) {
 	if capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret == "" {
 		errs = errs.Also(apis.ErrGeneric(
 			"it's forbidden to set '.spec.routeSpec.tlsEnabled' to 'true' without specifying a secret name in the '.spec.routeSpec.tlsSecret' field"))
@@ -77,7 +77,7 @@ func validateTlsFields(capp rcsv1alpha1.Capp) (errs *apis.FieldError) {
 }
 
 // validateLogSpec checks if the LogSpec is valid based on the Type field.
-func validateLogSpec(logSpec rcsv1alpha1.LogSpec) *apis.FieldError {
+func validateLogSpec(logSpec cappv1alpha1.LogSpec) *apis.FieldError {
 	requiredFields := map[string][]string{
 		"elastic": {"Host", "Index", "UserName", "PasswordSecretName"},
 		"splunk":  {"Host", "Index", "HecTokenSecretName"},
@@ -102,7 +102,7 @@ func validateLogSpec(logSpec rcsv1alpha1.LogSpec) *apis.FieldError {
 }
 
 // findMissingFields checks for missing fields in LogSpec.
-func findMissingFields(logSpec rcsv1alpha1.LogSpec, required []string) []string {
+func findMissingFields(logSpec cappv1alpha1.LogSpec, required []string) []string {
 	var missingFields []string
 	fieldValues := map[string]string{
 		"Host":               logSpec.Host,

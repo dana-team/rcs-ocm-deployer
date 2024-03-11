@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	builder "github.com/dana-team/rcs-ocm-deployer/internals/sync/builders"
 	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
@@ -22,7 +22,7 @@ type VolumesDirector struct {
 }
 
 // AssembleManifests compiles a slice of manifests for secrets and config maps discovered from the capp spec.
-func (d VolumesDirector) AssembleManifests(capp rcsv1alpha1.Capp) ([]workv1.Manifest, error) {
+func (d VolumesDirector) AssembleManifests(capp cappv1alpha1.Capp) ([]workv1.Manifest, error) {
 	var manifests []workv1.Manifest
 	configMapsNames, secretNames := getResourceVolumesFromContainerSpec(capp)
 	configMapManifests, err := d.createConfigMapManifests(configMapsNames, capp.Namespace)
@@ -109,7 +109,7 @@ func gatherConfigVolumes(volumes []v1.Volume, configMaps []string, secrets []str
 // getResourceVolumesFromContainerSpec extracts the names of ConfigMaps and Secrets referenced in a given capp's container specification.
 // It consolidates ConfigMaps and Secrets from environment variables, volumes, image pull secrets, and TLS secrets.
 // This function is useful for identifying all configuration-related resources required by the capp.
-func getResourceVolumesFromContainerSpec(capp rcsv1alpha1.Capp) ([]string, []string) {
+func getResourceVolumesFromContainerSpec(capp cappv1alpha1.Capp) ([]string, []string) {
 	var configMaps []string
 	var secrets []string
 

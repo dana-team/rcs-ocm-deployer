@@ -7,8 +7,8 @@ resources:
 
 images:
 - name: controller
-  newName: dvirgilad/rcs
-  newTag: 0.0.6
+  newName: controller
+  newTag: latest
 
 patches:
 - path: addon_manager_env_var_patch.yaml

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	mock "github.com/dana-team/container-app-operator/test/k8s_tests/mocks"
 	utilst "github.com/dana-team/container-app-operator/test/k8s_tests/utils"
 	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
@@ -34,7 +34,7 @@ var k8sClient client.Client
 func newScheme() *runtime.Scheme {
 	s := runtime.NewScheme()
 	_ = corev1.AddToScheme(s)
-	_ = rcsv1alpha1.AddToScheme(s)
+	_ = cappv1alpha1.AddToScheme(s)
 	_ = loggingv1beta1.AddToScheme(s)
 	_ = knativev1alphav1.AddToScheme(s)
 	_ = knativev1.AddToScheme(s)

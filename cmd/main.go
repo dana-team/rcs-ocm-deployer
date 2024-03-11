@@ -20,7 +20,7 @@ import (
 	"flag"
 	"os"
 
-	rcsdv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
+	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
 	rcswebhooks "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
 
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -34,7 +34,7 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/go-logr/zapr"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
@@ -64,8 +64,8 @@ func init() {
 	utilruntime.Must(clusterv1.Install(scheme))
 	utilruntime.Must(clusterv1beta1.Install(scheme))
 	utilruntime.Must(workv1.Install(scheme))
+	utilruntime.Must(cappv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(rcsv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(rcsdv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

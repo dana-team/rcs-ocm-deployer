@@ -3,7 +3,7 @@ package directors
 import (
 	"context"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	builder "github.com/dana-team/rcs-ocm-deployer/internals/sync/builders"
 	"github.com/dana-team/rcs-ocm-deployer/internals/utils/events"
 	"github.com/go-logr/logr"
@@ -25,7 +25,7 @@ type CappDirector struct {
 // to gather additional manifests related to volumes and authentication respectively. In case of errors in assembling
 // volume or authentication manifests, it records an event and returns the encountered error.
 // This method provides a central point for collating all necessary Kubernetes manifests for a capp deployment.
-func (d CappDirector) AssembleManifests(capp rcsv1alpha1.Capp) ([]workv1.Manifest, error) {
+func (d CappDirector) AssembleManifests(capp cappv1alpha1.Capp) ([]workv1.Manifest, error) {
 	manifests := []workv1.Manifest{builder.BuildCapp(capp), builder.BuildNamespace(capp.Namespace)}
 	volumesDirector := VolumesDirector(d)
 	volumesManifests, err := volumesDirector.AssembleManifests(capp)

@@ -12,7 +12,7 @@ metadata:
   name: rcsconfig-editor-role
 rules:
 - apiGroups:
-  - rcsd.dana.io
+  - rcs.dana.io
   resources:
   - rcsconfigs
   verbs:
@@ -24,7 +24,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - rcsd.dana.io
+  - rcs.dana.io
   resources:
   - rcsconfigs/status
   verbs:

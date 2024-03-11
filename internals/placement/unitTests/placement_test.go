@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	rcsv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/dana-team/rcs-ocm-deployer/internals/placement/adapters"
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ import (
 
 func newScheme() *runtime.Scheme {
 	s := runtime.NewScheme()
-	_ = rcsv1alpha1.AddToScheme(s)
+	_ = cappv1alpha1.AddToScheme(s)
 	_ = clusterv1beta1.AddToScheme(s)
 	return s
 }

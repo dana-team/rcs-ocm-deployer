@@ -183,7 +183,7 @@ The `rcs-ocm-deployer` operator utilizes the `RCSConfig` CRD to manage its confi
 An instance of the `RCSConfig` CRD named `rcs-config` should exist in the `rcs-deployer-system` namespace. This CRD instance contains the necessary configuration for the operator.
 
 ```bash
-apiVersion: rcsd.dana.io/v1alpha1
+apiVersion: rcs.dana.io/v1alpha1
 kind: RCSConfig
 metadata:
   name: rcs-config
