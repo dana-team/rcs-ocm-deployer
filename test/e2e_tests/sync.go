@@ -143,7 +143,6 @@ var _ = Describe("Validate the placement sync controller", func() {
 		baseSecret := mock.CreateSecret()
 		secret := utilst.CreateSecret(k8sClient, baseSecret)
 		baseCapp := mock.CreateBaseCapp()
-		baseCapp.Spec.RouteSpec.Hostname = testconsts.Hostname
 		baseCapp.Spec.RouteSpec.TlsEnabled = true
 		baseCapp.Spec.RouteSpec.TlsSecret = secret.Name
 		desiredCapp := utilst.CreateCapp(k8sClient, baseCapp)
