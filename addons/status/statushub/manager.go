@@ -63,6 +63,9 @@ type override struct {
 	withOverride      bool
 }
 
+// NewManagerCommand creates a new Cobra command to start the manager for a specific component.
+// The anonymous function runController takes care of the logic of registering the agent addon and
+// registering the supported configurations types to the addon.
 func NewManagerCommand(componentName string, log logr.Logger) *cobra.Command {
 	var withOverride bool
 	runController := func(ctx context.Context, controllerContext *controllercmd.ControllerContext) error {
@@ -130,6 +133,8 @@ func NewManagerCommand(componentName string, log logr.Logger) *cobra.Command {
 	return cmd
 }
 
+// newRegistrationOption returns a RegistrationOption object which defines how the agent is registered to the hub cluster.
+// It defines what CSR with what subject/signer should be created, how the CSR is approved and the RBAC setting of agent on the hub.
 func newRegistrationOption(kubeConfig *rest.Config, recorder events.Recorder, componentName, agentName string) *frameworkagent.RegistrationOption {
 	return &frameworkagent.RegistrationOption{
 		CSRConfigurations: frameworkagent.KubeClientSignerConfigurations(componentName, agentName),
@@ -151,6 +156,9 @@ func newRegistrationOption(kubeConfig *rest.Config, recorder events.Recorder, co
 	}
 }
 
+// applyAgentPermissionManifestFromFile applies the agent permission manifest from the specified file.
+// It generates necessary configuration data based on the clusterName and addonName.
+// The function reads the manifest file, substitutes placeholders with the generated configuration, and applies the manifests.
 func applyAgentPermissionManifestFromFile(file, clusterName, componentName string, kubeclient *kubernetes.Clientset, recorder events.Recorder) error {
 	groups := frameworkagent.DefaultGroups(clusterName, componentName)
 	config := struct {

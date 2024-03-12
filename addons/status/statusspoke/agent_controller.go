@@ -18,6 +18,7 @@ type CappSyncReconciler struct {
 	Scheme      *runtime.Scheme
 }
 
+// Reconcile listens to Capp events on the spoke clusters and synchronizes the Capp status from the spoke cluster to the hub cluster.
 func (r *CappSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("status-controller").WithValues("Capp", req.NamespacedName)
 	logger.Info("Starting Reconcile")

@@ -4,6 +4,7 @@ import (
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 )
 
+// syncCappStatus synchronizes status from source Capp to destination Capp.
 func syncCappStatus(sourceCappStatus *cappv1alpha1.CappStatus, destinationCappStatus *cappv1alpha1.CappStatus) {
 	if sourceCappStatus.ApplicationLinks.ConsoleLink != "" {
 		destinationCappStatus.ApplicationLinks.ConsoleLink = sourceCappStatus.ApplicationLinks.ConsoleLink

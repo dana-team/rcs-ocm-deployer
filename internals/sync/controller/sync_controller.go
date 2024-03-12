@@ -24,6 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
+const RequeueTime = 2 * time.Second
+
 // SyncReconciler reconciles a CappNamespace object
 type SyncReconciler struct {
 	client.Client
@@ -50,7 +52,7 @@ func (r *SyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if err := adapters.HandleCappDeletion(ctx, capp, logger, r.Client); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
+		return ctrl.Result{RequeueAfter: RequeueTime}, nil
 	}
 	if err := adapters.EnsureFinalizer(ctx, capp, r.Client); err != nil {
 		return ctrl.Result{}, err
@@ -98,7 +100,7 @@ func (r *SyncReconciler) SyncManifestWork(capp cappv1alpha1.Capp, ctx context.Co
 	if err = r.Update(ctx, &mw); err != nil {
 		if errors.IsConflict(err) {
 			logger.Info("Conflict while updating ManifestWork trying again in a few seconds")
-			return ctrl.Result{RequeueAfter: time.Second * 2}, nil
+			return ctrl.Result{RequeueAfter: RequeueTime}, nil
 		}
 		return ctrl.Result{}, fmt.Errorf("failed to sync ManifestWork: %v", err.Error())
 	}
