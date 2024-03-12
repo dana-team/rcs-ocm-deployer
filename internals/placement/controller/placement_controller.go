@@ -36,6 +36,8 @@ const (
 	RCSConfigNamespace = "rcs-deployer-system"
 	// DefaultPlacementsNamespace is the default namespace contains the placements
 	DefaultPlacementsNamespace = "default"
+
+	RequeueTime = 20 * time.Second
 )
 
 // ErrNoManagedCluster is a custom error type for the requeue scenario
@@ -89,7 +91,7 @@ func (r *PlacementReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			if _, ok := err.(ErrNoManagedCluster); ok {
 				logger.Info(fmt.Sprintf("Requeuing Capp %q, waiting for PlacementDecision to be satisfied", capp.Name))
 				r.EventRecorder.Event(&capp, corev1.EventTypeWarning, "PlacementDecisionNotSatisfied", fmt.Sprintf("Failed to schedule Capp %q on managed cluster. PlacementDecision with optional clusters was not found for placement %q", capp.Name, placementRef))
-				return ctrl.Result{RequeueAfter: 10 * time.Second * 2}, nil
+				return ctrl.Result{RequeueAfter: RequeueTime}, nil
 			}
 			logger.Error(err, fmt.Sprintf("failed to pick managed cluster for placement %q", placementRef))
 			return ctrl.Result{}, err

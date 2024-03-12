@@ -27,12 +27,14 @@ import (
 
 var scheme = runtime.NewScheme()
 
+// init initializes the global scheme with core and custom resource definitions.
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(addonv1alpha1.Install(scheme))
 	utilruntime.Must(cappv1alpha1.AddToScheme(scheme))
 }
 
+// NewAgentCommand creates a new Cobra command to start the agent for a specific component.
 func NewAgentCommand(addonName string, logger logr.Logger) *cobra.Command {
 	o := NewAgentOptions(addonName, logger)
 
@@ -53,7 +55,7 @@ func NewAgentCommand(addonName string, logger logr.Logger) *cobra.Command {
 	return cmd
 }
 
-// AgentOptions defines the flags for workload agent
+// AgentOptions defines the flags for workload agent.
 type AgentOptions struct {
 	Log               logr.Logger
 	HubKubeconfigFile string
@@ -62,11 +64,12 @@ type AgentOptions struct {
 	AddonNamespace    string
 }
 
-// NewAgentOptions returns the flags with default value set
+// NewAgentOptions returns new instance of AgentOptions.
 func NewAgentOptions(addonName string, logger logr.Logger) *AgentOptions {
 	return &AgentOptions{AddonName: addonName, Log: logger}
 }
 
+// AddFlags adds the hub kubeconfig location and spoke cluster name as flags.
 func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
 	// This command only supports reading from config
@@ -74,6 +77,7 @@ func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 	flags.StringVar(&o.SpokeClusterName, "cluster-name", o.SpokeClusterName, "Name of spoke cluster.")
 }
 
+// runControllersManger setups and runs the spoke controller.
 func (o *AgentOptions) runControllerManager(ctx context.Context) error {
 	log := o.Log.WithName("controller-manager-setup")
 

@@ -43,6 +43,8 @@ func main() {
 	}
 }
 
+// newCommand creates a new Cobra command for the status-addon CLI.
+// It initializes the root command with the appropriate metadata and subcommands.
 func newCommand(logger logr.Logger) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status-addon",
