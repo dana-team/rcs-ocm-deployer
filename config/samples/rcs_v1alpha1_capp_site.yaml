@@ -9,11 +9,11 @@ spec:
       spec:
         containers:
           - image: docker.io/nginx
-            name: sahar
+            name: cappImageName
             securityContext:
               runAsUser: 0
             env:
               - name: TARGET
                 value: "Python Sample v1"
   routeSpec:
-    hostname: sahardhagever.com
+    hostname: capp.com
