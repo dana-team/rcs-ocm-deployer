@@ -9,22 +9,21 @@ import (
 )
 
 var (
-	NsName             = "capp-e2e-tests"
-	DefaultScaleMetric = "cpu"
-	CappSecretName     = "capp-secret"
-	CappAdmin          = "capp-admin"
-	CappName           = "capp-default-test"
-	CappBaseImage      = "ghcr.io/knative/autoscale-go:latest"
-	SecretDataKey      = "password"
-	SecretDataValue    = "password"
+	NSName          = "capp-e2e-tests"
+	CappSecretName  = "capp-secret"
+	CappAdmin       = "capp-admin"
+	CappName        = "capp-default-test"
+	CappBaseImage   = "ghcr.io/knative/autoscale-go:latest"
+	SecretDataKey   = "password"
+	SecretDataValue = "password"
 )
 
-// CreateBaseCapp is responsible for making the most lean version of Capp so we can manipulate it in the tests
+// CreateBaseCapp is responsible for making the most lean version of Capp, so we can manipulate it in the tests.
 func CreateBaseCapp() *cappv1alpha1.Capp {
 	return &cappv1alpha1.Capp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      CappName,
-			Namespace: NsName,
+			Namespace: NSName,
 		},
 		Spec: cappv1alpha1.CappSpec{
 			ConfigurationSpec: knativev1.ConfigurationSpec{
@@ -51,12 +50,12 @@ func CreateBaseCapp() *cappv1alpha1.Capp {
 	}
 }
 
-// CreateSecret creates a simple secret for our tests' use
+// CreateSecret creates a simple secret for our tests' use.
 func CreateSecret() *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      CappSecretName,
-			Namespace: NsName,
+			Namespace: NSName,
 		},
 		Data: map[string][]byte{
 			SecretDataKey: []byte(SecretDataValue),
@@ -64,12 +63,12 @@ func CreateSecret() *corev1.Secret {
 	}
 }
 
-// CreateRole creates a role with basic permissions for pod logs
+// CreateRole creates a role with basic permissions for pod logs.
 func CreateRole() *rbacv1.Role {
 	return &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      CappAdmin + "-role",
-			Namespace: NsName,
+			Namespace: NSName,
 		},
 		Rules: []rbacv1.PolicyRule{
 			{
@@ -87,12 +86,12 @@ func CreateRole() *rbacv1.Role {
 	}
 }
 
-// CreateRole creates a binding for the pod reader role
+// CreateRoleBinding creates a binding for the pod reader role.
 func CreateRoleBinding() *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      CappAdmin + "-role-binding",
-			Namespace: NsName,
+			Namespace: NSName,
 		},
 		RoleRef: rbacv1.RoleRef{
 			Name:     CappAdmin + "-role",
