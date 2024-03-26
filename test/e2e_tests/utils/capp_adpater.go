@@ -30,8 +30,7 @@ func generateRandomString(length int) string {
 
 // CreateCapp creates a new Capp instance with a unique name and returns it.
 func CreateCapp(k8sClient client.Client, capp *cappv1alpha1.Capp) *cappv1alpha1.Capp {
-	randString := generateRandomString(RandStrLength)
-	cappName := capp.Name + "-" + randString
+	cappName := GenerateUniqueCappName(capp.Name)
 	newCapp := capp.DeepCopy()
 	newCapp.Name = cappName
 	Expect(k8sClient.Create(context.Background(), newCapp)).To(Succeed())
@@ -39,6 +38,12 @@ func CreateCapp(k8sClient client.Client, capp *cappv1alpha1.Capp) *cappv1alpha1.
 		return GetCapp(k8sClient, newCapp.Name, newCapp.Namespace).Status.StateStatus.State
 	}, TimeoutCapp, CappCreationInterval).Should(Equal("enabled"), "Should fetch capp")
 	return newCapp
+}
+
+// GenerateUniqueCappName generates a unique Capp name.
+func GenerateUniqueCappName(baseCappName string) string {
+	randString := generateRandomString(RandStrLength)
+	return baseCappName + "-" + randString
 }
 
 // DeleteCapp deletes an existing Capp instance.
