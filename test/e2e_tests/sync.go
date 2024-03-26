@@ -141,10 +141,11 @@ var _ = Describe("Validate the placement sync controller", func() {
 
 	It("Should copy the secret from RouteSpec to ManifestWork ", func() {
 		baseSecret := mock.CreateSecret()
-		secret := utilst.CreateSecret(k8sClient, baseSecret)
+		secret := utilst.CreateTlsSecret(k8sClient, baseSecret)
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Spec.RouteSpec.TlsEnabled = true
 		baseCapp.Spec.RouteSpec.TlsSecret = secret.Name
+
 		desiredCapp := utilst.CreateCapp(k8sClient, baseCapp)
 
 		By("Checks unique creation of Capp")

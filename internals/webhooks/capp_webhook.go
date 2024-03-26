@@ -59,7 +59,7 @@ func (c *CappValidator) handle(ctx context.Context, capp cappv1alpha1.Capp) admi
 	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname); errs != nil {
 		return admission.Denied(errs.Error())
 	}
-	if errs := validateTlsFields(capp); errs != nil {
+	if errs := validateTlsFields(capp, c.Client, ctx); errs != nil {
 		return admission.Denied(errs.Error())
 	}
 	if capp.Spec.LogSpec != (cappv1alpha1.LogSpec{}) {
