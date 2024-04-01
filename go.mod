@@ -8,7 +8,7 @@ require (
 	github.com/go-logr/zapr v1.3.0
 	github.com/kube-logging/logging-operator/pkg/sdk v0.11.0
 	github.com/onsi/ginkgo/v2 v2.17.0
-	github.com/onsi/gomega v1.31.1
+	github.com/onsi/gomega v1.32.0
 	github.com/openshift/api v0.0.0-20240308181712-f608b5d33c00
 	github.com/openshift/library-go v0.0.0-20240116081341-964bcb3f545c
 	github.com/spf13/cobra v1.8.0
