@@ -14,4 +14,5 @@ func syncCappStatus(sourceCappStatus *cappv1alpha1.CappStatus, destinationCappSt
 	destinationCappStatus.LoggingStatus = sourceCappStatus.LoggingStatus
 	destinationCappStatus.StateStatus = sourceCappStatus.StateStatus
 	destinationCappStatus.RouteStatus = sourceCappStatus.RouteStatus
+	destinationCappStatus.VolumesStatus = sourceCappStatus.VolumesStatus
 }
