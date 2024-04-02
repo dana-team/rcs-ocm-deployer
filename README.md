@@ -120,20 +120,20 @@ $ clusteradm clusterset bind <clusterSet-name> --namespace <clusterSet-namespace
 
 #### Create Placement
 
-For the controller to work, it is needed to create a `Placement` CR. The `Placement` name then needs to be referenced in the [environment variables of the controller manager](#environment-variables).
+For the controller to work, it is needed to create a `Placement` CR. This `Placement` selects all clusters and is used to install the [`addons`](#deploy-the-add-ons) on all the Managed Clusters:
 
 ```yaml
 apiVersion: cluster.open-cluster-management.io/v1beta1
 kind: Placement
 metadata:
-  name: <placement-name>
+  name: all-clusters
   namespace: <clusterSet-namespace>
 spec:
   clusterSets:
     - <clusterSet-name>
 ```
 
-You can also create a Placement such that the clusters are selected using the customized scores. This uses the `AddonPlacementScore` which is deployed later:
+You can also create a Placement such that the clusters are selected using the customized scores. This uses the `AddonPlacementScore` which is [deployed later](#score-add-on):
 
 ```yaml
 apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -198,7 +198,6 @@ spec:
 
 Ensure that the spec section includes a list of `placements` and specifies the `placementsNamespace` as required for your setup.
 
-
 ### Deploy the add-ons
 
 #### Status add-on
@@ -215,7 +214,7 @@ capp-status-addon   1/1     1            1           14s
 
 Patch the `ClusterManagementAddon` CR of the status addon, called `capp-status` to add the created `Placement` to the add-on, so that it's deployed on all clusters.
 ```bash
-$ kubectl patch clustermanagementaddon capp-status-addon --type merge -p '{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"all-clusters","namespace":"'"${ns}"'"}]}}}'
+$ kubectl patch clustermanagementaddon capp-status-addon --type merge -p '{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"all-clusters","namespace":"<clusterSet-namespace>"}]}}}'
 ```
 The controller will automatically install the add-on `agent` on all Managed/Spoke Clusters. Validate the add-on agent is installed on a Managed/Spoke` cluster:
 
@@ -295,10 +294,25 @@ spec:
                 value: capp-env-var
             image: 'quay.io/danateamorg/example-python-app:v1-flask'
             name: capp-sample
+            volumeMounts:
+              - name: testpvc
+                mountPath: /data
+        volumes:
+          - name: testpvc
+            persistentVolumeClaim:
+              claimName: nfspvc
+              readOnly: false
   routeSpec:
     hostname: capp.dev
     tlsEnabled: true
     tlsSecret: cappTlsSecretName
+  volumesSpec:
+    nfsVolumes:
+      - server: test
+        path: /test
+        name: nfspvc
+        capacity:
+          storage: 200Gi
   logSpec:
     type: elastic
     host: 10.11.12.13
