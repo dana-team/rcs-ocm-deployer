@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	utilst "github.com/dana-team/container-app-operator/test/k8s_tests/utils"
 	mock "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/mocks"
 	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
+	utilst "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/utils"
 	loggingv1beta1 "github.com/kube-logging/logging-operator/pkg/sdk/logging/api/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
