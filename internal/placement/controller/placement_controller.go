@@ -6,13 +6,13 @@ import (
 	"time"
 
 	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
-	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
+	"github.com/dana-team/rcs-ocm-deployer/internal/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	"github.com/dana-team/rcs-ocm-deployer/internals/placement/adapters"
-	"github.com/dana-team/rcs-ocm-deployer/internals/utils/events"
+	"github.com/dana-team/rcs-ocm-deployer/internal/placement/adapters"
+	"github.com/dana-team/rcs-ocm-deployer/internal/utils/events"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"

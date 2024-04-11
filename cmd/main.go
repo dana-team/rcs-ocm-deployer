@@ -21,12 +21,12 @@ import (
 	"os"
 
 	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
-	rcswebhooks "github.com/dana-team/rcs-ocm-deployer/internals/webhooks"
+	rcswebhooks "github.com/dana-team/rcs-ocm-deployer/internal/webhooks"
 
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	placementctrl "github.com/dana-team/rcs-ocm-deployer/internals/placement/controller"
-	syncctrl "github.com/dana-team/rcs-ocm-deployer/internals/sync/controller"
+	placementctrl "github.com/dana-team/rcs-ocm-deployer/internal/placement/controller"
+	syncctrl "github.com/dana-team/rcs-ocm-deployer/internal/sync/controller"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
