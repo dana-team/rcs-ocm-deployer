@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	builder "github.com/dana-team/rcs-ocm-deployer/internals/sync/builders"
+	builder "github.com/dana-team/rcs-ocm-deployer/internal/sync/builders"
 	"github.com/go-logr/logr"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/client-go/tools/record"

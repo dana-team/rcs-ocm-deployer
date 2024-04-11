@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
-	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
+	"github.com/dana-team/rcs-ocm-deployer/internal/utils"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

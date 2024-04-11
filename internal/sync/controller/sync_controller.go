@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dana-team/rcs-ocm-deployer/internals/sync/adapters"
+	"github.com/dana-team/rcs-ocm-deployer/internal/sync/adapters"
 
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	director "github.com/dana-team/rcs-ocm-deployer/internals/sync/directors"
-	"github.com/dana-team/rcs-ocm-deployer/internals/utils"
+	director "github.com/dana-team/rcs-ocm-deployer/internal/sync/directors"
+	"github.com/dana-team/rcs-ocm-deployer/internal/utils"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	"github.com/dana-team/rcs-ocm-deployer/internals/utils/events"
+	"github.com/dana-team/rcs-ocm-deployer/internal/utils/events"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
