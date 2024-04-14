@@ -202,9 +202,9 @@ var _ = Describe("Validate the placement sync controller", func() {
 	})
 
 	It("Should copy the rolebindings from capp's namespace to ManifestWork ", func() {
-		baseRole := mock.CreateRole()
+		baseRole := mock.CreateCappRole()
 		role := utilst.CreateRole(k8sClient, baseRole)
-		baseRoleBinding := mock.CreateRoleBinding()
+		baseRoleBinding := mock.CreateCappRoleBinding()
 		roleBinding := utilst.CreateRoleBinding(k8sClient, baseRoleBinding)
 		baseCapp := mock.CreateBaseCapp()
 		desiredCapp := utilst.CreateCapp(k8sClient, baseCapp)

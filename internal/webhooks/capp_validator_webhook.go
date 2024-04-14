@@ -27,7 +27,7 @@ type CappValidator struct {
 
 // +kubebuilder:webhook:path=/validate-capp,mutating=false,sideEffects=NoneOnDryRun,failurePolicy=fail,groups="rcs.dana.io",resources=capps,verbs=create;update,versions=v1alpha1,name=capp.validate.rcs.dana.io,admissionReviewVersions=v1;v1beta1
 
-const ServingPath = "/validate-capp"
+const ValidatorServingPath = "/validate-capp"
 
 func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	logger := log.FromContext(ctx).WithValues("webhook", "capp Webhook", "Name", req.Name)
