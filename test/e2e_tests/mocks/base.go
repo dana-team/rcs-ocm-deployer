@@ -63,47 +63,73 @@ func CreateSecret() *corev1.Secret {
 	}
 }
 
-// CreateRole creates a role with basic permissions for pod logs.
-func CreateRole() *rbacv1.Role {
-	return &rbacv1.Role{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      CappAdmin + "-role",
-			Namespace: NSName,
-		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				Resources: []string{
-					"pod/logs",
-				},
-				APIGroups: []string{
-					"",
-				},
-				Verbs: []string{
-					"get", "watch", "list",
-				},
+// CreateCappRole creates a role with basic permissions for pod logs.
+func CreateCappRole() *rbacv1.Role {
+	rules := []rbacv1.PolicyRule{
+		{
+			Resources: []string{
+				"pod/logs",
+			},
+			APIGroups: []string{
+				"",
+			},
+			Verbs: []string{
+				"get", "watch", "list",
 			},
 		},
 	}
+
+	return CreateRole(CappAdmin+"-role", rules)
 }
 
-// CreateRoleBinding creates a binding for the pod reader role.
-func CreateRoleBinding() *rbacv1.RoleBinding {
-	return &rbacv1.RoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      CappAdmin + "-role-binding",
-			Namespace: NSName,
-		},
-		RoleRef: rbacv1.RoleRef{
-			Name:     CappAdmin + "-role",
-			Kind:     "Role",
+// CreateCappRoleBinding creates a binding for the pod reader role.
+func CreateCappRoleBinding() *rbacv1.RoleBinding {
+	roleRef := rbacv1.RoleRef{
+		Name:     CappAdmin + "-role",
+		Kind:     "Role",
+		APIGroup: "rbac.authorization.k8s.io",
+	}
+
+	subjects := []rbacv1.Subject{
+		{
+			Kind:     "User",
+			Name:     CappAdmin,
 			APIGroup: "rbac.authorization.k8s.io",
 		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:     "User",
-				Name:     CappAdmin,
-				APIGroup: "rbac.authorization.k8s.io",
-			},
+	}
+
+	return CreateRoleBinding(CappAdmin+"-role-binding", roleRef, subjects)
+}
+
+// CreateRole creates a role with the specified name and rules.
+func CreateRole(name string, rules []rbacv1.PolicyRule) *rbacv1.Role {
+	return &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: NSName,
+		},
+		Rules: rules,
+	}
+}
+
+// CreateRoleBinding creates a role binding with the specified name, role reference, and subjects.
+func CreateRoleBinding(name string, roleRef rbacv1.RoleRef, subjects []rbacv1.Subject) *rbacv1.RoleBinding {
+	return &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: NSName,
+		},
+		RoleRef:  roleRef,
+		Subjects: subjects,
+	}
+}
+
+// CreateServiceAccount creates a service account with the specified name.
+func CreateServiceAccount(name string) *corev1.ServiceAccount {
+	return &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: NSName,
 		},
 	}
 }

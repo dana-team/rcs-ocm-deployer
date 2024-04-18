@@ -131,8 +131,12 @@ func main() {
 
 	hookServer := mgr.GetWebhookServer()
 	decoder := admission.NewDecoder(scheme)
-	hookServer.Register(rcswebhooks.ServingPath, &webhook.Admission{Handler: &rcswebhooks.CappValidator{
+	hookServer.Register(rcswebhooks.ValidatorServingPath, &webhook.Admission{Handler: &rcswebhooks.CappValidator{
 		Client:  mgr.GetClient(),
+		Decoder: decoder,
+	}})
+
+	hookServer.Register(rcswebhooks.MutatorServingPath, &webhook.Admission{Handler: &rcswebhooks.CappMutator{
 		Decoder: decoder,
 	}})
 

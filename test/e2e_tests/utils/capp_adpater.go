@@ -58,6 +58,11 @@ func GetCapp(k8sClient client.Client, name string, namespace string) *cappv1alph
 	return capp
 }
 
+// UpdateCapp updates the provided Capp instance in the Kubernetes cluster, and returns it.
+func UpdateCapp(k8sClient client.Client, capp *cappv1alpha1.Capp) {
+	Expect(k8sClient.Update(context.Background(), capp)).To(Succeed())
+}
+
 // DoesFinalizerExist checks if a finalizer exists on a Capp.
 func DoesFinalizerExist(k8sClient client.Client, cappName string, cappNamespace string, finalizerName string) bool {
 	capp := GetCapp(k8sClient, cappName, cappNamespace)

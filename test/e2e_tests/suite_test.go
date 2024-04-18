@@ -17,6 +17,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 	knativev1 "knative.dev/serving/pkg/apis/serving/v1"
 	knativev1alphav1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
@@ -29,6 +30,7 @@ import (
 )
 
 var k8sClient client.Client
+var cfg *rest.Config
 
 func newScheme() *runtime.Scheme {
 	s := runtime.NewScheme()
@@ -59,17 +61,20 @@ var _ = SynchronizedBeforeSuite(func() {
 	initClient()
 	cleanUp()
 	createE2ETestNamespace()
+	utilst.CreateTestUser(k8sClient, mock.NSName)
 }, func() {
 	initClient()
 })
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
+	utilst.DeleteTestUser(k8sClient, mock.NSName)
 	cleanUp()
 })
 
 // initClient initializes a k8s client.
 func initClient() {
-	cfg, err := config.GetConfig()
+	var err error
+	cfg, err = config.GetConfig()
 	Expect(err).NotTo(HaveOccurred())
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: newScheme()})
