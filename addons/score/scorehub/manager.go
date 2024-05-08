@@ -14,9 +14,9 @@ import (
 	"github.com/openshift/library-go/pkg/operator/resource/resourceapply"
 	"github.com/spf13/cobra"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/component-base/version"
 	"open-cluster-management.io/addon-framework/pkg/addonfactory"
 	"open-cluster-management.io/addon-framework/pkg/addonmanager"
 	frameworkagent "open-cluster-management.io/addon-framework/pkg/agent"
@@ -105,7 +105,7 @@ func NewManagerCommand(componentName string, logger logr.Logger) *cobra.Command 
 		return nil
 	}
 
-	cmdConfig := controllercmd.NewControllerCommandConfig(componentName, version.Get(), runController)
+	cmdConfig := controllercmd.NewControllerCommandConfig(componentName, version.Info{}, runController)
 
 	cmd := cmdConfig.NewCommandWithContext(context.TODO())
 	cmd.Use = "manager"

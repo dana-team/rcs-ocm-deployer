@@ -276,7 +276,7 @@ kubectl patch clustermanagementaddon rcs-score --type merge -p \
 $ make docker-build docker-push IMG=<registry>/rcs-ocm-deployer:<tag>
 ```
 
-### Capp example
+### Example Capp
 
 ```yaml
 apiVersion: rcs.dana.io/v1alpha1
@@ -295,13 +295,8 @@ spec:
             image: 'quay.io/danateamorg/example-python-app:v1-flask'
             name: capp-sample
             volumeMounts:
-              - name: testpvc
+              - name: test-nfspvc
                 mountPath: /data
-        volumes:
-          - name: testpvc
-            persistentVolumeClaim:
-              claimName: nfspvc
-              readOnly: false
   routeSpec:
     hostname: capp.dev
     tlsEnabled: true
@@ -310,16 +305,15 @@ spec:
     nfsVolumes:
       - server: test
         path: /test
-        name: nfspvc
+        name: test-nfspvc
         capacity:
           storage: 200Gi
   logSpec:
     type: elastic
     host: 10.11.12.13
     index: main
-    username: elastic
-    passwordSecretName: es-elastic-user
-    sslVerify: false
+    user: elastic
+    passwordSecret: es-elastic-user
   scaleMetric: concurrency
   state: enabled
 ```

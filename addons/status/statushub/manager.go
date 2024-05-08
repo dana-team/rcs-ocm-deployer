@@ -15,10 +15,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/component-base/version"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
@@ -120,7 +120,7 @@ func NewManagerCommand(componentName string, log logr.Logger) *cobra.Command {
 	}
 
 	cmdConfig := controllercmd.
-		NewControllerCommandConfig(componentName, version.Get(), runController)
+		NewControllerCommandConfig(componentName, version.Info{}, runController)
 	ctx := context.TODO()
 	cmd := cmdConfig.NewCommandWithContext(ctx)
 	cmd.Use = "manager"

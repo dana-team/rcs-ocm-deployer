@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
-	utilflag "k8s.io/component-base/cli/flag"
 	"open-cluster-management.io/addon-framework/pkg/version"
 
 	"github.com/dana-team/rcs-ocm-deployer/addons/score/scorehub"
@@ -22,8 +21,6 @@ import (
 
 func main() {
 	rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
-
-	pflag.CommandLine.SetNormalizeFunc(utilflag.WordSepNormalizeFunc)
 	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 
 	zapLog, err := zap.NewDevelopment()

@@ -10,9 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const (
-	adminAnnotationValue = "kubernetes-admin"
-)
+const adminAnnotationValue = "kubernetes-admin"
 
 var _ = Describe("Validate the mutating webhook", func() {
 	It("Should add annotation on create", func() {
