@@ -14,18 +14,19 @@ patches:
 - path: addon_manager_env_var_patch.yaml
 
 replacements:
-  - source:
+- source:
+    fieldPath: .spec.template.spec.containers.0.image
+    group: apps
+    kind: Deployment
+    name: rcs-score-addon-manager
+    version: v1
+  targets:
+  - fieldPaths:
+    - .spec.template.spec.containers.0.env.0.value
+    options:
+      create: true
+      delimiter: /
+    select:
       kind: Deployment
-      group: apps
-      version: v1
-      name: rcs-score-addon-manager
-      fieldPath: .spec.template.spec.containers.0.image
-    targets:
-      - select:
-          kind: Deployment
-        fieldPaths:
-          - .spec.template.spec.containers.0.env.0.value
-        options:
-          delimiter: '/'
-          index: 0
-          create: true
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization

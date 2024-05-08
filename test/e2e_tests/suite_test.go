@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"k8s.io/client-go/rest"
+
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	mock "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/mocks"
 	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
@@ -17,7 +19,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	knativev1 "knative.dev/serving/pkg/apis/serving/v1"
 	knativev1alphav1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"

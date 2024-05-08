@@ -45,7 +45,7 @@ func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) 
 }
 
 // validateDomainName checks if the hostname is valid domain name and not part of the cluster's domain.
-// it returns aggregated error if the any of the validations falied.
+// it returns aggregated error if any of the validations falied.
 func validateDomainName(domainname string) (errs *apis.FieldError) {
 	if domainname == "" {
 		return nil
@@ -65,7 +65,7 @@ func validateDomainName(domainname string) (errs *apis.FieldError) {
 }
 
 // validateTlsFields checks if the fields of the tls feature in the capp spec is written correctly.
-// It takes a cappv1alpha1.Capp object and returns aggregated error if the any of the validations falied.
+// It takes a cappv1alpha1.Capp object and returns aggregated error if any of the validations falied.
 func validateTlsFields(capp cappv1alpha1.Capp, client client.Client, ctx context.Context) (errs *apis.FieldError) {
 	if capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret == "" {
 		errs = errs.Also(apis.ErrGeneric(
@@ -100,8 +100,7 @@ func getSecret(secretName string, namespace string, client client.Client, ctx co
 // validateLogSpec checks if the LogSpec is valid based on the Type field.
 func validateLogSpec(logSpec cappv1alpha1.LogSpec) *apis.FieldError {
 	requiredFields := map[string][]string{
-		"elastic": {"Host", "Index", "UserName", "PasswordSecretName"},
-		"splunk":  {"Host", "Index", "HecTokenSecretName"},
+		"elastic": {"Host", "Index", "User", "PasswordSecret"},
 	}
 	required, exists := requiredFields[logSpec.Type]
 	if !exists {
@@ -126,11 +125,10 @@ func validateLogSpec(logSpec cappv1alpha1.LogSpec) *apis.FieldError {
 func findMissingFields(logSpec cappv1alpha1.LogSpec, required []string) []string {
 	var missingFields []string
 	fieldValues := map[string]string{
-		"Host":               logSpec.Host,
-		"Index":              logSpec.Index,
-		"UserName":           logSpec.UserName,
-		"PasswordSecretName": logSpec.PasswordSecretName,
-		"HecTokenSecretName": logSpec.HecTokenSecretName,
+		"Host":           logSpec.Host,
+		"Index":          logSpec.Index,
+		"User":           logSpec.User,
+		"PasswordSecret": logSpec.PasswordSecret,
 	}
 	for _, reqField := range required {
 		if value, ok := fieldValues[reqField]; !ok || value == "" {

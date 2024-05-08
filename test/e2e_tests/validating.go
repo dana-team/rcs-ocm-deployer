@@ -13,60 +13,62 @@ import (
 )
 
 const (
-	UnsupportedCluster      = "my-cluster"
-	UnsupportedSite         = "my-site"
-	UnsupportedHostname     = "...aaa.a...."
-	UnsupportedLogType      = "laber"
-	SplunkLogType           = "splunk"
-	SplunkHostExample       = "74.234.208.141"
-	MainIndex               = "main"
-	SplunkSecretNameExample = "splunk-single-standalone-secrets"
+	unsupportedCluster  = "my-cluster"
+	unsupportedSite     = "my-site"
+	unsupportedHostname = "...aaa.a...."
+	unsupportedLogType  = "unsupported"
+	elasticLogType      = "elastic"
+	elasticUser         = "user"
+	elasticHostExample  = "https://elasticsearch.dana.com/_bulk"
+	index               = "main"
+	secretName          = "elastic-secret"
 )
 
 var _ = Describe("Validate the validating webhook", func() {
 	It("Should deny the use of a non-existing cluster", func() {
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
-		baseCapp.Spec.Site = UnsupportedCluster
+		baseCapp.Spec.Site = unsupportedCluster
 		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
 	})
 
 	It("Should deny the use of a non-existing placement", func() {
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
-		baseCapp.Spec.Site = UnsupportedSite
+		baseCapp.Spec.Site = unsupportedSite
 		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
 	})
 
 	It("Should deny the use of an invalid hostname", func() {
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
-		baseCapp.Spec.RouteSpec.Hostname = UnsupportedHostname
+		baseCapp.Spec.RouteSpec.Hostname = unsupportedHostname
 		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
 	})
 
 	It("Should deny the use of an invalid log type", func() {
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
-		baseCapp.Spec.LogSpec.Type = UnsupportedLogType
+		baseCapp.Spec.LogSpec.Type = unsupportedLogType
 		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
 	})
 
 	It("Should deny the use of an incomplete log spec", func() {
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
-		baseCapp.Spec.LogSpec.Type = SplunkLogType
-		baseCapp.Spec.LogSpec.Host = SplunkHostExample
+		baseCapp.Spec.LogSpec.Type = elasticLogType
+		baseCapp.Spec.LogSpec.Host = elasticHostExample
 		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
 	})
 
 	It("Should allow the use of a complete and supported log spec", func() {
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
-		baseCapp.Spec.LogSpec.Type = SplunkLogType
-		baseCapp.Spec.LogSpec.Host = SplunkHostExample
-		baseCapp.Spec.LogSpec.Index = MainIndex
-		baseCapp.Spec.LogSpec.HecTokenSecretName = SplunkSecretNameExample
+		baseCapp.Spec.LogSpec.Type = elasticLogType
+		baseCapp.Spec.LogSpec.Host = elasticHostExample
+		baseCapp.Spec.LogSpec.Index = index
+		baseCapp.Spec.LogSpec.User = elasticUser
+		baseCapp.Spec.LogSpec.PasswordSecret = secretName
 		Expect(k8sClient.Create(context.Background(), baseCapp)).Should(Succeed())
 	})
 
