@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
+
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	. "github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -72,4 +74,16 @@ func DoesFinalizerExist(k8sClient client.Client, cappName string, cappNamespace 
 		}
 	}
 	return false
+}
+
+// GetCappWithPlacementAnnotation checks whether a Capp eventually has a placement annotation.
+// If it exists then it returns an up-to-date Capp which contains the annotation.
+func GetCappWithPlacementAnnotation(k8sClient client.Client, name, namespace string) *cappv1alpha1.Capp {
+	capp := &cappv1alpha1.Capp{}
+	Eventually(func() string {
+		capp = GetCapp(k8sClient, name, namespace)
+		return capp.Annotations[testconsts.AnnotationKeyHasPlacement]
+	}, testconsts.Timeout, testconsts.Interval).ShouldNot(Equal(""), "Should have placement annotation on Capp.")
+
+	return capp
 }

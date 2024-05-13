@@ -43,7 +43,7 @@ func (d VolumesDirector) AssembleManifests(capp cappv1alpha1.Capp) ([]workv1.Man
 // It fetches each ConfigMap from the Kubernetes API server using the provided namespace and converts them into manifests.
 // In case of any errors during fetching, it returns the already created manifests and the error.
 func (d VolumesDirector) createConfigMapManifests(configMaps []string, namespace string) ([]workv1.Manifest, error) {
-	manifests := []workv1.Manifest{}
+	var manifests []workv1.Manifest
 	for _, resource := range configMaps {
 		cm := v1.ConfigMap{}
 		if err := d.K8sclient.Get(d.Ctx, types.NamespacedName{Name: resource, Namespace: namespace}, &cm); err != nil {
@@ -61,7 +61,7 @@ func (d VolumesDirector) createConfigMapManifests(configMaps []string, namespace
 // It retrieves each Secret using the Kubernetes client based on the provided namespace and converts them into manifests.
 // If unable to fetch a Secret, the function returns the manifests created so far along with the encountered error.
 func (d VolumesDirector) createSecretManifests(secrets []string, namespace string) ([]workv1.Manifest, error) {
-	manifests := []workv1.Manifest{}
+	var manifests []workv1.Manifest
 	for _, secretName := range secrets {
 		secret := v1.Secret{}
 		if err := d.K8sclient.Get(d.Ctx, types.NamespacedName{Name: secretName, Namespace: namespace}, &secret); err != nil {
@@ -75,9 +75,8 @@ func (d VolumesDirector) createSecretManifests(secrets []string, namespace strin
 	return manifests, nil
 }
 
-// gatherConfigEnvFrom extracts the names of ConfigMaps and Secrets referenced in the environment variables of given container specs.
+// gatherConfigEnvFrom extracts the names of ConfigMaps and Secrets referenced in the environment variables in the envFrom field of given container specs.
 // These names are appended to the provided configMaps and secrets slices.
-// This function is useful for identifying configuration resources used by containers.
 func gatherConfigEnvFrom(containers []v1.Container, configMaps []string, secrets []string) ([]string, []string) {
 	for _, containerSpec := range containers {
 		for _, resourceEnv := range containerSpec.EnvFrom {
@@ -86,6 +85,24 @@ func gatherConfigEnvFrom(containers []v1.Container, configMaps []string, secrets
 			}
 			if resourceEnv.SecretRef != nil {
 				secrets = append(secrets, resourceEnv.SecretRef.Name)
+			}
+		}
+	}
+	return configMaps, secrets
+}
+
+// gatherConfigValueFrom extracts the names of ConfigMaps and Secrets referenced in the environment variables in the valueFrom field of given container specs.
+// These names are appended to the provided configMaps and secrets slices.
+func gatherConfigValueFrom(containers []v1.Container, configMaps []string, secrets []string) ([]string, []string) {
+	for _, containerSpec := range containers {
+		for _, resourceEnv := range containerSpec.Env {
+			if resourceEnv.ValueFrom != nil {
+				if resourceEnv.ValueFrom.ConfigMapKeyRef != nil {
+					configMaps = append(configMaps, resourceEnv.ValueFrom.ConfigMapKeyRef.Name)
+				}
+				if resourceEnv.ValueFrom.SecretKeyRef != nil {
+					secrets = append(secrets, resourceEnv.ValueFrom.SecretKeyRef.Name)
+				}
 			}
 		}
 	}
@@ -108,12 +125,12 @@ func gatherConfigVolumes(volumes []v1.Volume, configMaps []string, secrets []str
 
 // getResourceVolumesFromContainerSpec extracts the names of ConfigMaps and Secrets referenced in a given capp's container specification.
 // It consolidates ConfigMaps and Secrets from environment variables, volumes, image pull secrets, and TLS secrets.
-// This function is useful for identifying all configuration-related resources required by the capp.
 func getResourceVolumesFromContainerSpec(capp cappv1alpha1.Capp) ([]string, []string) {
 	var configMaps []string
 	var secrets []string
 
 	configMaps, secrets = gatherConfigEnvFrom(capp.Spec.ConfigurationSpec.Template.Spec.Containers, configMaps, secrets)
+	configMaps, secrets = gatherConfigValueFrom(capp.Spec.ConfigurationSpec.Template.Spec.Containers, configMaps, secrets)
 	configMaps, secrets = gatherConfigVolumes(capp.Spec.ConfigurationSpec.Template.Spec.Volumes, configMaps, secrets)
 
 	for _, secret := range capp.Spec.ConfigurationSpec.Template.Spec.ImagePullSecrets {

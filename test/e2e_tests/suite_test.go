@@ -4,52 +4,18 @@ import (
 	"context"
 	"testing"
 
-	"k8s.io/client-go/rest"
+	"k8s.io/apimachinery/pkg/api/errors"
 
-	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	mock "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/mocks"
 	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
 	utilst "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/utils"
-	loggingv1beta1 "github.com/kube-logging/logging-operator/pkg/sdk/logging/api/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	networkingv1 "github.com/openshift/api/network/v1"
-	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
-	knativev1 "knative.dev/serving/pkg/apis/serving/v1"
-	knativev1alphav1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
-	clusterv1 "open-cluster-management.io/api/cluster/v1"
-	clusterv1alpha1 "open-cluster-management.io/api/cluster/v1alpha1"
-	clusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
-	clusterv1beta2 "open-cluster-management.io/api/cluster/v1beta2"
-	workv1 "open-cluster-management.io/api/work/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
-
-var k8sClient client.Client
-var cfg *rest.Config
-
-func newScheme() *runtime.Scheme {
-	s := runtime.NewScheme()
-	_ = corev1.AddToScheme(s)
-	_ = cappv1alpha1.AddToScheme(s)
-	_ = loggingv1beta1.AddToScheme(s)
-	_ = knativev1alphav1.AddToScheme(s)
-	_ = knativev1.AddToScheme(s)
-	_ = networkingv1.Install(s)
-	_ = routev1.Install(s)
-	_ = clusterv1.Install(s)
-	_ = clusterv1alpha1.Install(s)
-	_ = clusterv1beta1.Install(s)
-	_ = clusterv1beta2.Install(s)
-	_ = workv1.Install(s)
-	_ = scheme.AddToScheme(s)
-	return s
-}
 
 func TestE2E(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -91,7 +57,8 @@ func createE2ETestNamespace() {
 		},
 	}
 
-	Expect(k8sClient.Create(context.Background(), namespace)).To(Succeed())
+	err := k8sClient.Create(context.Background(), namespace)
+	Expect(err).To(SatisfyAny(BeNil(), WithTransform(errors.IsAlreadyExists, BeTrue())))
 	Eventually(func() bool {
 		return utilst.DoesResourceExist(k8sClient, namespace)
 	}, testconsts.Timeout, testconsts.Interval).Should(BeTrue(), "The namespace should be created")

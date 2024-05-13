@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// IsSiteInPlacement checks if a given site is part of a clusterset mentioned in a placement
+// IsSiteInPlacement checks if a given site is part of a clusterset mentioned in a placement.
 func IsSiteInPlacement(k8sClient client.Client, placementName string, placementNamespace string) (bool, error) {
 	placement := clusterv1beta1.Placement{}
 	var clusterSets []string
@@ -40,41 +40,51 @@ func IsSiteInPlacement(k8sClient client.Client, placementName string, placementN
 	return false, nil
 }
 
-// CreateSecret creates a corev1.secret object with a random suffix in its name and returns it
+// CreateSecret creates a corev1.secret object with a random suffix in its name and returns it.
 func CreateSecret(k8sClient client.Client, secret *corev1.Secret) *corev1.Secret {
-	secret.Name = GenerateUniqueSecretName(secret.Name)
-	Expect(k8sClient.Create(context.Background(), secret)).To(Succeed())
-	return secret
+	secret.Name = GenerateUniqueName(secret.Name)
+	newSecret := secret.DeepCopy()
+	Expect(k8sClient.Create(context.Background(), newSecret)).To(Succeed())
+	return newSecret
+}
+
+// CreateConfigMap creates a corev1.configMap object with a random suffix in its name and returns it
+func CreateConfigMap(k8sClient client.Client, configmap *corev1.ConfigMap) *corev1.ConfigMap {
+	configmap.Name = GenerateUniqueName(configmap.Name)
+	newConfigMap := configmap.DeepCopy()
+	Expect(k8sClient.Create(context.Background(), newConfigMap)).To(Succeed())
+	return newConfigMap
 }
 
 // CreateTlsSecret creates a tls typed corev1.secret with a random suffix in its name and returns it.
 func CreateTlsSecret(k8sClient client.Client, secret *corev1.Secret) *corev1.Secret {
-	secret.Name = GenerateUniqueSecretName(secret.Name)
+	secret.Name = GenerateUniqueName(secret.Name)
 	secret.Type = corev1.SecretTypeTLS
 	secret.Data = map[string][]byte{
 		"tls.crt": []byte("-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----"),
 		"tls.key": []byte("-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----"),
 	}
-	Expect(k8sClient.Create(context.Background(), secret)).To(Succeed())
+	newSecret := secret.DeepCopy()
+	Expect(k8sClient.Create(context.Background(), newSecret)).To(Succeed())
 	Eventually(func() bool {
-		return DoesResourceExist(k8sClient, secret)
+		return DoesResourceExist(k8sClient, newSecret)
 	}, testconsts.Timeout, testconsts.Interval).Should(BeTrue())
-	return secret
+	return newSecret
 }
 
-// GenerateUniqueSecretName generates a unique Secret name.
-func GenerateUniqueSecretName(baseSecretName string) string {
+// GenerateUniqueName generates a unique name.
+func GenerateUniqueName(baseSecretName string) string {
 	randString := generateRandomString(RandStrLength)
 	return baseSecretName + "-" + randString
 }
 
-// CreateRole creates a rbac1.Role object and returns it
+// CreateRole creates a rbac1.Role object and returns it.
 func CreateRole(k8sClient client.Client, role *rbacv1.Role) *rbacv1.Role {
 	Expect(k8sClient.Create(context.Background(), role)).To(Succeed())
 	return role
 }
 
-// CreateRoleBinding creates a rbacv1.RoleBinding and returns it
+// CreateRoleBinding creates a rbacv1.RoleBinding and returns it.
 func CreateRoleBinding(k8sClient client.Client, roleBinding *rbacv1.RoleBinding) *rbacv1.RoleBinding {
 	Expect(k8sClient.Create(context.Background(), roleBinding)).To(Succeed())
 	return roleBinding
