@@ -9,20 +9,23 @@ import (
 )
 
 var (
-	NSName          = "capp-e2e-tests"
-	CappSecretName  = "capp-secret"
-	CappAdmin       = "capp-admin"
-	CappName        = "capp-default-test"
-	CappBaseImage   = "ghcr.io/knative/autoscale-go:latest"
-	SecretDataKey   = "password"
-	SecretDataValue = "password"
+	NSName            = "capp-e2e-tests"
+	cappSecretName    = "capp-secret"
+	cappConfigMapName = "capp-config"
+	cappAdmin         = "capp-admin"
+	cappName          = "capp-default-test"
+	cappBaseImage     = "ghcr.io/knative/autoscale-go:latest"
+	DataKey           = "password"
+	DataValue         = "password"
+	KindConfigMap     = "ConfigMap"
+	KindSecret        = "Secret"
 )
 
 // CreateBaseCapp is responsible for making the most lean version of Capp, so we can manipulate it in the tests.
 func CreateBaseCapp() *cappv1alpha1.Capp {
 	return &cappv1alpha1.Capp{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      CappName,
+			Name:      cappName,
 			Namespace: NSName,
 		},
 		Spec: cappv1alpha1.CappSpec{
@@ -35,11 +38,11 @@ func CreateBaseCapp() *cappv1alpha1.Capp {
 									Env: []corev1.EnvVar{
 										{
 											Name:  "APP_NAME",
-											Value: CappName,
+											Value: cappName,
 										},
 									},
-									Image: CappBaseImage,
-									Name:  CappName,
+									Image: cappBaseImage,
+									Name:  cappName,
 								},
 							},
 						},
@@ -50,15 +53,36 @@ func CreateBaseCapp() *cappv1alpha1.Capp {
 	}
 }
 
-// CreateSecret creates a simple secret for our tests' use.
+// CreateSecret creates a basic secret.
 func CreateSecret() *corev1.Secret {
 	return &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       KindSecret,
+			APIVersion: "v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      CappSecretName,
+			Name:      cappSecretName,
 			Namespace: NSName,
 		},
 		Data: map[string][]byte{
-			SecretDataKey: []byte(SecretDataValue),
+			DataKey: []byte(DataValue),
+		},
+	}
+}
+
+// CreateConfigMap creates a basic configMap.
+func CreateConfigMap() *corev1.ConfigMap {
+	return &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       KindConfigMap,
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cappConfigMapName,
+			Namespace: NSName,
+		},
+		BinaryData: map[string][]byte{
+			DataKey: []byte(DataValue),
 		},
 	}
 }
@@ -79,13 +103,13 @@ func CreateCappRole() *rbacv1.Role {
 		},
 	}
 
-	return CreateRole(CappAdmin+"-role", rules)
+	return CreateRole(cappAdmin+"-role", rules)
 }
 
 // CreateCappRoleBinding creates a binding for the pod reader role.
 func CreateCappRoleBinding() *rbacv1.RoleBinding {
 	roleRef := rbacv1.RoleRef{
-		Name:     CappAdmin + "-role",
+		Name:     cappAdmin + "-role",
 		Kind:     "Role",
 		APIGroup: "rbac.authorization.k8s.io",
 	}
@@ -93,12 +117,12 @@ func CreateCappRoleBinding() *rbacv1.RoleBinding {
 	subjects := []rbacv1.Subject{
 		{
 			Kind:     "User",
-			Name:     CappAdmin,
+			Name:     cappAdmin,
 			APIGroup: "rbac.authorization.k8s.io",
 		},
 	}
 
-	return CreateRoleBinding(CappAdmin+"-role-binding", roleRef, subjects)
+	return CreateRoleBinding(cappAdmin+"-role-binding", roleRef, subjects)
 }
 
 // CreateRole creates a role with the specified name and rules.

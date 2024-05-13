@@ -1,11 +1,10 @@
-package unitTests
+package adapters
 
 import (
 	"context"
 	"testing"
 
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	"github.com/dana-team/rcs-ocm-deployer/internal/placement/adapters"
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,7 +30,7 @@ func TestGetPlacementDecisionList(t *testing.T) {
 	fakeClient := newFakeClient()
 
 	// Call GetPlacementDecisionList with the test Capp, context, fake client, and placementRef
-	placementDecisions, err := adapters.GetPlacementDecisionList(context.Background(), "placement-ref", "test-namespace", fakeClient)
+	placementDecisions, err := GetPlacementDecisionList(context.Background(), "placement-ref", "test-namespace", fakeClient)
 
 	// Assert that there are no errors
 	assert.NoError(t, err)
@@ -61,7 +60,7 @@ func TestGetDecisionClusterName(t *testing.T) {
 
 	// Create a fake logger
 	// Call GetDecisionClusterName with the test PlacementDecisionList and fake logger
-	clusterName := adapters.GetDecisionClusterName(placementDecisions, logr.Discard())
+	clusterName := GetDecisionClusterName(placementDecisions, logr.Discard())
 
 	// Assert that the returned clusterName is "cluster-1"
 	assert.Equal(t, "cluster-1", clusterName)

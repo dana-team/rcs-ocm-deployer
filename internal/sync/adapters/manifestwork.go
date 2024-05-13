@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	NamespaceManifestWorkPrefix = "mw-create-"
-	CappNameKey                 = "rcs.dana.io/capp-name"
-	CappNamespaceKey            = "rcs.dana.io/capp-namespace"
+	namespaceManifestWorkPrefix = "mw-create-"
+	cappNameKey                 = "rcs.dana.io/capp-name"
+	cappNamespaceKey            = "rcs.dana.io/capp-namespace"
 )
 
 // GenerateManifestWorkGeneric generates a new Kubernetes manifest work object
@@ -41,7 +41,7 @@ func GenerateManifestWorkGeneric(name string, namespace string, manifests []work
 
 // GenerateMWName returns a manifestWork name combining NamespaceManifestWorkPrefix, capp namespace and name.
 func GenerateMWName(capp cappv1alpha1.Capp) string {
-	return NamespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
+	return namespaceManifestWorkPrefix + capp.Namespace + "-" + capp.Name
 }
 
 // CreateManifestWork uses the Kubernetes client to create a ManifestWork resource
@@ -63,6 +63,6 @@ func CreateManifestWork(capp cappv1alpha1.Capp, managedClusterName string, logge
 // work object with the name and namespace of the specified Capp object.
 func SetManifestWorkCappAnnotations(mw workv1.ManifestWork, capp cappv1alpha1.Capp) {
 	mw.ObjectMeta.Annotations = make(map[string]string)
-	mw.Annotations[CappNameKey] = capp.Name
-	mw.Annotations[CappNamespaceKey] = capp.Namespace
+	mw.Annotations[cappNameKey] = capp.Name
+	mw.Annotations[cappNamespaceKey] = capp.Namespace
 }
