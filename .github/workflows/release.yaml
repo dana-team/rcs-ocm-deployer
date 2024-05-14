@@ -12,7 +12,7 @@ jobs:
     name: Build and push image
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - name: Checkout
@@ -27,3 +27,11 @@ jobs:
 
       - name: Build and push image
         run: make docker-build docker-push IMG=${{ env.REGISTRY }}/${{ env.REPOSITORY_NAME }}:${GITHUB_REF##*/}
+
+      - name: Create install.yaml file
+        run: make build/install.yaml IMG=${{ env.REGISTRY }}/${{ env.REPOSITORY_NAME }}:${GITHUB_REF##*/}
+
+      - name: Upload install.yaml file
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./build/install.yaml

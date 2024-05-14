@@ -177,6 +177,17 @@ deploy-addons: deploy-score-addon deploy-status-addon
 .PHONY: undeploy-addons
 undeploy-addons: undeploy-score-addon undeploy-status-addon
 
+.PHONY: build/install.yaml
+build/install.yaml: manifests kustomize
+	mkdir -p $(dir $@) && \
+	rm -rf build/kustomize && \
+	mkdir -p build/kustomize && \
+	cd build/kustomize && \
+	$(KUSTOMIZE) create --resources ../../config/default,../../addons/score/deploy/resources/default,../../addons/status/deploy/resources/default && \
+	$(KUSTOMIZE) edit set image controller=${IMG} && \
+	cd ${CURDIR} && \
+	$(KUSTOMIZE) build build/kustomize > $@
+
 ##@ Dependencies
 
 ## Location to install dependencies to
