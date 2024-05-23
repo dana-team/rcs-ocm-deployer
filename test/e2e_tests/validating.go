@@ -13,15 +13,18 @@ import (
 )
 
 const (
-	unsupportedCluster  = "my-cluster"
-	unsupportedSite     = "my-site"
-	unsupportedHostname = "...aaa.a...."
-	unsupportedLogType  = "unsupported"
-	elasticLogType      = "elastic"
-	elasticUser         = "user"
-	elasticHostExample  = "https://elasticsearch.dana.com/_bulk"
-	index               = "main"
-	secretName          = "elastic-secret"
+	unsupportedCluster   = "my-cluster"
+	unsupportedSite      = "my-site"
+	validDomainSuffix    = ".com"
+	unsupportedHostname  = "...aaa.a...."
+	clusterLocalHostname = "invalid.svc.cluster.local"
+	existingHostname     = "google.com"
+	unsupportedLogType   = "unsupported"
+	elasticLogType       = "elastic"
+	elasticUser          = "user"
+	elasticHostExample   = "https://elasticsearch.dana.com/_bulk"
+	index                = "main"
+	secretName           = "elastic-secret"
 )
 
 var _ = Describe("Validate the validating webhook", func() {
@@ -44,6 +47,28 @@ var _ = Describe("Validate the validating webhook", func() {
 		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
 		baseCapp.Spec.RouteSpec.Hostname = unsupportedHostname
 		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
+	})
+
+	It("Should deny the use of an existing hostname", func() {
+		baseCapp := mock.CreateBaseCapp()
+		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
+		baseCapp.Spec.RouteSpec.Hostname = existingHostname
+		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
+	})
+
+	It("Should deny the use of a hostname in cluster local", func() {
+		baseCapp := mock.CreateBaseCapp()
+		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
+		baseCapp.Spec.RouteSpec.Hostname = clusterLocalHostname
+		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
+	})
+
+	It("Should allow the use of a unique and valid hostname", func() {
+		baseCapp := mock.CreateBaseCapp()
+		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
+		validHostName := baseCapp.Name + validDomainSuffix
+		baseCapp.Spec.RouteSpec.Hostname = validHostName
+		Expect(k8sClient.Create(context.Background(), baseCapp)).Should(Succeed())
 	})
 
 	It("Should deny the use of an invalid log type", func() {

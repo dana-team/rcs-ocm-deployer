@@ -3,6 +3,7 @@ package webhooks
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -46,22 +47,43 @@ func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) 
 
 // validateDomainName checks if the hostname is valid domain name and not part of the cluster's domain.
 // it returns aggregated error if any of the validations falied.
-func validateDomainName(domainname string) (errs *apis.FieldError) {
-	if domainname == "" {
+func validateDomainName(domainName string) (errs *apis.FieldError) {
+	if domainName == "" {
 		return nil
 	}
-	err := validation.IsFullyQualifiedDomainName(field.NewPath("name"), domainname)
+	err := validation.IsFullyQualifiedDomainName(field.NewPath("name"), domainName)
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf(
-			"invalid name %q: %s", domainname, err.ToAggregate()), "name"))
+			"invalid name %q: %s", domainName, err.ToAggregate()), "name"))
 	}
 
 	clusterLocalDomain := network.GetClusterDomainName()
-	if strings.HasSuffix(domainname, "."+clusterLocalDomain) {
+	if strings.HasSuffix(domainName, "."+clusterLocalDomain) {
 		errs = errs.Also(apis.ErrGeneric(
-			fmt.Sprintf("invalid name %q: must not be a subdomain of cluster local domain %q", domainname, clusterLocalDomain), "name"))
+			fmt.Sprintf("invalid name %q: must not be a subdomain of cluster local domain %q", domainName, clusterLocalDomain), "name"))
+	}
+	domainNameTaken, dnsErr := isDomainNameTaken(domainName)
+	if dnsErr != nil {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf("hostname check error: %v", dnsErr.Error())))
+	}
+	if domainNameTaken {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf("invalid name %q: hostname must be unique and not already taken", domainName), "name"))
 	}
 	return errs
+}
+
+// isDomainNameTaken checks if the given hostname is already in use.
+func isDomainNameTaken(domainName string) (bool, error) {
+	_, err := net.LookupHost(domainName)
+	if err != nil {
+		if err.(*net.DNSError).IsNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // validateTlsFields checks if the fields of the tls feature in the capp spec is written correctly.

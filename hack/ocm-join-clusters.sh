@@ -22,14 +22,14 @@ hubctx="kind-${hub}"
 c1ctx="kind-${c1}"
 c2ctx="kind-${c2}"
 
-echo "Initialize the ocm hub cluster\n"
+echo "Initialize the ocm hub cluster"
 ${clusteradm} init --wait --context ${hubctx}
 joincmd=$(${clusteradm} get token --context ${hubctx} | grep clusteradm)
 
-echo "Join cluster1 to hub\n"
+echo "Join cluster1 to hub"
 $(echo ${joincmd} --force-internal-endpoint-lookup --wait --context ${c1ctx} | sed "s/<cluster_name>/$c1/g")
 
-echo "Join cluster2 to hub\n"
+echo "Join cluster2 to hub"
 $(echo ${joincmd} --force-internal-endpoint-lookup --wait --context ${c2ctx} | sed "s/<cluster_name>/$c2/g")
 
 echo "Accept join of cluster1 and cluster2"
