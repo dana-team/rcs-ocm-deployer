@@ -16,15 +16,15 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.elastic.co/ecszap v1.0.2
 	go.uber.org/zap v1.27.0
-	k8s.io/api v0.29.4
-	k8s.io/apimachinery v0.29.4
-	k8s.io/client-go v0.29.4
+	k8s.io/api v0.30.1
+	k8s.io/apimachinery v0.30.1
+	k8s.io/client-go v0.30.1
 	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0
 	knative.dev/pkg v0.0.0-20240116073220-b488e7be5902
 	knative.dev/serving v0.40.1
 	open-cluster-management.io/addon-framework v0.9.3
 	open-cluster-management.io/api v0.13.0
-	sigs.k8s.io/controller-runtime v0.17.4
+	sigs.k8s.io/controller-runtime v0.18.3
 )
 
 require (
@@ -63,7 +63,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/cel-go v0.17.7 // indirect
+	github.com/google/cel-go v0.17.8 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/go-containerregistry v0.13.0 // indirect
@@ -135,11 +135,11 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	helm.sh/helm/v3 v3.14.4 // indirect
-	k8s.io/apiextensions-apiserver v0.29.4 // indirect
-	k8s.io/apiserver v0.29.4 // indirect
-	k8s.io/component-base v0.29.4 // indirect
+	k8s.io/apiextensions-apiserver v0.30.1 // indirect
+	k8s.io/apiserver v0.30.1 // indirect
+	k8s.io/component-base v0.30.1 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
-	k8s.io/kms v0.29.4 // indirect
+	k8s.io/kms v0.30.1 // indirect
 	k8s.io/kube-aggregator v0.29.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20240430033511-f0e62f92d13f // indirect
 	knative.dev/networking v0.0.0-20240116081125-ce0738abf051 // indirect
