@@ -6,10 +6,7 @@ import (
 	"net"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/types"
-
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/strings/slices"
@@ -84,39 +81,6 @@ func isDomainNameTaken(domainName string) (bool, error) {
 		return false, err
 	}
 	return true, nil
-}
-
-// validateTlsFields checks if the fields of the tls feature in the capp spec is written correctly.
-// It takes a cappv1alpha1.Capp object and returns aggregated error if any of the validations falied.
-func validateTlsFields(capp cappv1alpha1.Capp, client client.Client, ctx context.Context) (errs *apis.FieldError) {
-	if capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret == "" {
-		errs = errs.Also(apis.ErrGeneric(
-			"it's forbidden to set '.spec.routeSpec.tlsEnabled' to 'true' without specifying a secret name in the '.spec.routeSpec.tlsSecret' field"))
-	} else if !capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret != "" {
-		errs = errs.Also(apis.ErrGeneric(
-			"it's forbidden to set '.spec.routeSpec.tlsEnabled' to 'false' and specifying a secret name in the '.spec.routeSpec.tlsSecret' field"))
-	} else if capp.Spec.RouteSpec.TlsEnabled && capp.Spec.RouteSpec.TlsSecret != "" && capp.DeletionTimestamp.IsZero() {
-		// The condition that checks if the deletion timestamp is zero is crucial to handle an edge case.
-		// This case occurs when deleting a namespace, which results in the secret being deleted before attempting to remove the capp's finalizer through an update request.
-		// If the secret doesn't exist anymore, this webhook will prevent the finalizer from being removed from the capp.
-		// Therefore, this check ensures the process can proceed without interference due to the secret's deletion.
-		tlsSecret, err := getSecret(capp.Spec.RouteSpec.TlsSecret, capp.Namespace, client, ctx)
-		if err != nil {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf(
-				"it's forbidden to set '.spec.routeSpec.tlsSecret' without creating a matching tlsSecret. %q does not exist", capp.Spec.RouteSpec.TlsSecret)))
-		} else if tlsSecret.Type != v1.SecretTypeTLS {
-			errs = errs.Also(apis.ErrGeneric(
-				fmt.Sprintf("it's forbidden to set '.spec.routeSpec.tlsSecret' without creating a matching tlsSecret. The secret type %q must be %q", tlsSecret.Name, v1.SecretTypeTLS)))
-		}
-	}
-	return errs
-}
-
-// getSecret fetches the secret in the route spec.
-func getSecret(secretName string, namespace string, client client.Client, ctx context.Context) (*v1.Secret, error) {
-	secret := &v1.Secret{}
-	err := client.Get(ctx, types.NamespacedName{Name: secretName, Namespace: namespace}, secret)
-	return secret, err
 }
 
 // validateLogSpec checks if the LogSpec is valid based on the Type field.
