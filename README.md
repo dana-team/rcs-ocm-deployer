@@ -66,8 +66,10 @@ The following should be installed on your Linux machine:
 Simply run the following to get a Hub cluster ready to have `rcs-ocm-deployer` deployed on it, and 2 Managed Cluster with `container-app-operator` already installed on them, with all add-ons installed as well.
 
 ```bash
-$ make local-quickstart IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
+$ make local-quickstart IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release> CAPP_RELEASE=<release> ADDON_RELEASE=<release>
 ```
+
+`IMG`, `CAPP_RELEASE` and `ADDON_RELEASE` are optional parameters. If unspecified, the script will install `conatiner-app-operator` and `rcs-ocm-addons` using the latest development version.
 
 ### Manual Approach
 
@@ -200,17 +202,15 @@ Ensure that the spec section includes a list of `placements` and specifies the `
 
 ### Deploy the add-ons
 
-#### Status add-on
+The `addons` are managed in a separate repository, called [`rcs-ocm-addons`](https://github.com/dana-team/rcs-ocm-addons).
 
-Deploy the add-on the `Hub` cluster:
+Deploy the addons the `Hub` cluster:
 
 ```bash
-$ make deploy-status-addon IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
-$ kubectl -n open-cluster-management get deploy
-
-NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-capp-status-addon   1/1     1            1           14s
+$ make deploy-addons ADDON_RELEASE=<release>
 ```
+
+#### Status add-on
 
 Patch the `ClusterManagementAddon` CR of the status addon, called `capp-status` to add the created `Placement` to the add-on, so that it's deployed on all clusters.
 ```bash
@@ -235,12 +235,6 @@ capp-status-addon      True
 ```
 
 #### Score add-on
-
-Deploy the add-on the `Hub` cluster:
-
-```bash
-$ make deploy-score-addon IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release>
-```
 
 Deploy the `AddOnDeploymentConfig` which uses `customizedVariables` to pass the `max` value and `min` value [of the customized scores](https://open-cluster-management.io/scenarios/extend-multicluster-scheduling-capabilities/) as environment variables to the add-on deployment on the Managed Clusters.
 
@@ -268,12 +262,6 @@ Patch the `ClusterManagementAddon` CR of the score, called `rcs-score` to add th
 ```bash
 kubectl patch clustermanagementaddon rcs-score --type merge -p \
 '{"spec":{"installStrategy":{"type":"Placements","placements":[{"name":"<placement-name>","namespace":"<clusterSet-namespace>","configs":[{"group":"addon.open-cluster-management.io","resource":"addondeploymentconfigs","name":"rcs-score-deploy-config","namespace":"open-cluster-management-hub"}]}]}}}'
-```
-
-### Build your own image
-
-```bash
-$ make docker-build docker-push IMG=<registry>/rcs-ocm-deployer:<tag>
 ```
 
 ### Example Capp

@@ -13,20 +13,15 @@ RUN go mod download
 COPY cmd/main.go cmd/main.go
 COPY api/ api/
 COPY internal/ internal/
-COPY addons/ addons/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager cmd/main.go
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o status-addon addons/status/cmd/main.go
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o score-addon addons/score/cmd/main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .
-COPY --from=builder /workspace/status-addon .
-COPY --from=builder /workspace/score-addon .
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]
