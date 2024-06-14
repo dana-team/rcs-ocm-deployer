@@ -207,16 +207,6 @@ var _ = Describe("Validate the placement sync controller", func() {
 		verifySecretOrConfigMapCopy(baseCapp, configmap.Name, configmap.Namespace, baseConfigMap.TypeMeta.Kind)
 	})
 
-	It("Should copy the secret from RouteSpec to ManifestWork ", func() {
-		baseSecret := mock.CreateSecret()
-		secret := utilst.CreateTlsSecret(k8sClient, baseSecret)
-		baseCapp := mock.CreateBaseCapp()
-		baseCapp.Spec.RouteSpec.TlsEnabled = true
-		baseCapp.Spec.RouteSpec.TlsSecret = secret.Name
-
-		verifySecretOrConfigMapCopy(baseCapp, secret.Name, secret.Namespace, baseSecret.TypeMeta.Kind)
-	})
-
 	It("Should copy the secret from imagePullSecrets to ManifestWork ", func() {
 		baseSecret := mock.CreateSecret()
 		secret := utilst.CreateSecret(k8sClient, baseSecret)

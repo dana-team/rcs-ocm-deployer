@@ -87,6 +87,7 @@ kubectl wait --for=condition=ready pods -l control-plane=controller-manager -n c
 if [ -n "$rcsimage" ] && [ "$rcsimage" != "controller:latest" ]; then
   "${kind}" load docker-image ${rcsimage} --name "${c1}"
 fi
+kubectl create configmap dns-zone --from-literal=zone=capp-zone. -n capp-operator-system
 
 kubectl config use-context "${c2ctx}"
 make -C container-app-operator prereq
@@ -95,6 +96,7 @@ kubectl wait --for=condition=ready pods -l control-plane=controller-manager -n c
 if [ -n "$rcsimage" ] && [ "$rcsimage" != "controller:latest" ]; then
   "${kind}" load docker-image ${rcsimage} --name "${c2}"
 fi
+kubectl create configmap dns-zone --from-literal=zone=capp-zone. -n capp-operator-system
 
 rm -rf container-app-operator/
 

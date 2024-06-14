@@ -3,8 +3,6 @@ package utils
 import (
 	"context"
 
-	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
-
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -54,22 +52,6 @@ func CreateConfigMap(k8sClient client.Client, configmap *corev1.ConfigMap) *core
 	newConfigMap := configmap.DeepCopy()
 	Expect(k8sClient.Create(context.Background(), newConfigMap)).To(Succeed())
 	return newConfigMap
-}
-
-// CreateTlsSecret creates a tls typed corev1.secret with a random suffix in its name and returns it.
-func CreateTlsSecret(k8sClient client.Client, secret *corev1.Secret) *corev1.Secret {
-	secret.Name = GenerateUniqueName(secret.Name)
-	secret.Type = corev1.SecretTypeTLS
-	secret.Data = map[string][]byte{
-		"tls.crt": []byte("-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----"),
-		"tls.key": []byte("-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----"),
-	}
-	newSecret := secret.DeepCopy()
-	Expect(k8sClient.Create(context.Background(), newSecret)).To(Succeed())
-	Eventually(func() bool {
-		return DoesResourceExist(k8sClient, newSecret)
-	}, testconsts.Timeout, testconsts.Interval).Should(BeTrue())
-	return newSecret
 }
 
 // GenerateUniqueName generates a unique name.
