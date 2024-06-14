@@ -12,7 +12,7 @@ import (
 )
 
 type CappMutator struct {
-	Decoder *admission.Decoder
+	Decoder admission.Decoder
 }
 
 // +kubebuilder:webhook:path=/mutate-capp,mutating=true,sideEffects=NoneOnDryRun,failurePolicy=fail,groups=rcs.dana.io,resources=capps,verbs=create;update,versions=v1alpha1,name=capp.dana.io,admissionReviewVersions=v1;v1beta1
