@@ -1,6 +1,7 @@
 package e2e_tests
 
 import (
+	"github.com/go-logr/logr"
 	"k8s.io/client-go/rest"
 
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
@@ -23,6 +24,7 @@ import (
 var (
 	k8sClient client.Client
 	cfg       *rest.Config
+	logger    logr.Logger
 )
 
 func newScheme() *runtime.Scheme {

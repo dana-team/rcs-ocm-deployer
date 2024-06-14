@@ -14,7 +14,7 @@ var (
 	cappConfigMapName = "capp-config"
 	cappAdmin         = "capp-admin"
 	cappName          = "capp-default-test"
-	cappBaseImage     = "ghcr.io/knative/autoscale-go:latest"
+	cappBaseImage     = "ghcr.io/dana-team/capp-gin-app:v0.2.0"
 	DataKey           = "password"
 	DataValue         = "password"
 	KindConfigMap     = "ConfigMap"

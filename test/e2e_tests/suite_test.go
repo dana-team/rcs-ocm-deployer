@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func TestE2E(t *testing.T) {
@@ -41,6 +42,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 // initClient initializes a k8s client.
 func initClient() {
 	var err error
+	log.SetLogger(logger)
 	cfg, err = config.GetConfig()
 	Expect(err).NotTo(HaveOccurred())
 
