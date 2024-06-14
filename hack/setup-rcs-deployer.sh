@@ -1,7 +1,10 @@
 #!/bin/bash
 
+## Initialize variables
 kind=""
 clusteradm=""
+capprelease=""
+addonsrelease=""
 
 initialize_kind() {
     if test -s "$1"; then
@@ -19,8 +22,26 @@ initialize_clusteradm() {
     fi
 }
 
+initialize_capp_release() {
+    if test -s "$1"; then
+        capprelease="$1"
+    else
+        capprelease="main"
+    fi
+}
+
+initialize_addons_release() {
+    if test -s "$1"; then
+        addonsrelease="$1"
+    else
+        addonsrelease="main"
+    fi
+}
+
 initialize_kind "$1"
 initialize_clusteradm "$2"
+initialize_capp_release "$4"
+initialize_addons_release "$5"
 
 hub=${CLUSTER1:-hub}
 c1=${CLUSTER1:-cluster1}
@@ -31,9 +52,15 @@ c1ctx="kind-${c1}"
 c2ctx="kind-${c2}"
 
 rcsimage="$3"
-cappimage="ghcr.io/dana-team/container-app-operator:main"
 clusterset="test-clusterset"
 ns="test"
+
+cappimage="ghcr.io/dana-team/container-app-operator:${capprelease}"
+rcsaddonsimage="ghcr.io/dana-team/rcs-ocm-addons:${addonsrelease}"
+
+capprepo=https://github.com/dana-team/container-app-operator
+addonsrepo=https://github.com/dana-team/rcs-ocm-addons
+certmanagerurl=https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
 
 # Create ManagedClusterSet and Placement on Hub
 kubectl config use-context "${hubctx}"
@@ -75,8 +102,8 @@ spec:
 EOF
 
 # Install cert-manager on Hub and install Capp CRD
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
-git clone https://github.com/dana-team/container-app-operator
+kubectl apply -f ${certmanagerurl}
+git clone ${capprepo}
 make -C container-app-operator install
 
 # Set up Managed Clusters by installing container-app-operator and its prerequisites on them
@@ -117,7 +144,9 @@ spec:
 EOF
 
 ## Deploy add-ons on placement and create configuration for them
-make deploy-addons IMG=${rcsimage}
+git clone ${addonsrepo}
+make -C rcs-ocm-addons deploy-addons IMG="${rcsaddonsimage}"
+rm -rf rcs-ocm-addons
 
 cat <<EOF | kubectl apply -f -
 apiVersion: addon.open-cluster-management.io/v1alpha1
