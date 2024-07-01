@@ -19,7 +19,7 @@ require (
 	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0
 	knative.dev/pkg v0.0.0-20240610120318-15e6cdf2f386
 	knative.dev/serving v0.41.1
-	open-cluster-management.io/api v0.13.0
+	open-cluster-management.io/api v0.14.0
 	sigs.k8s.io/controller-runtime v0.18.4
 )
 
