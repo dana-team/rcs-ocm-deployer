@@ -275,8 +275,8 @@ knative.dev/pkg v0.0.0-20240610120318-15e6cdf2f386 h1:nxFTT6DrXr70Zi2BK8nc57ts0/
 knative.dev/pkg v0.0.0-20240610120318-15e6cdf2f386/go.mod h1:l7R8/SteYph0mZDsVgq3fVs4mWp1DaYx9BJJX68U6ik=
 knative.dev/serving v0.41.1 h1:0yMQDqf9sIM18buVy4/rBoBLR3bPjJNf4qSD9Ot0OkY=
 knative.dev/serving v0.41.1/go.mod h1:RigKdoO6pY+uyHvQLTNIvgVv5HHVhcysSHx6Cl1k31s=
-open-cluster-management.io/api v0.13.0 h1:dlcJEZlNlE0DmSDctK2s7iWKg9l+Tgb0V78Z040nMuk=
-open-cluster-management.io/api v0.13.0/go.mod h1:CuCPEzXDvOyxBB0H1d1eSeajbHqaeGEKq9c63vQc63w=
+open-cluster-management.io/api v0.14.0 h1:yjhnNeO/QudiIoEi0i/yUYmP3iElAfUgtj4pHMV+4uM=
+open-cluster-management.io/api v0.14.0/go.mod h1:ltijKJhDifrPH0csvCUmFt5lzaERv+BBfh6X3l83rT0=
 sigs.k8s.io/controller-runtime v0.18.4 h1:87+guW1zhvuPLh1PHybKdYFLU0YJp4FhJRmiHvm5BZw=
 sigs.k8s.io/controller-runtime v0.18.4/go.mod h1:TVoGrfdpbA9VRFaRnKgk9P5/atA0pMwq+f+msb9M8Sg=
 sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd h1:EDPBXCAspyGV4jQlpZSudPeMmr1bNJefnuqLsRAsHZo=
