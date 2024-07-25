@@ -147,7 +147,7 @@ undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.
 
 .PHONY: local-quickstart
 local-quickstart: kind clusteradm ## Run the local-quickstart script
-	$(shell pwd)/hack/local-quickstart.sh $(KIND) $(CLUSTERADM) $(IMG) $(CAPP_RELEASE) $(ADDON_RELEASE)
+	$(shell pwd)/hack/local-quickstart.sh $(KIND) $(CLUSTERADM) $(CAPP_RELEASE) $(ADDON_RELEASE)
 
 .PHONY: ci-quickstart
 ci-quickstart: kind clusteradm ## Run the ci-quickstart script

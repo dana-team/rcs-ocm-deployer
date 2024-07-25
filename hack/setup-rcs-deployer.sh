@@ -40,8 +40,8 @@ initialize_addons_release() {
 
 initialize_kind "$1"
 initialize_clusteradm "$2"
-initialize_capp_release "$4"
-initialize_addons_release "$5"
+initialize_capp_release "$3"
+initialize_addons_release "$4"
 
 hub=${CLUSTER1:-hub}
 c1=${CLUSTER1:-cluster1}
@@ -51,7 +51,6 @@ hubctx="kind-${hub}"
 c1ctx="kind-${c1}"
 c2ctx="kind-${c2}"
 
-rcsimage="$3"
 clusterset="test-clusterset"
 ns="test"
 
@@ -111,19 +110,13 @@ kubectl config use-context "${c1ctx}"
 make -C container-app-operator prereq
 make -C container-app-operator deploy IMG="${cappimage}"
 kubectl wait --for=condition=ready pods -l control-plane=controller-manager -n capp-operator-system
-if [ -n "$rcsimage" ] && [ "$rcsimage" != "controller:latest" ]; then
-  "${kind}" load docker-image ${rcsimage} --name "${c1}"
-fi
-kubectl create configmap dns-zone --from-literal=zone=capp-zone. -n capp-operator-system
+kubectl create configmap dns-config --from-literal=zone=capp-zone. --from-literal=cname=cname.capp-zone -n capp-operator-system
 
 kubectl config use-context "${c2ctx}"
 make -C container-app-operator prereq
 make -C container-app-operator deploy IMG="${cappimage}"
 kubectl wait --for=condition=ready pods -l control-plane=controller-manager -n capp-operator-system
-if [ -n "$rcsimage" ] && [ "$rcsimage" != "controller:latest" ]; then
-  "${kind}" load docker-image ${rcsimage} --name "${c2}"
-fi
-kubectl create configmap dns-zone --from-literal=zone=capp-zone. -n capp-operator-system
+kubectl create configmap dns-config --from-literal=zone=capp-zone. --from-literal=cname=cname.capp-zone -n capp-operator-system
 
 rm -rf container-app-operator/
 
