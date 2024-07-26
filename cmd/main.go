@@ -137,6 +137,7 @@ func main() {
 	}})
 
 	hookServer.Register(rcswebhooks.MutatorServingPath, &webhook.Admission{Handler: &rcswebhooks.CappMutator{
+		Client:  mgr.GetClient(),
 		Decoder: decoder,
 	}})
 

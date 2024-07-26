@@ -4,15 +4,22 @@ package utils
 
 import (
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
+	"github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
+)
+
+var (
+	RCSAPIGroup = v1alpha1.GroupVersion.Group
+
+	// AnnotationKeyHasPlacement is the key used to store the managed cluster name in an annotation on a Capp resource
+	AnnotationKeyHasPlacement = RCSAPIGroup + "/has-placement"
 )
 
 const (
-	// AnnotationKeyHasPlacement is the key used to store the managed cluster name in an annotation on a Capp resource
-	AnnotationKeyHasPlacement = "rcs.dana.io/has-placement"
-	// RcsConfigName is the name of the RCS Deployer Config CRD instance
-	RcsConfigName = "rcs-config"
-	// RcsConfigNamespace is the namespace that contains the RCS Deployer Config CRD instance
-	RcsConfigNamespace = "rcs-deployer-system"
+	// RCSConfigName is the name of the RCS Deployer Config CRD instance
+	RCSConfigName = "rcs-config"
+
+	// RCSConfigNamespace is the namespace that contains the RCS Deployer Config CRD instance
+	RCSConfigNamespace = "rcs-deployer-system"
 )
 
 // ContainsPlacementAnnotation checks if a Capp resource has an annotation indicating it has been placed on a managed cluster.
