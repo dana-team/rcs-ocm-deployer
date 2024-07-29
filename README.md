@@ -66,10 +66,10 @@ The following should be installed on your Linux machine:
 Simply run the following to get a Hub cluster ready to have `rcs-ocm-deployer` deployed on it, and 2 Managed Cluster with `container-app-operator` already installed on them, with all add-ons installed as well.
 
 ```bash
-$ make local-quickstart IMG=ghcr.io/dana-team/rcs-ocm-deployer:<release> CAPP_RELEASE=<release> ADDON_RELEASE=<release>
+$ make local-quickstart CAPP_RELEASE=<release> ADDON_RELEASE=<release>
 ```
 
-`IMG`, `CAPP_RELEASE` and `ADDON_RELEASE` are optional parameters. If unspecified, the script will install `conatiner-app-operator` and `rcs-ocm-addons` using the latest development version.
+`CAPP_RELEASE` and `ADDON_RELEASE` are optional parameters. If unspecified, the script will install `conatiner-app-operator` and `rcs-ocm-addons` using the latest development version.
 
 ### Manual Approach
 
