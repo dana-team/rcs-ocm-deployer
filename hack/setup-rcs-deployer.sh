@@ -134,6 +134,12 @@ spec:
   placements:
   - test-placement
   placementsNamespace: test
+  defaultResources:
+    limits:
+      memory: "200Mi"
+    requests:
+      cpu: "100m"
+      memory: "100Mi"
 EOF
 
 ## Deploy add-ons on placement and create configuration for them

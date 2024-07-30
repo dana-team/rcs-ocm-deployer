@@ -6,6 +6,10 @@ import (
 	"net"
 	"strings"
 
+	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
+	"github.com/dana-team/rcs-ocm-deployer/internal/utils"
+	"k8s.io/apimachinery/pkg/types"
+
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -122,4 +126,15 @@ func findMissingFields(logSpec cappv1alpha1.LogSpec, required []string) []string
 		}
 	}
 	return missingFields
+}
+
+// getRCSConfig returns an instance of RCS Config.
+func getRCSConfig(ctx context.Context, k8sClient client.Client) (*rcsv1alpha1.RCSConfig, error) {
+	config := rcsv1alpha1.RCSConfig{}
+	key := types.NamespacedName{Name: utils.RCSConfigName, Namespace: utils.RCSConfigNamespace}
+	if err := k8sClient.Get(ctx, key, &config); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }
