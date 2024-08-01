@@ -13,9 +13,9 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.elastic.co/ecszap v1.0.2
 	go.uber.org/zap v1.27.0
-	k8s.io/api v0.30.2
-	k8s.io/apimachinery v0.30.2
-	k8s.io/client-go v0.30.2
+	k8s.io/api v0.30.3
+	k8s.io/apimachinery v0.30.3
+	k8s.io/client-go v0.30.3
 	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0
 	knative.dev/pkg v0.0.0-20240610120318-15e6cdf2f386
 	knative.dev/serving v0.41.1
