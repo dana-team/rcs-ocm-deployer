@@ -1,6 +1,7 @@
 package builders
 
 import (
+	"github.com/dana-team/rcs-ocm-deployer/internal/utils"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,6 +18,7 @@ func BuildRole(cappName string, namespace string) workv1.Manifest {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cappName + "-logs-reader",
 			Namespace: namespace,
+			Labels:    map[string]string{utils.MangedByLableKey: utils.MangedByLabelValue},
 		},
 		Rules: []rbacv1.PolicyRule{
 			{
@@ -45,6 +47,7 @@ func BuildRoleBinding(cappName string, namespace string, subjects []rbacv1.Subje
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cappName + "-logs-reader",
 			Namespace: namespace,
+			Labels:    map[string]string{utils.MangedByLableKey: utils.MangedByLabelValue},
 		},
 		RoleRef: rbacv1.RoleRef{
 			Name:     cappName + "-logs-reader",

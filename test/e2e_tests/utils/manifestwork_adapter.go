@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 
+	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	workv1 "open-cluster-management.io/api/work/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,8 +31,15 @@ func IsObjInManifestWork(k8sClient client.Client, manifestWork workv1.ManifestWo
 		if err != nil {
 			return false, err
 		} else {
-			if obj.GetKind() == kind && obj.GetName() == object.GetName() && obj.GetNamespace() == object.GetNamespace() {
-				return true, nil
+			objectLabels := obj.GetLabels()
+			if objectLabels != nil {
+				rcsLabel, ok := objectLabels[testconsts.MangedByLableKey]
+				if ok {
+					if obj.GetKind() == kind && obj.GetName() == object.GetName() && obj.GetNamespace() == object.GetNamespace() &&
+						rcsLabel == testconsts.MangedByLabelValue {
+						return true, nil
+					}
+				}
 			}
 		}
 	}
@@ -45,8 +54,15 @@ func IsRbacObjInManifestWork(manifestWork workv1.ManifestWork, cappName string, 
 		if err != nil {
 			return false
 		} else {
-			if obj.GetKind() == kind && obj.GetName() == cappName+RbacObjectSuffix && obj.GetNamespace() == nsName {
-				return true
+			objectLabels := obj.GetLabels()
+			if objectLabels != nil {
+				rcsLabel, ok := objectLabels[testconsts.MangedByLableKey]
+				if ok {
+					if obj.GetKind() == kind && obj.GetName() == cappName+RbacObjectSuffix &&
+						obj.GetNamespace() == nsName && rcsLabel == testconsts.MangedByLabelValue {
+						return true
+					}
+				}
 			}
 		}
 	}
