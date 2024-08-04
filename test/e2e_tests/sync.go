@@ -287,5 +287,20 @@ var _ = Describe("Validate the placement sync controller", func() {
 			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
 			return utilst.GetCappFromManifestWork(*manifestWork).Object["spec"].(map[string]interface{})["site"].(string)
 		}, testconsts.Timeout, testconsts.Interval).Should(Equal(testconsts.Cluster2))
+
+		By("Checks if managed by label exists")
+		Eventually(func() bool {
+			_ = k8sClient.Get(context.Background(), client.ObjectKey{Name: mwName, Namespace: mwNamespace}, manifestWork)
+			cappObject := utilst.GetCappFromManifestWork(*manifestWork)
+			cappLables := cappObject.GetLabels()
+			if cappLables != nil {
+				rcsLabel, ok := cappLables[testconsts.MangedByLableKey]
+				if ok {
+					return rcsLabel == testconsts.MangedByLabelValue
+				}
+			}
+			return false
+		}, testconsts.Timeout, testconsts.Interval).Should(BeTrue())
+
 	})
 })

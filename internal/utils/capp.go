@@ -10,6 +10,8 @@ import (
 var (
 	RCSAPIGroup = v1alpha1.GroupVersion.Group
 
+	MangedByLableKey = RCSAPIGroup + "/managed-by"
+
 	// AnnotationKeyHasPlacement is the key used to store the managed cluster name in an annotation on a Capp resource
 	AnnotationKeyHasPlacement = RCSAPIGroup + "/has-placement"
 )
@@ -20,6 +22,8 @@ const (
 
 	// RCSConfigNamespace is the namespace that contains the RCS Deployer Config CRD instance
 	RCSConfigNamespace = "rcs-deployer-system"
+
+	MangedByLabelValue = "rcs"
 )
 
 // ContainsPlacementAnnotation checks if a Capp resource has an annotation indicating it has been placed on a managed cluster.

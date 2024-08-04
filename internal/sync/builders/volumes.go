@@ -1,6 +1,7 @@
 package builders
 
 import (
+	"github.com/dana-team/rcs-ocm-deployer/internal/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,6 +18,7 @@ func BuildConfigMap(cm corev1.ConfigMap) workv1.Manifest {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cm.Name,
 			Namespace: cm.Namespace,
+			Labels:    map[string]string{utils.MangedByLableKey: utils.MangedByLabelValue},
 		},
 		Data: cm.Data,
 	}
@@ -33,6 +35,7 @@ func BuildSecret(secret corev1.Secret) workv1.Manifest {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secret.Name,
 			Namespace: secret.Namespace,
+			Labels:    map[string]string{utils.MangedByLableKey: utils.MangedByLabelValue},
 		},
 		Data: secret.Data,
 		Type: secret.Type,

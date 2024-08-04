@@ -7,15 +7,17 @@ import (
 )
 
 const (
-	Timeout           = 300 * time.Second
-	Interval          = 2 * time.Second
-	DefaultEventually = 2 * time.Second
+	Timeout            = 300 * time.Second
+	Interval           = 2 * time.Second
+	DefaultEventually  = 2 * time.Second
+	MangedByLabelValue = "rcs"
 )
 
 var (
 	RCSAPIGroup                = v1alpha1.GroupVersion.Group
 	LastUpdatedByAnnotationKey = RCSAPIGroup + "/last-updated-by"
 	AnnotationKeyHasPlacement  = RCSAPIGroup + "/has-placement"
+	MangedByLableKey           = RCSAPIGroup + "/managed-by"
 )
 
 const (
