@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "rcs-ocm-deployer.fullname" . }}-serving-cert
+  labels:
+  {{- include "rcs-ocm-deployer.labels" . | nindent 4 }}
+spec:
+  dnsNames:
+  - {{ include "rcs-ocm-deployer.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc
+  - {{ include "rcs-ocm-deployer.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.{{ .Values.kubernetesClusterDomain }}
+  issuerRef:
+    kind: Issuer
+    name: {{ include "rcs-ocm-deployer.fullname" . }}-selfsigned-issuer
+  secretName: webhook-server-cert

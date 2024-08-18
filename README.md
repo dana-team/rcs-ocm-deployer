@@ -44,12 +44,6 @@ This project uses the `Placement` and `ManifestWork` APIs of the Open Cluster Ma
 
 2. `sync`: The controller controls the lifecycle of the `ManifestWork` CR in the namespace of the chosen Managed Cluster. The `ManifestWork` contains the `Capp` CR as well as all the `Secrets` and `Volumes` referenced in the `Capp` CR, thus making sure that all the `Secrets` and `Volumes` also exist on the Managed Cluster, in the same namespace the `Capp CR` exists in on the Hub Cluster.
 
-3. `addOns`: 
-    - `status addon`: By applying this add-on to the Hub Cluster, the `Capp` status will automatically be synced back from Managed/Spoke Clusters to the Hub cluster. It has two components:
-      - `agent` - deployed on the Managed/Spoke clusters; responsible for syncing the `Capp` status between the Managed Cluster and the Hub Cluster.
-      - `manager` - deployed on the Hub Cluster; responsible for deploying the `agent` on the Managed/Spoke clusters.
-    - `score addon`: Based on the [resource-usage-collect-addon](https://github.com/open-cluster-management-io/addon-contrib/tree/main/resource-usage-collect-addon), this add-on implements an  `AddonPlacementScore` which gives a score to each Managed Cluster. The score is in the range of [-100, 100] and is computed from collecting resource usage information (CPU Request and Memory Request).
-
 ## Getting Started
 
 ### Prerequisites
@@ -63,13 +57,19 @@ The following should be installed on your Linux machine:
 
 ### Automatic Approach
 
-Simply run the following to get a Hub cluster ready to have `rcs-ocm-deployer` deployed on it, and 2 Managed Cluster with `container-app-operator` already installed on them, with all add-ons installed as well.
+Simply run the following to get a Hub cluster ready with all the prereq needed to have `rcs-ocm-deployer` deployed on it, and 2 Managed Cluster with `container-app-operator` already installed on them, with all add-ons installed as well.
 
 ```bash
 $ make local-quickstart CAPP_RELEASE=<release> ADDON_RELEASE=<release>
 ```
 
 `CAPP_RELEASE` and `ADDON_RELEASE` are optional parameters. If unspecified, the script will install `conatiner-app-operator` and `rcs-ocm-addons` using the latest development version.
+
+To just deploy the `rcs-ocm-deployer` on a cluster which already includes all the needed prereq, use the Helm chart defined at `chars/rcs-ocm-deployer`:
+
+```bash
+$ helm upgrade --install rcs-deployer --namespace rcs-deployer-system --create-namespace oci://ghcr.io/dana-team/helm-charts/rcs-ocm-deployer --version <release>
+```
 
 ### Manual Approach
 

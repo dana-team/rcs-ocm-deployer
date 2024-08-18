@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rcs-ocm-deployer.fullname" . }}-webhook-service
+  labels:
+    app.kubernetes.io/component: webhook
+  {{- include "rcs-ocm-deployer.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.webhookService.type }}
+  selector:
+    control-plane: controller-manager
+  {{- include "rcs-ocm-deployer.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: {{ .Values.webhookService.ports.port }}
+      protocol: {{ .Values.webhookService.ports.protocol }}
+      targetPort: {{ .Values.webhookService.ports.targetPort }}

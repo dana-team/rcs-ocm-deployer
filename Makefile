@@ -164,16 +164,9 @@ deploy-addons:
 undeploy-addons:
 	kubectl apply -f $(ADDONS_URL)
 
-.PHONY: build/install.yaml
-build/install.yaml: manifests kustomize
-	mkdir -p $(dir $@) && \
-	rm -rf build/kustomize && \
-	mkdir -p build/kustomize && \
-	cd build/kustomize && \
-	$(KUSTOMIZE) create --resources ../../config/default,../../addons/score/deploy/resources/default,../../addons/status/deploy/resources/default && \
-	$(KUSTOMIZE) edit set image controller=${IMG} && \
-	cd ${CURDIR} && \
-	$(KUSTOMIZE) build build/kustomize > $@
+.PHONY: doc-chart
+doc-chart: helm-docs helm helm-plugins
+	$(HELM_DOCS) charts/
 
 ##@ Dependencies
 
@@ -191,6 +184,9 @@ GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 CLUSTERADM ?= $(LOCALBIN)/clusteradm
 KIND ?= $(LOCALBIN)/kind
 GINKGO ?= $(LOCALBIN)/ginkgo
+HELM_DOCS ?= $(LOCALBIN)/helm-docs-$(HELM_DOCS_VERSION)
+
+HELM_URL ?= https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.3.0
@@ -198,6 +194,7 @@ CONTROLLER_TOOLS_VERSION ?= v0.14.0
 ENVTEST_VERSION ?= release-0.17
 GOLANGCI_LINT_VERSION ?= v1.54.2
 KIND_VERSION ?= v0.18.0
+HELM_DOCS_VERSION ?= v1.14.2
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
@@ -233,6 +230,32 @@ $(KIND): $(LOCALBIN)
 ginkgo: $(GINKGO) ## Download ginkgo locally if necessary.
 $(GINKGO): $(LOCALBIN)
 	test -s $(LOCALBIN)/ginkgo || GOBIN=$(LOCALBIN) go install github.com/onsi/ginkgo/v2/ginkgo@latest
+
+.PHONY: helm
+helm: ## Install helm on the local machine
+	wget -O $(LOCALBIN)/get-helm.sh $(HELM_URL)
+	chmod 700 $(LOCALBIN)/get-helm.sh
+	$(LOCALBIN)/get-helm.sh
+
+.PHONY: helm-plugins
+helm-plugins: ## Install helm plugins on the local machine
+	@if ! helm plugin list | grep -q 'diff'; then \
+		helm plugin install https://github.com/databus23/helm-diff; \
+	fi
+	@if ! helm plugin list | grep -q 'git'; then \
+		helm plugin install https://github.com/aslafy-z/helm-git; \
+	fi
+	@if ! helm plugin list | grep -q 's3'; then \
+		helm plugin install https://github.com/hypnoglow/helm-s3; \
+	fi
+	@if ! helm plugin list | grep -q 'secrets'; then \
+		helm plugin install https://github.com/jkroepke/helm-secrets; \
+	fi
+
+.PHONY: helm-docs
+helm-docs: $(HELM_DOCS)
+$(HELM_DOCS): $(LOCALBIN)
+	$(call go-install-tool,$(HELM_DOCS),github.com/norwoodj/helm-docs/cmd/helm-docs,$(HELM_DOCS_VERSION))
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary (ideally with version)

@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rcs-ocm-deployer.fullname" . }}-controller-manager
+  labels:
+    {{- include "rcs-ocm-deployer.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+      {{- include "rcs-ocm-deployer.selectorLabels" . | nindent 8 }}
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      containers:
+        - name: manager
+          image: {{ .Values.image.manager.repository }}:{{ .Values.image.manager.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.manager.pullPolicy }}
+          command:
+          {{- range .Values.manager.command }}
+          - {{ . }}
+          {{- end }}
+          args:
+          {{- range .Values.manager.args }}
+          - {{ . }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.manager.securityContext | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.livenessProbe.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: {{ .Values.readinessProbe.port }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          resources:
+            limits:
+              cpu: {{ .Values.manager.resources.limits.cpu }}
+              memory: {{ .Values.manager.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.manager.resources.requests.cpu }}
+              memory: {{ .Values.manager.resources.requests.memory }}
+          ports:
+            - containerPort: {{ .Values.manager.ports.health.containerPort }}
+              name: {{ .Values.manager.ports.health.name }}
+              protocol: {{ .Values.manager.ports.health.protocol }}
+            - containerPort: {{ .Values.manager.ports.webhook.containerPort }}
+              name: {{ .Values.manager.ports.webhook.name }}
+              protocol: {{ .Values.manager.ports.webhook.protocol }}
+          volumeMounts:
+          {{- range .Values.manager.volumeMounts }}
+          - mountPath: {{ .mountPath }}
+            name: {{ .name }}
+            readOnly: {{ .readOnly }}
+          {{- end }}
+        - name: kube-rbac-proxy
+          image: {{ .Values.image.kubeRbacProxy.repository }}:{{ .Values.image.kubeRbacProxy.tag }}
+          imagePullPolicy: {{ .Values.image.kubeRbacProxy.pullPolicy }}
+          args:
+          {{- range .Values.kubeRbacProxy.args }}
+          - {{ . }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.kubeRbacProxy.securityContext | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.kubeRbacProxy.ports.https.containerPort }}
+              protocol: {{ .Values.kubeRbacProxy.ports.https.protocol }}
+              name: {{ .Values.kubeRbacProxy.ports.https.name }}
+          resources:
+            limits:
+              cpu: {{ .Values.kubeRbacProxy.resources.limits.cpu }}
+              memory: {{ .Values.kubeRbacProxy.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.kubeRbacProxy.resources.requests.cpu }}
+              memory: {{ .Values.kubeRbacProxy.resources.requests.memory }}
+      serviceAccountName: {{ include "rcs-ocm-deployer.fullname" . }}-controller-manager
+      volumes:
+      {{- range .Values.volumes }}
+      - name: {{ .name }}
+        secret:
+          secretName: {{ .secret.secretName }}
+          defaultMode: {{ .secret.defaultMode }}
+      {{- end }}

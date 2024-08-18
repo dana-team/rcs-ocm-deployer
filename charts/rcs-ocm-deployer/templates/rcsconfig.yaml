@@ -1,0 +1,14 @@
+{{ if .Values.config.enabled }}
+apiVersion: rcs.dana.io/v1alpha1
+kind: RCSConfig
+metadata:
+  name: {{ .Values.config.name  }}
+spec:
+  placements:
+    {{- range .Values.config.placements }}
+    - {{ . }}
+    {{- end }}
+  placementsNamespace: test
+  defaultResources:
+    {{- toYaml .Values.config.defaultResources | nindent 4 }}
+{{ end }}
