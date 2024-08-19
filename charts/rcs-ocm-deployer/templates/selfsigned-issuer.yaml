@@ -1,0 +1,8 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "rcs-ocm-deployer.fullname" . }}-selfsigned-issuer
+  labels:
+  {{- include "rcs-ocm-deployer.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
