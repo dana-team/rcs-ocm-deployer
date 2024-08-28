@@ -8,7 +8,7 @@ spec:
     {{- range .Values.config.placements }}
     - {{ . }}
     {{- end }}
-  placementsNamespace: test
+  placementsNamespace: {{ .Values.config.placementsNamespace }}
   defaultResources:
     {{- toYaml .Values.config.defaultResources | nindent 4 }}
 {{ end }}
