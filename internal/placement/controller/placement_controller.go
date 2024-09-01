@@ -30,6 +30,8 @@ import (
 )
 
 const (
+	// controllerName is the name of the controller
+	controllerName = "PlacementController"
 	// RCSConfigName is the name of the RCS Deployer Config CRD instance
 	RCSConfigName = "rcs-config"
 	// RCSConfigNamespace is the namespace that contains the RCS Deployer Config CRD instance
@@ -125,6 +127,7 @@ var CappPredicateFunctions = predicate.Funcs{
 func (r *PlacementReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&cappv1alpha1.Capp{}).
+		Named(controllerName).
 		WithEventFilter(CappPredicateFunctions).
 		Complete(r)
 }
