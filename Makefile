@@ -190,7 +190,7 @@ HELM_URL ?= https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.3.0
-CONTROLLER_TOOLS_VERSION ?= v0.14.0
+CONTROLLER_TOOLS_VERSION ?= v0.16.2
 ENVTEST_VERSION ?= release-0.17
 GOLANGCI_LINT_VERSION ?= v1.54.2
 KIND_VERSION ?= v0.18.0

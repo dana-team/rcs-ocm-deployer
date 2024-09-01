@@ -24,7 +24,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-const RequeueTime = 2 * time.Second
+const (
+	// controllerName is the name of the controller
+	controllerName = "SyncController"
+
+	RequeueTime = 2 * time.Second
+)
 
 // SyncReconciler reconciles a CappNamespace object
 type SyncReconciler struct {
@@ -112,6 +117,7 @@ func (r *SyncReconciler) SyncManifestWork(capp cappv1alpha1.Capp, ctx context.Co
 func (r *SyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&cappv1alpha1.Capp{}).
+		Named(controllerName).
 		WithEventFilter(CappPredicateFuncs).
 		Complete(r)
 }

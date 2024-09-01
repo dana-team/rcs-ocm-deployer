@@ -116,7 +116,7 @@ func main() {
 		Scheme:        mgr.GetScheme(),
 		EventRecorder: mgr.GetEventRecorderFor("sync-controller"),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Capp")
+		setupLog.Error(err, "unable to create controller", "controller", "SyncController")
 		os.Exit(1)
 	}
 
@@ -125,7 +125,7 @@ func main() {
 		Scheme:        mgr.GetScheme(),
 		EventRecorder: mgr.GetEventRecorderFor("placement-controller"),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Capp")
+		setupLog.Error(err, "unable to create controller", "controller", "PlacementController")
 		os.Exit(1)
 	}
 

@@ -137,9 +137,5 @@ func getResourceVolumesFromContainerSpec(capp cappv1alpha1.Capp) ([]string, []st
 		secrets = append(secrets, secret.Name)
 	}
 
-	if capp.Spec.RouteSpec.TlsSecret != "" {
-		secrets = append(secrets, capp.Spec.RouteSpec.TlsSecret)
-	}
-
 	return configMaps, secrets
 }
