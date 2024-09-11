@@ -30,12 +30,14 @@ var _ = SynchronizedBeforeSuite(func() {
 	cleanUp()
 	createE2ETestNamespace()
 	utilst.CreateTestUser(k8sClient, mock.NSName)
+	utilst.CreateExcludedServiceAccount(k8sClient)
 }, func() {
 	initClient()
 })
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
 	utilst.DeleteTestUser(k8sClient, mock.NSName)
+	utilst.DeleteExcludedServiceAccount(k8sClient)
 	cleanUp()
 })
 

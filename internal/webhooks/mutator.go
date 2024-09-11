@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
 
@@ -29,8 +30,10 @@ var (
 )
 
 const (
-	MutatorServingPath = "/mutate-capp"
-	rcsServiceAccount  = "system:serviceaccount:rcs-deployer-system:rcs-deployer-controller-manager"
+	MutatorServingPath              = "/mutate-capp"
+	ExcludedServiceAccountNamespace = "rcs-deployer-system"
+	usernamePartsCount              = 4 // Number of parts in the service account username
+	namespaceIndex                  = 2 // Index for the namespace part in the username
 )
 
 // Handle implements the mutation webhook.
@@ -73,7 +76,7 @@ func mutateAnnotations(capp *cappv1alpha1.Capp, username string) {
 		capp.ObjectMeta.Annotations = make(map[string]string)
 	}
 
-	if username != rcsServiceAccount {
+	if !isExcludedServiceAccount(username) {
 		capp.ObjectMeta.Annotations[lastUpdatedByAnnotationKey] = username
 	}
 }
@@ -101,4 +104,13 @@ func setResourceQuantity(resourceList *corev1.ResourceList, defaultResources cor
 			}
 		}
 	}
+}
+
+// isExcludedServiceAccount checks if the given username is a service account in the rcs-deployer-system namespace.
+func isExcludedServiceAccount(username string) bool {
+	parts := strings.Split(username, ":")
+	if len(parts) == usernamePartsCount && parts[namespaceIndex] == ExcludedServiceAccountNamespace {
+		return true
+	}
+	return false
 }

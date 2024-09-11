@@ -71,3 +71,9 @@ func CreateRoleBinding(k8sClient client.Client, roleBinding *rbacv1.RoleBinding)
 	Expect(k8sClient.Create(context.Background(), roleBinding)).To(Succeed())
 	return roleBinding
 }
+
+// CreateServiceAccount creates a corev1.ServiceAccount and returns it.
+func CreateServiceAccount(k8sClient client.Client, serviceAccount *corev1.ServiceAccount) *corev1.ServiceAccount {
+	Expect(k8sClient.Create(context.Background(), serviceAccount)).To(Succeed())
+	return serviceAccount
+}

@@ -148,12 +148,16 @@ func CreateRoleBinding(name string, roleRef rbacv1.RoleRef, subjects []rbacv1.Su
 	}
 }
 
-// CreateServiceAccount creates a service account with the specified name.
-func CreateServiceAccount(name string) *corev1.ServiceAccount {
+// CreateServiceAccount creates a service account with the specified name in the specified namespace.
+func CreateServiceAccount(name, namespace string) *corev1.ServiceAccount {
+	if namespace == "" {
+		namespace = NSName
+	}
+
 	return &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: NSName,
+			Namespace: namespace,
 		},
 	}
 }

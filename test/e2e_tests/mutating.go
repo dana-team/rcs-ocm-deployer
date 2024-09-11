@@ -3,6 +3,8 @@ package e2e_tests
 import (
 	"fmt"
 
+	"github.com/dana-team/rcs-ocm-deployer/internal/webhooks"
+
 	"github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/testconsts"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -18,7 +20,7 @@ const adminAnnotationValue = "kubernetes-admin"
 var _ = Describe("Validate the mutating webhook", func() {
 	AfterEach(func() {
 		// Revert k8sClient back to use the original configuration
-		utilst.SwitchUser(&k8sClient, cfg, mock.NSName, newScheme(), false)
+		utilst.SwitchUser(&k8sClient, cfg, mock.NSName, newScheme(), "")
 	})
 
 	It("Should add annotation on create", func() {
@@ -36,7 +38,7 @@ var _ = Describe("Validate the mutating webhook", func() {
 		annotation := capp.ObjectMeta.Annotations[testconsts.LastUpdatedByAnnotationKey]
 		Expect(annotation).To(Equal(adminAnnotationValue))
 
-		utilst.SwitchUser(&k8sClient, cfg, mock.NSName, newScheme(), true)
+		utilst.SwitchUser(&k8sClient, cfg, mock.NSName, newScheme(), utilst.ServiceAccountName)
 		capp = utilst.GetCapp(k8sClient, capp.Name, capp.Namespace)
 		capp.ObjectMeta.Annotations["test"] = "test"
 		utilst.UpdateCapp(k8sClient, capp)
@@ -46,6 +48,24 @@ var _ = Describe("Validate the mutating webhook", func() {
 		// Check if the annotation has changed
 		updatedAnnotation := updatedCapp.ObjectMeta.Annotations[testconsts.LastUpdatedByAnnotationKey]
 		Expect(updatedAnnotation).To(Equal(fmt.Sprintf(utilst.ServiceAccountNameFormat, mock.NSName, utilst.ServiceAccountName)))
+	})
+
+	It("Should not add annotation on update by excluded service account", func() {
+		baseCapp := mock.CreateBaseCapp()
+		capp := utilst.CreateCapp(k8sClient, baseCapp)
+
+		initialAnnotation := capp.ObjectMeta.Annotations[testconsts.LastUpdatedByAnnotationKey]
+		Expect(initialAnnotation).To(Equal(adminAnnotationValue))
+
+		utilst.SwitchUser(&k8sClient, cfg, webhooks.ExcludedServiceAccountNamespace, newScheme(), utilst.ExcludedServiceAccountName)
+		capp = utilst.GetCapp(k8sClient, capp.Name, capp.Namespace)
+		capp.ObjectMeta.Annotations["test"] = "test"
+		utilst.UpdateCapp(k8sClient, capp)
+
+		updatedCapp := utilst.GetCapp(k8sClient, capp.Name, capp.Namespace)
+
+		updatedAnnotation := updatedCapp.ObjectMeta.Annotations[testconsts.LastUpdatedByAnnotationKey]
+		Expect(updatedAnnotation).To(Equal(adminAnnotationValue))
 	})
 
 	It("Should add default resources to Capp", func() {
