@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dana-team/rcs-ocm-deployer/internal/webhooks"
+
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	mock "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/mocks"
 	. "github.com/onsi/gomega"
@@ -17,8 +19,9 @@ import (
 )
 
 const (
-	ServiceAccountNameFormat = "system:serviceaccount:%s:%s"
-	ServiceAccountName       = "test-user"
+	ServiceAccountNameFormat   = "system:serviceaccount:%s:%s"
+	ServiceAccountName         = "test-user"
+	ExcludedServiceAccountName = "excluded-sa"
 )
 
 // CreateTestUser creates a test user with the specified Kubernetes client and namespace.
@@ -27,13 +30,19 @@ func CreateTestUser(k8sClient client.Client, namespace string) {
 	createTestUserRoleAndRoleBinding(k8sClient, namespace)
 }
 
-// SwitchUser switches the Kubernetes client's user context to the test user if switchToTestUser is true.
-// If switchToTestUser is false, it reverts to the original context.
-func SwitchUser(k8sClient *client.Client, cfg *rest.Config, namespace string, scheme *runtime.Scheme, switchToTestUser bool) {
+// CreateExcludedServiceAccount configures a service account that should be excluded from the mutating webhook.
+func CreateExcludedServiceAccount(k8sClient client.Client) {
+	createUserServiceAccount(k8sClient, ExcludedServiceAccountName, webhooks.ExcludedServiceAccountNamespace)
+	createUserRoleAndRoleBinding(k8sClient, ExcludedServiceAccountName, webhooks.ExcludedServiceAccountNamespace)
+}
+
+// SwitchUser switches the Kubernetes client's user context to the given serviceAccountName if it's not empty.
+// If serviceAccountName is empty, it reverts to the original context.
+func SwitchUser(k8sClient *client.Client, cfg *rest.Config, namespace string, scheme *runtime.Scheme, serviceAccountName string) {
 	cfg.Impersonate = rest.ImpersonationConfig{}
-	if switchToTestUser {
+	if serviceAccountName != "" {
 		cfg.Impersonate = rest.ImpersonationConfig{
-			UserName: fmt.Sprintf(ServiceAccountNameFormat, namespace, ServiceAccountName),
+			UserName: fmt.Sprintf(ServiceAccountNameFormat, namespace, serviceAccountName),
 		}
 	}
 
@@ -50,9 +59,20 @@ func DeleteTestUser(k8sClient client.Client, namespace string) {
 	deleteTestUserServiceAccount(k8sClient, namespace)
 }
 
+// DeleteExcludedServiceAccount deletes the excluded user created in the specified namespace.
+func DeleteExcludedServiceAccount(k8sClient client.Client) {
+	deleteUserRoleAndRoleBinding(k8sClient, ExcludedServiceAccountName, webhooks.ExcludedServiceAccountNamespace)
+	deleteUserServiceAccount(k8sClient, ExcludedServiceAccountName, webhooks.ExcludedServiceAccountNamespace)
+}
+
 // createTestUserServiceAccount creates a service account for the test user in the specified namespace.
 func createTestUserServiceAccount(k8sClient client.Client) {
-	serviceAccount := mock.CreateServiceAccount(ServiceAccountName)
+	createUserServiceAccount(k8sClient, ServiceAccountName, "")
+}
+
+// createUserServiceAccount creates a service account for the test user in the specified namespace.
+func createUserServiceAccount(k8sClient client.Client, serviceAccountName, namespace string) {
+	serviceAccount := mock.CreateServiceAccount(serviceAccountName, namespace)
 
 	err := k8sClient.Create(context.Background(), serviceAccount)
 	Expect(err).To(SatisfyAny(BeNil(), WithTransform(errors.IsAlreadyExists, BeTrue())))
@@ -60,6 +80,11 @@ func createTestUserServiceAccount(k8sClient client.Client) {
 
 // createTestUserRoleAndRoleBinding creates a role and role binding for the test user in the specified namespace.
 func createTestUserRoleAndRoleBinding(k8sClient client.Client, namespace string) {
+	createUserRoleAndRoleBinding(k8sClient, ServiceAccountName, namespace)
+}
+
+// createUserRoleAndRoleBinding creates a role and role binding for a user in the specified namespace.
+func createUserRoleAndRoleBinding(k8sClient client.Client, serviceAccountName, namespace string) {
 	rules := []rbacv1.PolicyRule{
 		{
 			APIGroups: []string{cappv1alpha1.GroupVersion.Group},
@@ -67,7 +92,7 @@ func createTestUserRoleAndRoleBinding(k8sClient client.Client, namespace string)
 			Verbs:     []string{"get", "update"},
 		},
 	}
-	role := mock.CreateRole(ServiceAccountName, rules)
+	role := mock.CreateRole(serviceAccountName, rules)
 
 	// Create or update the Role object
 	err := k8sClient.Create(context.Background(), role)
@@ -75,19 +100,19 @@ func createTestUserRoleAndRoleBinding(k8sClient client.Client, namespace string)
 
 	roleRef := rbacv1.RoleRef{
 		Kind:     "Role",
-		Name:     ServiceAccountName,
+		Name:     serviceAccountName,
 		APIGroup: "rbac.authorization.k8s.io",
 	}
 
 	subjects := []rbacv1.Subject{
 		{
 			Kind:      "ServiceAccount",
-			Name:      ServiceAccountName,
+			Name:      serviceAccountName,
 			Namespace: namespace,
 		},
 	}
 
-	roleBinding := mock.CreateRoleBinding(ServiceAccountName, roleRef, subjects)
+	roleBinding := mock.CreateRoleBinding(serviceAccountName, roleRef, subjects)
 
 	err = k8sClient.Create(context.Background(), roleBinding)
 	Expect(err).To(SatisfyAny(BeNil(), WithTransform(errors.IsAlreadyExists, BeTrue())))
@@ -95,9 +120,14 @@ func createTestUserRoleAndRoleBinding(k8sClient client.Client, namespace string)
 
 // deleteTestUserServiceAccount deletes the service account of the test user in the specified namespace.
 func deleteTestUserServiceAccount(k8sClient client.Client, namespace string) {
+	deleteUserServiceAccount(k8sClient, ServiceAccountName, namespace)
+}
+
+// deleteUserServiceAccount deletes the service account of a user in the specified namespace.
+func deleteUserServiceAccount(k8sClient client.Client, serviceAccountName, namespace string) {
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      ServiceAccountName,
+			Name:      serviceAccountName,
 			Namespace: namespace,
 		},
 	}
@@ -107,9 +137,14 @@ func deleteTestUserServiceAccount(k8sClient client.Client, namespace string) {
 
 // deleteTestUserRoleAndRoleBinding deletes the role and role binding of the test user in the specified namespace.
 func deleteTestUserRoleAndRoleBinding(k8sClient client.Client, namespace string) {
+	deleteUserServiceAccount(k8sClient, ServiceAccountName, namespace)
+}
+
+// deleteUserRoleAndRoleBinding deletes the role and role binding of s user in the specified namespace.
+func deleteUserRoleAndRoleBinding(k8sClient client.Client, serviceAccountName, namespace string) {
 	roleBinding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      ServiceAccountName,
+			Name:      serviceAccountName,
 			Namespace: namespace,
 		},
 	}
@@ -118,7 +153,7 @@ func deleteTestUserRoleAndRoleBinding(k8sClient client.Client, namespace string)
 
 	role := &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      ServiceAccountName,
+			Name:      serviceAccountName,
 			Namespace: namespace,
 		},
 	}
