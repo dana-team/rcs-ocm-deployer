@@ -100,6 +100,14 @@ spec:
                       More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
                     type: object
                 type: object
+              invalidHostnamePatterns:
+                default: []
+                description: |-
+                  InvalidHostnamePatterns is an optional slice of regex patterns to be used to validate the hostname of the Capp.
+                  If the Capp hostname matches a pattern, it is blocked from being created.
+                items:
+                  type: string
+                type: array
               placements:
                 description: Placements is an array of Placement names that the operator
                   should use
@@ -113,6 +121,7 @@ spec:
                 type: string
             required:
             - defaultResources
+            - invalidHostnamePatterns
             - placements
             - placementsNamespace
             type: object

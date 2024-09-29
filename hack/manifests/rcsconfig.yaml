@@ -1,0 +1,17 @@
+apiVersion: rcs.dana.io/v1alpha1
+kind: RCSConfig
+metadata:
+  name: rcs-config
+  namespace: rcs-deployer-system
+spec:
+  defaultResources:
+    limits:
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  invalidHostnamePatterns:
+  - ^([a-zA-Z0-9-]+\.)*test\.[a-zA-Z0-9-]+\.(dana.io)$
+  placements:
+  - test-placement
+  placementsNamespace: test

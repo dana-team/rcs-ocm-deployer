@@ -33,6 +33,11 @@ type RCSConfigSpec struct {
 	// DefaultResources is the default resources to be assigned to Capp.
 	// If other resources are specified then they override the default values.
 	DefaultResources corev1.ResourceRequirements `json:"defaultResources"`
+
+	// InvalidHostnamePatterns is an optional slice of regex patterns to be used to validate the hostname of the Capp.
+	// If the Capp hostname matches a pattern, it is blocked from being created.
+	// +kubebuilder:default:={}
+	InvalidHostnamePatterns []string `json:"invalidHostnamePatterns"`
 }
 
 // RCSConfigStatus defines the observed state of RCSConfig

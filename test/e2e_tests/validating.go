@@ -16,6 +16,7 @@ const (
 	validDomainSuffix    = ".com"
 	unsupportedHostname  = "...aaa.a...."
 	clusterLocalHostname = "invalid.svc.cluster.local"
+	invalidHostName      = "invalid.test.dana-cluster.dana.io"
 	existingHostname     = "google.com"
 	unsupportedLogType   = "unsupported"
 	elasticLogType       = "elastic"
@@ -58,6 +59,13 @@ var _ = Describe("Validate the validating webhook", func() {
 		baseCapp := mock.CreateBaseCapp()
 		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
 		baseCapp.Spec.RouteSpec.Hostname = clusterLocalHostname
+		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
+	})
+
+	It("Should deny the use of a hostname matching the invalid pattern", func() {
+		baseCapp := mock.CreateBaseCapp()
+		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
+		baseCapp.Spec.RouteSpec.Hostname = invalidHostName
 		Expect(k8sClient.Create(context.Background(), baseCapp)).ShouldNot(Succeed())
 	})
 

@@ -124,23 +124,7 @@ rm -rf container-app-operator/
 kubectl config use-context "${hubctx}"
 make install
 kubectl create ns rcs-deployer-system
-cat <<EOF | kubectl apply -f -
-apiVersion: rcs.dana.io/v1alpha1
-kind: RCSConfig
-metadata:
-  name: rcs-config
-  namespace: rcs-deployer-system
-spec:
-  placements:
-  - test-placement
-  placementsNamespace: test
-  defaultResources:
-    limits:
-      memory: "200Mi"
-    requests:
-      cpu: "100m"
-      memory: "100Mi"
-EOF
+kubectl apply -f hack/manifests/rcsconfig.yaml
 
 ## Deploy add-ons on placement and create configuration for them
 git clone ${addonsrepo}
@@ -157,7 +141,7 @@ spec:
   agentInstallNamespace: open-cluster-management-agent-addon
   customizedVariables:
   - name: MAX_CPU_COUNT
-    value: "1"
+    value: "4"
   - name: MIN_CPU_COUNT
     value: "0"
   - name: MAX_MEMORY_BYTES

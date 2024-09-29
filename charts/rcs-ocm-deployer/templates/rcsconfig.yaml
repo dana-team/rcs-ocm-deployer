@@ -11,4 +11,8 @@ spec:
   placementsNamespace: {{ .Values.config.placementsNamespace }}
   defaultResources:
     {{- toYaml .Values.config.defaultResources | nindent 4 }}
+  invalidHostnamePatterns:
+    {{- range .Values.config.InvalidHostnamePatterns }}
+    - {{ . }}
+    {{- end }}
 {{ end }}
