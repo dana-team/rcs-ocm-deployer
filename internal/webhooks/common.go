@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 
 	rcsv1alpha1 "github.com/dana-team/rcs-ocm-deployer/api/v1alpha1"
@@ -48,7 +49,7 @@ func getManagedClusters(r client.Client, ctx context.Context) ([]string, error) 
 
 // validateDomainName checks if the hostname is valid domain name and not part of the cluster's domain.
 // it returns aggregated error if any of the validations falied.
-func validateDomainName(domainName string) (errs *apis.FieldError) {
+func validateDomainName(domainName string, invalidPatterns []string) (errs *apis.FieldError) {
 	if domainName == "" {
 		return nil
 	}
@@ -56,6 +57,15 @@ func validateDomainName(domainName string) (errs *apis.FieldError) {
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf(
 			"invalid name %q: %s", domainName, err.ToAggregate()), "name"))
+	}
+	for _, pattern := range invalidPatterns {
+		if pattern != "" {
+			re := regexp.MustCompile(fmt.Sprintf("%v", pattern))
+			if re.MatchString(domainName) {
+				errs = errs.Also(apis.ErrGeneric(
+					fmt.Sprintf("invalid name %q: must not match pattern %q", domainName, pattern), "name"))
+			}
+		}
 	}
 
 	clusterLocalDomain := network.GetClusterDomainName()

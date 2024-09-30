@@ -46,7 +46,12 @@ func (c *CappValidator) handle(ctx context.Context, capp cappv1alpha1.Capp) admi
 		return admission.Denied(fmt.Sprintf("this site %s is unsupported. Site field accepts either cluster name or placement name", capp.Spec.Site))
 	}
 
-	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname); errs != nil {
+	var invalidHostnamePatterns []string
+	if config.Spec.InvalidHostnamePatterns != nil {
+		invalidHostnamePatterns = config.Spec.InvalidHostnamePatterns
+	}
+
+	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname, invalidHostnamePatterns); errs != nil {
 		return admission.Denied(errs.Error())
 	}
 
