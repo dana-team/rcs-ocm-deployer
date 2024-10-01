@@ -3,11 +3,13 @@ package e2e_tests
 import (
 	"context"
 
-	utilst "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/utils"
-
+	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	mock "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/mocks"
+	utilst "github.com/dana-team/rcs-ocm-deployer/test/e2e_tests/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 )
 
 const (
@@ -24,6 +26,7 @@ const (
 	elasticHostExample   = "https://elasticsearch.dana.com/_bulk"
 	index                = "main"
 	secretName           = "elastic-secret"
+	scaleMetric          = "cpu"
 )
 
 var _ = Describe("Validate the validating webhook", func() {
@@ -75,6 +78,24 @@ var _ = Describe("Validate the validating webhook", func() {
 		validHostName := baseCapp.Name + validDomainSuffix
 		baseCapp.Spec.RouteSpec.Hostname = validHostName
 		Expect(k8sClient.Create(context.Background(), baseCapp)).Should(Succeed())
+	})
+
+	It("Should allow updating a capp with a hostname that has not been changed", func() {
+		baseCapp := mock.CreateBaseCapp()
+		baseCapp.Name = utilst.GenerateUniqueCappName(baseCapp.Name)
+		validHostName := baseCapp.Name + validDomainSuffix
+		baseCapp.Spec.RouteSpec.Hostname = validHostName
+		Expect(k8sClient.Create(context.Background(), baseCapp)).Should(Succeed())
+
+		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			cappInCluster := cappv1alpha1.Capp{}
+			if err := k8sClient.Get(context.Background(), types.NamespacedName{Name: baseCapp.Name, Namespace: baseCapp.Namespace}, &cappInCluster); err != nil {
+				return err
+			}
+			cappInCluster.Spec.RouteSpec.Hostname = validHostName
+			return k8sClient.Update(context.Background(), &cappInCluster)
+		})
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	It("Should deny the use of an invalid log type", func() {

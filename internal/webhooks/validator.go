@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	admissionv1 "k8s.io/api/admission/v1"
+
 	cappv1alpha1 "github.com/dana-team/container-app-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -32,10 +34,19 @@ func (c *CappValidator) Handle(ctx context.Context, req admission.Request) admis
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
-	return c.handle(ctx, capp)
+	oldCapp := &cappv1alpha1.Capp{}
+	if req.Operation == admissionv1.Update {
+		err := c.Decoder.DecodeRaw(req.OldObject, oldCapp)
+		if err != nil {
+			logger.Error(err, "could not decode old capp object")
+			return admission.Errored(http.StatusBadRequest, err)
+		}
+	}
+
+	return c.handle(ctx, capp, oldCapp)
 }
 
-func (c *CappValidator) handle(ctx context.Context, capp cappv1alpha1.Capp) admission.Response {
+func (c *CappValidator) handle(ctx context.Context, capp cappv1alpha1.Capp, oldCapp *cappv1alpha1.Capp) admission.Response {
 	config, err := getRCSConfig(ctx, c.Client)
 	if err != nil {
 		return admission.Denied("Failed to fetch RCSConfig")
@@ -51,8 +62,10 @@ func (c *CappValidator) handle(ctx context.Context, capp cappv1alpha1.Capp) admi
 		invalidHostnamePatterns = config.Spec.InvalidHostnamePatterns
 	}
 
-	if errs := validateDomainName(capp.Spec.RouteSpec.Hostname, invalidHostnamePatterns); errs != nil {
-		return admission.Denied(errs.Error())
+	if oldCapp == nil || capp.Spec.RouteSpec.Hostname != oldCapp.Spec.RouteSpec.Hostname {
+		if errs := validateDomainName(capp.Spec.RouteSpec.Hostname, invalidHostnamePatterns); errs != nil {
+			return admission.Denied(errs.Error())
+		}
 	}
 
 	if capp.Spec.LogSpec != (cappv1alpha1.LogSpec{}) {
