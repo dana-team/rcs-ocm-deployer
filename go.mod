@@ -20,7 +20,7 @@ require (
 	knative.dev/pkg v0.0.0-20241021183759-9b9d535af5ad
 	knative.dev/serving v0.43.0
 	open-cluster-management.io/api v0.15.0
-	sigs.k8s.io/controller-runtime v0.19.1
+	sigs.k8s.io/controller-runtime v0.19.3
 )
 
 require (
@@ -46,7 +46,6 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.0 // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
