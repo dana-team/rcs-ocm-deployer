@@ -110,13 +110,13 @@ kubectl config use-context "${c1ctx}"
 make -C container-app-operator prereq
 make -C container-app-operator deploy IMG="${cappimage}"
 kubectl wait --for=condition=ready pods -l control-plane=controller-manager -n capp-operator-system
-kubectl create configmap dns-config --from-literal=zone=capp-zone. --from-literal=cname=cname.capp-zone -n capp-operator-system
+make -C container-app-operator create-cappConfig
 
 kubectl config use-context "${c2ctx}"
 make -C container-app-operator prereq
 make -C container-app-operator deploy IMG="${cappimage}"
 kubectl wait --for=condition=ready pods -l control-plane=controller-manager -n capp-operator-system
-kubectl create configmap dns-config --from-literal=zone=capp-zone. --from-literal=cname=cname.capp-zone -n capp-operator-system
+make -C container-app-operator create-cappConfig
 
 rm -rf container-app-operator/
 
