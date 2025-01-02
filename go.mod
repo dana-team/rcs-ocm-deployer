@@ -3,7 +3,7 @@ module github.com/dana-team/rcs-ocm-deployer
 go 1.22.2
 
 require (
-	github.com/dana-team/container-app-operator v0.3.5
+	github.com/dana-team/container-app-operator v0.3.6
 	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.3.0
 	github.com/kube-logging/logging-operator/pkg/sdk v0.11.1-0.20240314152935-421fefebc813
@@ -36,7 +36,7 @@ require (
 	github.com/cert-manager/cert-manager v1.16.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cisco-open/operator-tools v0.37.0 // indirect
-	github.com/crossplane/crossplane-runtime v1.17.0 // indirect
+	github.com/crossplane/crossplane-runtime v1.18.0 // indirect
 	github.com/crossplane/upjet v1.4.1 // indirect
 	github.com/dana-team/nfspvc-operator v0.4.3 // indirect
 	github.com/dana-team/provider-dns v0.1.3 // indirect
@@ -134,7 +134,7 @@ require (
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240903163716-9e1beecbcb38 // indirect
 	knative.dev/networking v0.0.0-20241022012959-60e29ff520dc // indirect
-	sigs.k8s.io/controller-tools v0.15.0 // indirect
+	sigs.k8s.io/controller-tools v0.16.0 // indirect
 	sigs.k8s.io/gateway-api v1.1.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
